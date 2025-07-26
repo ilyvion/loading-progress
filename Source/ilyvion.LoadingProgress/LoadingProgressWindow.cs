@@ -35,15 +35,13 @@ public partial class LoadingProgressWindow
         lock (windowLock)
         {
             var rule = StageRules.Find(r => r.Stage == CurrentStage);
-            if (rule is not null && rule.DisplayLabel is not null)
+            string? label = rule is not null && rule.CustomLabel is not null
+                ? rule.CustomLabel(_currentLoadingActivity)
+                : GetStageTranslation(CurrentStage, _currentLoadingActivity);
+            if (!string.IsNullOrEmpty(label))
             {
-                var label = rule.DisplayLabel(_currentLoadingActivity);
-                if (!string.IsNullOrEmpty(label))
-                {
-                    Widgets.Label(rect3, label);
-                }
+                Widgets.Label(rect3, label);
             }
-            // else: do nothing for Finished/default
 
             DrawHorizontalProgressBar(
                 new Rect(rect3.x, rect3.y + Text.LineHeight + 4f, rect3.width, 20f),

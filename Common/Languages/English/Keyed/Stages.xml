@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LanguageData>
+    <LoadingProgress.Stage.Initializing.Text>Initializing...</LoadingProgress.Stage.Initializing.Text>
+    <LoadingProgress.Stage.LoadingModClasses.Text>Loading mod classes... (&lt;i&gt;{0}&lt;/i&gt;)</LoadingProgress.Stage.LoadingModClasses.Text>
+    <LoadingProgress.Stage.LoadModXml.Text>Loading mod XML... (&lt;i&gt;{0}&lt;/i&gt;)</LoadingProgress.Stage.LoadModXml.Text>
+    <LoadingProgress.Stage.CombineIntoUnifiedXml.Text>Combining XML...</LoadingProgress.Stage.CombineIntoUnifiedXml.Text>
+    <LoadingProgress.Stage.TKeySystemParse.Text>Parsing Translation Key system...</LoadingProgress.Stage.TKeySystemParse.Text>
+    <LoadingProgress.Stage.ErrorCheckPatches.Text>Checking XML patches for errors...</LoadingProgress.Stage.ErrorCheckPatches.Text>
+    <LoadingProgress.Stage.ApplyPatches.Text>Applying XML patches... (&lt;i&gt;{0}&lt;/i&gt;)</LoadingProgress.Stage.ApplyPatches.Text>
+    <LoadingProgress.Stage.ParseAndProcessXml.Text>Parsing and processing XML...</LoadingProgress.Stage.ParseAndProcessXml.Text>
+    <LoadingProgress.Stage.XmlInheritanceResolve.Text>Resolving XML inheritance...</LoadingProgress.Stage.XmlInheritanceResolve.Text>
+    <LoadingProgress.Stage.LoadingDefs.Text>Loading defs... (&lt;i&gt;{0}&lt;/i&gt;)</LoadingProgress.Stage.LoadingDefs.Text>
+    <LoadingProgress.Stage.ClearCachedPatches.Text>Clearing cached patches...</LoadingProgress.Stage.ClearCachedPatches.Text>
+    <LoadingProgress.Stage.XmlInheritanceClear.Text>Clearing XML inheritance...</LoadingProgress.Stage.XmlInheritanceClear.Text>
+    <LoadingProgress.Stage.LoadLanguageMetadata.Text>Loading language metadata...</LoadingProgress.Stage.LoadLanguageMetadata.Text>
+    <LoadingProgress.Stage.LoadLanguage.Text>Loading language data... (&lt;i&gt;{0}&lt;/i&gt;)</LoadingProgress.Stage.LoadLanguage.Text>
+    <LoadingProgress.Stage.CopyAllDefsToGlobalDatabases.Text>Copying all Defs from mods to global databases...</LoadingProgress.Stage.CopyAllDefsToGlobalDatabases.Text>
+    <LoadingProgress.Stage.ResolveCrossReferencesBetweenNonImpliedDefs.Text>Resolving cross-references between non-implied Defs...</LoadingProgress.Stage.ResolveCrossReferencesBetweenNonImpliedDefs.Text>
+    <LoadingProgress.Stage.RebindDefOfsEarly.Text>Rebinding DefOfs (early)...</LoadingProgress.Stage.RebindDefOfsEarly.Text>
+    <LoadingProgress.Stage.TKeySystemBuildMappings.Text>Building Translation Key system mappings...</LoadingProgress.Stage.TKeySystemBuildMappings.Text>
+    <LoadingProgress.Stage.LegacyBackstoryTranslations.Text>Loading legacy backstory translations...</LoadingProgress.Stage.LegacyBackstoryTranslations.Text>
+    <LoadingProgress.Stage.InjectSelectedLanguageDataEarly.Text>Injecting selected language data into game data (early pass)...</LoadingProgress.Stage.InjectSelectedLanguageDataEarly.Text>
+    <LoadingProgress.Stage.GlobalOperationsEarly.Text>Running global operations (early pass)...</LoadingProgress.Stage.GlobalOperationsEarly.Text>
+    <LoadingProgress.Stage.ResolveCrossReferencesBetweenImpliedDefs.Text>Resolving cross-references between Defs made by the implied defs...</LoadingProgress.Stage.ResolveCrossReferencesBetweenImpliedDefs.Text>
+    <LoadingProgress.Stage.RebindDefOfsFinal.Text>Rebinding DefOfs (final)...</LoadingProgress.Stage.RebindDefOfsFinal.Text>
+    <LoadingProgress.Stage.OtherOperationsPreResolve.Text>Running other global operations (pre-resolve)...</LoadingProgress.Stage.OtherOperationsPreResolve.Text>
+    <LoadingProgress.Stage.ResolveReferences.Text>Resolving references... (&lt;i&gt;{0}&lt;/i&gt;)</LoadingProgress.Stage.ResolveReferences.Text>
+    <LoadingProgress.Stage.OtherOperationsPostResolve.Text>Running other global operations (post-resolve)...</LoadingProgress.Stage.OtherOperationsPostResolve.Text>
+    <LoadingProgress.Stage.ErrorCheckAllDefs.Text>Checking all defs for errors...</LoadingProgress.Stage.ErrorCheckAllDefs.Text>
+    <LoadingProgress.Stage.ShortHashGiving.Text>Giving short hashes to defs...</LoadingProgress.Stage.ShortHashGiving.Text>
+    <LoadingProgress.Stage.StaticConstructorOnStartupCallAll.Text>Calling all static constructors... (&lt;i&gt;{0}&lt;/i&gt;)</LoadingProgress.Stage.StaticConstructorOnStartupCallAll.Text>
+    <LoadingProgress.Stage.LoadingAllBios.Text>Loading all bios...</LoadingProgress.Stage.LoadingAllBios.Text>
+    <LoadingProgress.Stage.InjectSelectedLanguageDataIntoGameData.Text>Injecting selected language data into game data...</LoadingProgress.Stage.InjectSelectedLanguageDataIntoGameData.Text>
+    <LoadingProgress.Stage.AtlasBaking.Text>Baking static atlases...</LoadingProgress.Stage.AtlasBaking.Text>
+    <LoadingProgress.Stage.GarbageCollection.Text>Running garbage collection...</LoadingProgress.Stage.GarbageCollection.Text>
+</LanguageData>
