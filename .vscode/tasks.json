@@ -1,0 +1,52 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build all versions",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "command": ".vscode/buildAll.sh",
+            "problemMatcher": []
+        },
+        {
+            "label": "build choose version",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "command": ".vscode/build.sh",
+            "args": [
+                "${input:rimWorldVersion}"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "build 1.6",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "command": ".vscode/build.sh",
+            "args": [
+                "1.6"
+            ],
+            "problemMatcher": []
+        }
+    ],
+    "inputs": [
+        {
+            "id": "rimWorldVersion",
+            "type": "pickString",
+            "description": "Rimworld version to build?",
+            "options": [
+                "1.6",
+            ],
+            "default": "1.6"
+        }
+    ]
+}
