@@ -3,7 +3,7 @@
     <packageId>ilyvion.LoadingProgress</packageId>
     <name>Loading Progress</name>
     <author>ilyvion</author>
-    <description>WIP</description>
+    <description>Loading Progress is a RimWorld mod that adds a detailed loading progress window to the game. It visually tracks each stage of RimWorld's startup process, showing which step is currently running. This makes waiting for RimWorld to start slightly more interesting. The mod is especially useful for those with large mod lists. No configuration required—just install and enjoy better insight into your game's loading process!</description>
     <supportedVersions>
         <li>1.6</li>
     </supportedVersions>
@@ -20,6 +20,6 @@
         <li>brrainz.harmony</li>
     </loadAfter>
     <loadBefore>
-        <li>Ludeon.RimWorld</li>
+        <li>ludeon.rimworld</li>
     </loadBefore>
 </ModMetaData>
