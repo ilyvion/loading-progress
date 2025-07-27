@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Improve progress logic so the progress doesn't risk getting stuck.
+
+### Fixed
+
+- No longer relocate the information dialog once the game has been loaded, so it shows up where expected when e.g. starting a new game or loading a game.
+
 ## [0.1.0] - 2025-07-27
 
 ### Added

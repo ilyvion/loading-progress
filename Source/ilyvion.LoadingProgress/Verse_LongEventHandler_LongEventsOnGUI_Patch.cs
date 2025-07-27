@@ -39,6 +39,11 @@ internal class Verse_LongEventHandler_LongEventsOnGUI_Patch
 
     private static Rect AdjustStatusWindowRect(Rect r)
     {
+        if (LoadingProgressWindow.CurrentStage == LoadingStage.Finished)
+        {
+            return r;
+        }
+
         Vector2 statusRectSize = LongEventHandler.StatusRectSize;
         Vector2 windowSize = LoadingProgressWindow.WindowSize;
         var statusRectTop = ((UI.screenHeight - windowSize.y) / 2f) - statusRectSize.y - 10f;

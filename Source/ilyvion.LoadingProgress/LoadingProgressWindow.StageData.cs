@@ -92,7 +92,7 @@ public partial class LoadingProgressWindow
             activity => $"Loading mod classes... (<i>{activity}</i>)"
         ),
         new(
-            value => CurrentStage == LoadingStage.LoadingModClasses && value == "LoadModXML()",
+            value => CurrentStage <= LoadingStage.LoadingModClasses && value == "LoadModXML()",
             value => {
                 CurrentStage = LoadingStage.LoadModXml;
                 _currentLoadingActivity = string.Empty;
@@ -102,7 +102,7 @@ public partial class LoadingProgressWindow
             activity => $"Loading mod XML... (<i>{activity}</i>)"
         ),
         new(
-            value => CurrentStage == LoadingStage.LoadModXml && value.StartsWith("Loading ") && !value.StartsWith("Loading asset"),
+            value => CurrentStage <= LoadingStage.LoadModXml && value.StartsWith("Loading ") && !value.StartsWith("Loading asset"),
             value => {
                 if (StageProgress is (float current, float max))
                 {
@@ -118,7 +118,7 @@ public partial class LoadingProgressWindow
             activity => $"Loading mod XML... (<i>{activity}</i>)"
         ),
         new(
-            value => CurrentStage == LoadingStage.LoadModXml && value == "CombineIntoUnifiedXML()",
+            value => CurrentStage <= LoadingStage.LoadModXml && value == "CombineIntoUnifiedXML()",
             value =>
             {
                 CurrentStage = LoadingStage.CombineIntoUnifiedXml;
@@ -128,7 +128,7 @@ public partial class LoadingProgressWindow
             activity => "Combining XML..."
         ),
         new(
-            value => CurrentStage == LoadingStage.CombineIntoUnifiedXml && value == "TKeySystem.Parse()",
+            value => CurrentStage <= LoadingStage.CombineIntoUnifiedXml && value == "TKeySystem.Parse()",
             value =>
             {
                 CurrentStage = LoadingStage.TKeySystemParse;
@@ -137,7 +137,7 @@ public partial class LoadingProgressWindow
             activity => "Parsing Translation Key system..."
         ),
         new(
-            value => CurrentStage == LoadingStage.TKeySystemParse && value == "ErrorCheckPatches()",
+            value => CurrentStage <= LoadingStage.TKeySystemParse && value == "ErrorCheckPatches()",
             value =>
             {
                 CurrentStage = LoadingStage.ErrorCheckPatches;
@@ -146,7 +146,7 @@ public partial class LoadingProgressWindow
             activity => "Checking XML patches for errors..."
         ),
         new(
-            value => CurrentStage == LoadingStage.ErrorCheckPatches && value == "ApplyPatches()",
+            value => CurrentStage <= LoadingStage.ErrorCheckPatches && value == "ApplyPatches()",
             value =>
             {
                 CurrentStage = LoadingStage.ApplyPatches;
@@ -156,7 +156,7 @@ public partial class LoadingProgressWindow
             activity => $"Applying XML patches... (<i>{activity}</i>)"
         ),
         new(
-            value => CurrentStage == LoadingStage.ApplyPatches && value.EndsWith(" Worker"),
+            value => CurrentStage <= LoadingStage.ApplyPatches && value.EndsWith(" Worker"),
             value =>
             {
                 if (StageProgress is (float current, float max))
@@ -173,7 +173,7 @@ public partial class LoadingProgressWindow
             activity => $"Applying XML patches... (<i>{activity}</i>)"
         ),
         new(
-            value => CurrentStage == LoadingStage.ApplyPatches && value == "ParseAndProcessXML()",
+            value => CurrentStage <= LoadingStage.ApplyPatches && value == "ParseAndProcessXML()",
             value =>
             {
                 StageProgress = null;
@@ -183,7 +183,7 @@ public partial class LoadingProgressWindow
             activity => "Parsing and processing XML..."
         ),
         new(
-            value => CurrentStage == LoadingStage.ParseAndProcessXml && value == "XmlInheritance.Resolve()",
+            value => CurrentStage <= LoadingStage.ParseAndProcessXml && value == "XmlInheritance.Resolve()",
             value =>
             {
                 CurrentStage = LoadingStage.XmlInheritanceResolve;
@@ -192,7 +192,7 @@ public partial class LoadingProgressWindow
             activity => "Resolving XML inheritance..."
         ),
         new(
-            value => CurrentStage == LoadingStage.XmlInheritanceResolve && value.StartsWith("Loading defs for "),
+            value => CurrentStage <= LoadingStage.XmlInheritanceResolve && value.StartsWith("Loading defs for "),
             value =>
             {
                 var valueCount = value["Loading defs for ".Length..];
@@ -209,7 +209,7 @@ public partial class LoadingProgressWindow
             activity => $"Loading defs... (<i>{activity}</i>)"
         ),
         new(
-            value => CurrentStage == LoadingStage.LoadingDefs && value.StartsWith("ParseValueAndReturnDef "),
+            value => CurrentStage <= LoadingStage.LoadingDefs && value.StartsWith("ParseValueAndReturnDef "),
             value =>
             {
                 if (StageProgress is (float current, float max))
@@ -222,7 +222,7 @@ public partial class LoadingProgressWindow
             activity => $"Loading defs... (<i>{activity}</i>)"
         ),
         new(
-            value => CurrentStage == LoadingStage.LoadingDefs && value == "ClearCachedPatches()",
+            value => CurrentStage <= LoadingStage.LoadingDefs && value == "ClearCachedPatches()",
             value =>
             {
                 StageProgress = null;
@@ -231,7 +231,7 @@ public partial class LoadingProgressWindow
             LoadingStage.ClearCachedPatches
         ),
         new(
-            value => CurrentStage == LoadingStage.ClearCachedPatches && value == "XmlInheritance.Clear()",
+            value => CurrentStage <= LoadingStage.ClearCachedPatches && value == "XmlInheritance.Clear()",
             value =>
             {
                 CurrentStage = LoadingStage.XmlInheritanceClear;
@@ -239,7 +239,7 @@ public partial class LoadingProgressWindow
             LoadingStage.XmlInheritanceClear
         ),
         new(
-            value => CurrentStage == LoadingStage.XmlInheritanceClear && value == "Load language metadata.",
+            value => CurrentStage <= LoadingStage.XmlInheritanceClear && value == "Load language metadata.",
             value =>
             {
                 CurrentStage = LoadingStage.LoadLanguageMetadata;
@@ -247,7 +247,7 @@ public partial class LoadingProgressWindow
             LoadingStage.LoadLanguageMetadata
         ),
         new(
-            value => CurrentStage == LoadingStage.LoadLanguageMetadata && value.StartsWith("Loading language data:"),
+            value => CurrentStage <= LoadingStage.LoadLanguageMetadata && value.StartsWith("Loading language data:"),
             value =>
             {
                 CurrentStage = LoadingStage.LoadLanguage;
@@ -256,7 +256,7 @@ public partial class LoadingProgressWindow
             LoadingStage.LoadLanguage
         ),
         new(
-            value => CurrentStage == LoadingStage.LoadLanguage && value == "Copy all Defs from mods to global databases.",
+            value => CurrentStage <= LoadingStage.LoadLanguage && value == "Copy all Defs from mods to global databases.",
             value =>
             {
                 CurrentStage = LoadingStage.CopyAllDefsToGlobalDatabases;
@@ -264,7 +264,7 @@ public partial class LoadingProgressWindow
             LoadingStage.CopyAllDefsToGlobalDatabases
         ),
         new(
-            value => CurrentStage == LoadingStage.CopyAllDefsToGlobalDatabases && value == "Resolve cross-references between non-implied Defs.",
+            value => CurrentStage <= LoadingStage.CopyAllDefsToGlobalDatabases && value == "Resolve cross-references between non-implied Defs.",
             value =>
             {
                 CurrentStage = LoadingStage.ResolveCrossReferencesBetweenNonImpliedDefs;
@@ -272,7 +272,7 @@ public partial class LoadingProgressWindow
             LoadingStage.ResolveCrossReferencesBetweenNonImpliedDefs
         ),
         new(
-            value => CurrentStage == LoadingStage.ResolveCrossReferencesBetweenNonImpliedDefs && value == "Rebind DefOfs (early).",
+            value => CurrentStage <= LoadingStage.ResolveCrossReferencesBetweenNonImpliedDefs && value == "Rebind DefOfs (early).",
             value =>
             {
                 CurrentStage = LoadingStage.RebindDefOfsEarly;
@@ -280,7 +280,7 @@ public partial class LoadingProgressWindow
             LoadingStage.RebindDefOfsEarly
         ),
         new(
-            value => CurrentStage == LoadingStage.RebindDefOfsEarly && value == "TKeySystem.BuildMappings()",
+            value => CurrentStage <= LoadingStage.RebindDefOfsEarly && value == "TKeySystem.BuildMappings()",
             value =>
             {
                 CurrentStage = LoadingStage.TKeySystemBuildMappings;
@@ -288,7 +288,7 @@ public partial class LoadingProgressWindow
             LoadingStage.TKeySystemBuildMappings
         ),
         new(
-            value => CurrentStage == LoadingStage.TKeySystemBuildMappings && value == "Legacy backstory translations.",
+            value => CurrentStage <= LoadingStage.TKeySystemBuildMappings && value == "Legacy backstory translations.",
             value =>
             {
                 CurrentStage = LoadingStage.LegacyBackstoryTranslations;
@@ -296,7 +296,7 @@ public partial class LoadingProgressWindow
             LoadingStage.LegacyBackstoryTranslations
         ),
         new(
-            value => CurrentStage == LoadingStage.LegacyBackstoryTranslations && value == "Inject selected language data into game data (early pass).",
+            value => CurrentStage <= LoadingStage.LegacyBackstoryTranslations && value == "Inject selected language data into game data (early pass).",
             value =>
             {
                 CurrentStage = LoadingStage.InjectSelectedLanguageDataEarly;
@@ -304,7 +304,7 @@ public partial class LoadingProgressWindow
             LoadingStage.InjectSelectedLanguageDataEarly
         ),
         new(
-            value => CurrentStage == LoadingStage.InjectSelectedLanguageDataEarly && value == "Global operations (early pass).",
+            value => CurrentStage <= LoadingStage.InjectSelectedLanguageDataEarly && value == "Global operations (early pass).",
             value =>
             {
                 CurrentStage = LoadingStage.GlobalOperationsEarly;
@@ -312,7 +312,7 @@ public partial class LoadingProgressWindow
             LoadingStage.GlobalOperationsEarly
         ),
         new(
-            value => CurrentStage == LoadingStage.GlobalOperationsEarly && value == "Resolve cross-references between Defs made by the implied defs.",
+            value => CurrentStage <= LoadingStage.GlobalOperationsEarly && value == "Resolve cross-references between Defs made by the implied defs.",
             value =>
             {
                 CurrentStage = LoadingStage.ResolveCrossReferencesBetweenImpliedDefs;
@@ -320,7 +320,7 @@ public partial class LoadingProgressWindow
             LoadingStage.ResolveCrossReferencesBetweenImpliedDefs
         ),
         new(
-            value => CurrentStage == LoadingStage.ResolveCrossReferencesBetweenImpliedDefs && value == "Rebind DefOfs (final).",
+            value => CurrentStage <= LoadingStage.ResolveCrossReferencesBetweenImpliedDefs && value == "Rebind DefOfs (final).",
             value =>
             {
                 CurrentStage = LoadingStage.RebindDefOfsFinal;
@@ -328,7 +328,7 @@ public partial class LoadingProgressWindow
             LoadingStage.RebindDefOfsFinal
         ),
         new(
-            value => CurrentStage == LoadingStage.RebindDefOfsFinal && value == "Other def binding, resetting and global operations (pre-resolve).",
+            value => CurrentStage <= LoadingStage.RebindDefOfsFinal && value == "Other def binding, resetting and global operations (pre-resolve).",
             value =>
             {
                 CurrentStage = LoadingStage.OtherOperationsPreResolve;
@@ -336,7 +336,7 @@ public partial class LoadingProgressWindow
             LoadingStage.OtherOperationsPreResolve
         ),
         new(
-            value => CurrentStage == LoadingStage.OtherOperationsPreResolve && value == "Resolve references.",
+            value => CurrentStage <= LoadingStage.OtherOperationsPreResolve && value == "Resolve references.",
             value =>
             {
                 CurrentStage = LoadingStage.ResolveReferences;
@@ -345,7 +345,7 @@ public partial class LoadingProgressWindow
             LoadingStage.ResolveReferences
         ),
         new(
-            value => CurrentStage == LoadingStage.ResolveReferences && value.StartsWith("ResolveAllReferences "),
+            value => CurrentStage <= LoadingStage.ResolveReferences && value.StartsWith("ResolveAllReferences "),
             value =>
             {
                 _currentLoadingActivity = value["ResolveAllReferences ".Length..];
@@ -353,7 +353,7 @@ public partial class LoadingProgressWindow
             LoadingStage.ResolveReferences
         ),
         new(
-            value => CurrentStage == LoadingStage.ResolveReferences && value == "Other def binding, resetting and global operations (post-resolve).",
+            value => CurrentStage <= LoadingStage.ResolveReferences && value == "Other def binding, resetting and global operations (post-resolve).",
             value =>
             {
                 CurrentStage = LoadingStage.OtherOperationsPostResolve;
@@ -361,7 +361,7 @@ public partial class LoadingProgressWindow
             LoadingStage.OtherOperationsPostResolve
         ),
         new(
-            value => CurrentStage == LoadingStage.OtherOperationsPostResolve && value == "Error check all defs.",
+            value => CurrentStage <= LoadingStage.OtherOperationsPostResolve && value == "Error check all defs.",
             value =>
             {
                 CurrentStage = LoadingStage.ErrorCheckAllDefs;
@@ -369,7 +369,7 @@ public partial class LoadingProgressWindow
             LoadingStage.ErrorCheckAllDefs
         ),
         new(
-            value => CurrentStage == LoadingStage.ErrorCheckAllDefs && value == "Short hash giving.",
+            value => CurrentStage <= LoadingStage.ErrorCheckAllDefs && value == "Short hash giving.",
             value =>
             {
                 CurrentStage = LoadingStage.ShortHashGiving;
@@ -377,7 +377,7 @@ public partial class LoadingProgressWindow
             LoadingStage.ShortHashGiving
         ),
         new(
-            value => CurrentStage == LoadingStage.ShortHashGiving && value == "Load all bios",
+            value => CurrentStage <= LoadingStage.ShortHashGiving && value == "Load all bios",
             value =>
             {
                 CurrentStage = LoadingStage.LoadingAllBios;
@@ -385,7 +385,7 @@ public partial class LoadingProgressWindow
             LoadingStage.LoadingAllBios
         ),
         new(
-            value => CurrentStage == LoadingStage.LoadingAllBios && value == "Inject selected language data into game data.",
+            value => CurrentStage <= LoadingStage.LoadingAllBios && value == "Inject selected language data into game data.",
             value =>
             {
                 CurrentStage = LoadingStage.InjectSelectedLanguageDataIntoGameData;
@@ -393,7 +393,7 @@ public partial class LoadingProgressWindow
             LoadingStage.InjectSelectedLanguageDataIntoGameData
         ),
         new(
-            value => CurrentStage == LoadingStage.InjectSelectedLanguageDataIntoGameData && value == "Static constructor calls",
+            value => CurrentStage <= LoadingStage.InjectSelectedLanguageDataIntoGameData && value == "Static constructor calls",
             value =>
             {
                 CurrentStage = LoadingStage.StaticConstructorOnStartupCallAll;
@@ -402,7 +402,7 @@ public partial class LoadingProgressWindow
             LoadingStage.StaticConstructorOnStartupCallAll
         ),
         new(
-            value => CurrentStage == LoadingStage.StaticConstructorOnStartupCallAll && value == "Atlas baking.",
+            value => CurrentStage <= LoadingStage.StaticConstructorOnStartupCallAll && value == "Atlas baking.",
             value =>
             {
                 StageProgress = null;
@@ -411,7 +411,7 @@ public partial class LoadingProgressWindow
             LoadingStage.AtlasBaking
         ),
         new(
-            value => CurrentStage == LoadingStage.AtlasBaking && value == "Garbage Collection",
+            value => CurrentStage <= LoadingStage.AtlasBaking && value == "Garbage Collection",
             value =>
             {
                 CurrentStage = LoadingStage.GarbageCollection;
@@ -419,7 +419,7 @@ public partial class LoadingProgressWindow
             LoadingStage.GarbageCollection
         ),
         new(
-            value => CurrentStage == LoadingStage.GarbageCollection && value == "Misc Init (InitializingInterface)",
+            value => CurrentStage <= LoadingStage.GarbageCollection && value == "Misc Init (InitializingInterface)",
             value =>
             {
                 CurrentStage = LoadingStage.Finished;
