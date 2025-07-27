@@ -84,13 +84,16 @@ internal static class PlayDataLoader_DoPlayLoad_StaticConstructorOnStartup_Patch
         try
         {
             DeepProfiler.Start("StaticConstructorOnStartupUtility.CallAll()");
-            foreach (Type item in GenTypes.AllTypesWithAttribute<StaticConstructorOnStartup>())
+            List<Type> list = GenTypes.AllTypesWithAttribute<StaticConstructorOnStartup>();
+            for (int i = 0; i < list.Count; i++)
             {
+                Type item = list[i];
                 try
                 {
                     lock (LoadingProgressWindow.windowLock)
                     {
                         LoadingProgressWindow.SetCurrentLoadingActivityRaw(item.ToString());
+                        LoadingProgressWindow.StageProgress = (i + 1, list.Count);
                     }
                     RuntimeHelpers.RunClassConstructor(item.TypeHandle);
                 }

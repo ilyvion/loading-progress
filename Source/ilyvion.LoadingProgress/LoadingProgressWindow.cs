@@ -43,10 +43,22 @@ public partial class LoadingProgressWindow
                 Widgets.Label(rect3, label);
             }
 
-            DrawHorizontalProgressBar(
-                new Rect(rect3.x, rect3.y + Text.LineHeight + 4f, rect3.width, 20f),
-                (int)CurrentStage,
-                (int)LoadingStage.Finished);
+            if (StageProgress is (float currentValue, float maxValue))
+            {
+                DrawHorizontalProgressBar(
+                    new Rect(rect3.x, rect3.y + Text.LineHeight + 4f, rect3.width, 20f),
+                    (int)CurrentStage,
+                    (int)LoadingStage.Finished,
+                    currentValue,
+                    maxValue);
+            }
+            else
+            {
+                DrawHorizontalProgressBar(
+                    new Rect(rect3.x, rect3.y + Text.LineHeight + 4f, rect3.width, 20f),
+                    (int)CurrentStage,
+                    (int)LoadingStage.Finished);
+            }
         }
 
         Text.Anchor = TextAnchor.UpperLeft;
@@ -55,7 +67,9 @@ public partial class LoadingProgressWindow
     protected static void DrawHorizontalProgressBar(
         Rect progressRect,
         float currentValue,
-        float maxValue)
+        float maxValue,
+        float? smallCurrentValue = null,
+        float? smallMaxValue = null)
     {
         // draw a box for the bar
         GUI.color = Color.gray;
@@ -69,7 +83,28 @@ public partial class LoadingProgressWindow
 
         // draw the bar
         Widgets.DrawBoxSolid(barRect, BarColor);
+
+        if (smallCurrentValue.HasValue && smallMaxValue.HasValue)
+        {
+            smallCurrentValue = smallCurrentValue.Value % (2 * smallMaxValue.Value);
+
+            // draw the small bar
+            var smallBarRect = progressRect.ContractedBy(2f);
+            smallBarRect.yMin += barRect.height / 2;
+            var smallUnit = smallBarRect.width / smallMaxValue.Value;
+            smallBarRect.width = smallCurrentValue.Value * smallUnit;
+
+            if (smallCurrentValue.Value > smallMaxValue.Value)
+            {
+                // Once we're past max, start drawing the bar with a gap on the left side equal to the overflow.
+                smallBarRect.width = smallMaxValue.Value * smallUnit;
+                smallBarRect.xMin += (smallCurrentValue.Value - smallMaxValue.Value) * smallUnit;
+            }
+
+            Widgets.DrawBoxSolid(smallBarRect, SmallBarColor);
+        }
     }
 
     private static readonly Color BarColor = new(0.2f, 0.8f, 0.85f);
+    private static readonly Color SmallBarColor = Color.white.ToTransparent(0.5f);
 }
