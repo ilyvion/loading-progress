@@ -53,9 +53,17 @@ public partial class LoadingProgressWindow
 
     private static string? GetStageTranslation(LoadingStage stage, params NamedArgument[] args)
     {
-        return LanguageDatabase.activeLanguage is null
-            ? null
-            : $"LoadingProgress.Stage.{stage}.Text".Translate(args);
+        try
+        {
+            return LanguageDatabase.activeLanguage is null
+                ? null
+                : $"LoadingProgress.Stage.{stage}.Text".Translate(args);
+        }
+        catch (Exception e)
+        {
+            Log.Warning($"Error getting translation for stage {stage}: {e}");
+            return "LoadingProgress.Stage." + stage + ".Text";
+        }
     }
 
     private static readonly List<StageRule> StageRules =

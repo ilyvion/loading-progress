@@ -11,10 +11,11 @@ internal class LoadingProgressMod : Mod
 
     public LoadingProgressMod(ModContentPack content) : base(content)
     {
-        Message("Mod loading! Setting instance now.\n" + System.Environment.StackTrace);
         instance = this;
 
         new Harmony(content.PackageId).PatchAll(Assembly.GetExecutingAssembly());
+
+        Message("Progress Loading initialized! Enjoy the rest of your loading experience!");
     }
 
     public static void Message(string msg)
