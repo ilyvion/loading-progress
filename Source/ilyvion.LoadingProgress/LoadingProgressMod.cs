@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using UnityEngine;
 
 namespace ilyvion.LoadingProgress;
 
@@ -16,6 +17,18 @@ internal class LoadingProgressMod : Mod
         new Harmony(content.PackageId).PatchAll(Assembly.GetExecutingAssembly());
 
         Message("Progress Loading initialized! Enjoy the rest of your loading experience!");
+    }
+
+    public static Settings Settings => instance.GetSettings<Settings>();
+
+    public override void DoSettingsWindowContents(Rect inRect)
+    {
+        Settings.DoSettingsWindowContents(inRect);
+    }
+
+    public override string SettingsCategory()
+    {
+        return Content.Name;
     }
 
     public static void Message(string msg)

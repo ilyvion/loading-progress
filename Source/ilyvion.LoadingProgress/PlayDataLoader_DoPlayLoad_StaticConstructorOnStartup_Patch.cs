@@ -3,13 +3,10 @@
 
 using System.Reflection;
 using System.Reflection.Emit;
-using System.Runtime.CompilerServices;
-using RimWorld.IO;
-using UnityEngine;
 
 namespace ilyvion.LoadingProgress;
 
-//[HarmonyPatch]
+[HarmonyPatch]
 internal static class PlayDataLoader_DoPlayLoad_StaticConstructorOnStartup_Patch
 {
     private static readonly MethodInfo _method_StaticConstructorOnStartupUtility_CallAll
@@ -25,6 +22,12 @@ internal static class PlayDataLoader_DoPlayLoad_StaticConstructorOnStartup_Patch
     [HarmonyPrepare]
     private static bool ShouldPatch()
     {
+        if (!LoadingProgressMod.Settings.PatchInitialization)
+        {
+            LoadingProgressMod.Message("Patching of initialization code is disabled in the settings, skipping patch.");
+            return false;
+        }
+
         // We can reuse the same method as HarmonyTargetMethods will use afterward.
         var methods = FindMethod();
 
@@ -38,7 +41,6 @@ internal static class PlayDataLoader_DoPlayLoad_StaticConstructorOnStartup_Patch
             LoadingProgressMod.Error("Could not find call to StaticConstructorOnStartupUtility.CallAll in PlayDataLoader.");
             return false;
         }
-
     }
 
     [HarmonyTargetMethods]
@@ -65,10 +67,10 @@ internal static class PlayDataLoader_DoPlayLoad_StaticConstructorOnStartup_Patch
         var queue = LongEventHandler.eventQueue.ToList();
         LongEventHandler.eventQueue.Clear();
 
-        LongEventHandler.QueueLongEvent(CallingAllStaticConstructors(), "LoadingProgress.CallingAllStaticConstructors");
+        LongEventHandler.QueueLongEvent(PlayDataLoaderMethods.CallingAllStaticConstructors(), "LoadingProgress.CallingAllStaticConstructors");
         LongEventHandler.QueueLongEvent(FloatMenuMakerMap.Init, "LoadingProgress.FloatMenuMakerMap", false, null);
-        LongEventHandler.QueueLongEvent(AtlasBaking, "LoadingProgress.AtlasBaking", false, null);
-        LongEventHandler.QueueLongEvent(GarbageCollection, "LoadingProgress.GarbageCollection", false, null);
+        LongEventHandler.QueueLongEvent(PlayDataLoaderMethods.AtlasBaking, "LoadingProgress.AtlasBaking", false, null);
+        LongEventHandler.QueueLongEvent(PlayDataLoaderMethods.GarbageCollection, "LoadingProgress.GarbageCollection", false, null);
 
         foreach (var queuedEvent in queue)
         {
@@ -76,70 +78,5 @@ internal static class PlayDataLoader_DoPlayLoad_StaticConstructorOnStartup_Patch
         }
 
         return false;
-    }
-
-    private static IEnumerable CallingAllStaticConstructors()
-    {
-        DeepProfiler.Start("Static constructor calls");
-        try
-        {
-            DeepProfiler.Start("StaticConstructorOnStartupUtility.CallAll()");
-            List<Type> list = GenTypes.AllTypesWithAttribute<StaticConstructorOnStartup>();
-            for (int i = 0; i < list.Count; i++)
-            {
-                Type item = list[i];
-                try
-                {
-                    lock (LoadingProgressWindow.windowLock)
-                    {
-                        LoadingProgressWindow.SetCurrentLoadingActivityRaw(item.ToString());
-                        LoadingProgressWindow.StageProgress = (i + 1, list.Count);
-                    }
-                    RuntimeHelpers.RunClassConstructor(item.TypeHandle);
-                }
-                catch (Exception ex)
-                {
-                    Log.Error("Error in static constructor of " + item?.ToString() + ": " + ex);
-                }
-                yield return null;
-            }
-            DeepProfiler.End();
-            StaticConstructorOnStartupUtility.coreStaticAssetsLoaded = true;
-            if (Prefs.DevMode)
-            {
-                StaticConstructorOnStartupUtility.ReportProbablyMissingAttributes();
-            }
-        }
-        finally
-        {
-            DeepProfiler.End();
-        }
-    }
-
-    private static void AtlasBaking()
-    {
-        DeepProfiler.Start("Atlas baking.");
-        try
-        {
-            GlobalTextureAtlasManager.BakeStaticAtlases();
-        }
-        finally
-        {
-            DeepProfiler.End();
-        }
-    }
-    private static void GarbageCollection()
-    {
-        DeepProfiler.Start("Garbage Collection");
-        try
-        {
-            AbstractFilesystem.ClearAllCache();
-            GC.Collect(int.MaxValue, GCCollectionMode.Forced);
-            _ = Resources.UnloadUnusedAssets();
-        }
-        finally
-        {
-            DeepProfiler.End();
-        }
     }
 }
