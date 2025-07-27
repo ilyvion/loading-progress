@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace ilyvion.LoadingProgress;
 
-[HarmonyPatch]
+//[HarmonyPatch]
 internal static class PlayDataLoader_DoPlayLoad_StaticConstructorOnStartup_Patch
 {
     private static readonly MethodInfo _method_StaticConstructorOnStartupUtility_CallAll

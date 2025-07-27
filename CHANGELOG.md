@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Improve progress logic so the progress doesn't risk getting stuck.
+- Disable the 'improved' PlayDataLoader patch until we figure out why building graphics stop working in the architect menu.
 
 ### Fixed
 
