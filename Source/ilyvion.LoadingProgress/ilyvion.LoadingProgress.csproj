@@ -24,7 +24,6 @@
 
         <RootNamespace>ilyvion.LoadingProgress</RootNamespace>
         <AssemblyName>ilyvion.LoadingProgress</AssemblyName>
-        <VersionPrefix>0.7.1</VersionPrefix>
 
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     </PropertyGroup>

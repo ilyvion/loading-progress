@@ -1,7 +1,8 @@
 using System.Reflection;
 using System.Reflection.Emit;
-using ilyvion.LoadingProgress;
 using UnityEngine;
+
+namespace ilyvion.LoadingProgress;
 
 [HarmonyPatch(typeof(LongEventHandler), nameof(LongEventHandler.DrawLongEventWindowContents))]
 internal class Verse_LongEventHandler_DrawLongEventWindowContents_Patch
