@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2025-07-28
+
 ### Fixed
 
 - Don't hook into delayed execution after the game has already loaded. (Stops constant loading screen flickering.)
@@ -40,7 +42,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First implementation of the mod.
 
-[Unreleased]: https://github.com/ilyvion/loading-progress/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/ilyvion/loading-progress/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/ilyvion/loading-progress/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/ilyvion/loading-progress/compare/v0.1.2...v0.2.0
 [0.1.2]: https://github.com/ilyvion/loading-progress/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/ilyvion/loading-progress/compare/v0.1.0...v0.1.1
