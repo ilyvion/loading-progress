@@ -30,13 +30,13 @@ public partial class LoadingProgressWindow
 
         Text.Font = GameFont.Small;
 
-        var rule = StageRules.Find(r => r.Stage == CurrentStage);
+        var rule = CurrentStageRule;
         string? label = rule is not null && rule.CustomLabel is not null
             ? rule.CustomLabel(_currentLoadingActivity)
             : GetStageTranslation(CurrentStage, _currentLoadingActivity);
         if (!string.IsNullOrEmpty(label))
         {
-            Widgets.Label(rect3, label);
+            Widgets.Label(rect3, Text.ClampTextWithEllipsis(rect3, label));
         }
 
         if (StageProgress is (float currentValue, float maxValue))

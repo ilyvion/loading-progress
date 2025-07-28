@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <LanguageData>
-    <LoadingProgress.CallingAllStaticConstructors>Loading progress: Calling all static constructors</LoadingProgress.CallingAllStaticConstructors>
-    <LoadingProgress.FloatMenuMakerMap>Loading progress: Initializing FloatMenuMakerMap</LoadingProgress.FloatMenuMakerMap>
-    <LoadingProgress.AtlasBaking>Loading progress: Baking atlases</LoadingProgress.AtlasBaking>
-    <LoadingProgress.GarbageCollection>Loading progress: Running garbage collection</LoadingProgress.GarbageCollection>
+    <LoadingProgress.ExecuteToExecuteWhenFinished>Loading progress: Executing delayed initialization tasks</LoadingProgress.ExecuteToExecuteWhenFinished>
+    <LoadingProgress.CallAll>Loading progress: Calling all static constructors</LoadingProgress.CallAll>
 </LanguageData>

@@ -77,6 +77,9 @@
         <Publicize Include="Assembly-CSharp:Verse.LongEventHandler+QueuedLongEvent" />
         <Publicize Include="Assembly-CSharp:Verse.LongEventHandler.DrawLongEventWindowContents" />
         <Publicize Include="Assembly-CSharp:Verse.LongEventHandler.currentEvent" />
+        <Publicize Include="Assembly-CSharp:Verse.LongEventHandler.ExecuteToExecuteWhenFinished" />
+        <Publicize Include="Assembly-CSharp:Verse.LongEventHandler.executingToExecuteWhenFinished" />
+        <Publicize Include="Assembly-CSharp:Verse.LongEventHandler.toExecuteWhenFinished" />
     </ItemGroup>
     <!-- class Verse.LongEventHandler  -->
 </Project>

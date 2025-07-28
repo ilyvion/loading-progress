@@ -30,9 +30,11 @@ public enum LoadingStage
     OtherOperationsPostResolve,
     ErrorCheckAllDefs,
     ShortHashGiving,
+    ExecuteToExecuteWhenFinished,
     LoadingAllBios,
     InjectSelectedLanguageDataIntoGameData,
     StaticConstructorOnStartupCallAll,
+    ExecuteToExecuteWhenFinished2,
     AtlasBaking,
     GarbageCollection,
     Finished,
@@ -57,12 +59,27 @@ public partial class LoadingProgressWindow
         {
             return LanguageDatabase.activeLanguage is null
                 ? null
-                : $"LoadingProgress.Stage.{stage}.Text".Translate(args);
+                : $"LoadingProgress.Stage.{stage}".Translate(args);
         }
         catch (Exception e)
         {
             Log.Warning($"Error getting translation for stage {stage}: {e}");
-            return "LoadingProgress.Stage." + stage + ".Text";
+            return $"LoadingProgress.Stage.{stage}";
+        }
+    }
+
+    private static string? GetStageTranslationWithSecondary(LoadingStage stage, string secondary, params NamedArgument[] args)
+    {
+        try
+        {
+            return LanguageDatabase.activeLanguage is null
+                ? null
+                : $"LoadingProgress.Stage.{stage}.{secondary}".Translate(args);
+        }
+        catch (Exception e)
+        {
+            Log.Warning($"Error getting translation for stage {stage}.{secondary}: {e}");
+            return $"LoadingProgress.Stage.{stage}.{secondary}";
         }
     }
 
@@ -96,7 +113,6 @@ public partial class LoadingProgressWindow
             value => {
                 CurrentStage = LoadingStage.LoadModXml;
                 _currentLoadingActivity = string.Empty;
-                StageProgress = null;
             },
             LoadingStage.LoadModXml,
             activity => $"Loading mod XML... (<i>{activity}</i>)"
@@ -122,7 +138,6 @@ public partial class LoadingProgressWindow
             value =>
             {
                 CurrentStage = LoadingStage.CombineIntoUnifiedXml;
-                StageProgress = null;
             },
             LoadingStage.CombineIntoUnifiedXml,
             activity => "Combining XML..."
@@ -176,7 +191,6 @@ public partial class LoadingProgressWindow
             value => CurrentStage <= LoadingStage.ApplyPatches && value == "ParseAndProcessXML()",
             value =>
             {
-                StageProgress = null;
                 CurrentStage = LoadingStage.ParseAndProcessXml;
             },
             LoadingStage.ParseAndProcessXml,
@@ -195,6 +209,7 @@ public partial class LoadingProgressWindow
             value => CurrentStage <= LoadingStage.XmlInheritanceResolve && value.StartsWith("Loading defs for "),
             value =>
             {
+                CurrentStage = LoadingStage.LoadingDefs;
                 var valueCount = value["Loading defs for ".Length..];
                 var spaceIndex = valueCount.IndexOf(' ');
                 if (spaceIndex >= 0)
@@ -202,7 +217,6 @@ public partial class LoadingProgressWindow
                     var count = int.Parse(valueCount[..spaceIndex]);
                     StageProgress = (0, count);
                 }
-                CurrentStage = LoadingStage.LoadingDefs;
                 _currentLoadingActivity = string.Empty;
             },
             LoadingStage.LoadingDefs,
@@ -225,7 +239,6 @@ public partial class LoadingProgressWindow
             value => CurrentStage <= LoadingStage.LoadingDefs && value == "ClearCachedPatches()",
             value =>
             {
-                StageProgress = null;
                 CurrentStage = LoadingStage.ClearCachedPatches;
             },
             LoadingStage.ClearCachedPatches
@@ -377,7 +390,32 @@ public partial class LoadingProgressWindow
             LoadingStage.ShortHashGiving
         ),
         new(
-            value => CurrentStage <= LoadingStage.ShortHashGiving && value == "Load all bios",
+            value => CurrentStage <= LoadingStage.ShortHashGiving && (value == "ExecuteToExecuteWhenFinished()"),
+            value =>
+            {
+                CurrentStage = LoadingStage.ExecuteToExecuteWhenFinished;
+            },
+            LoadingStage.ExecuteToExecuteWhenFinished
+        ),
+        new(
+            value => CurrentStage == LoadingStage.ExecuteToExecuteWhenFinished && value.StartsWith("Reload "),
+            value =>
+            {
+                _currentLoadingActivity = value["Reload ".Length..];
+            },
+            LoadingStage.ExecuteToExecuteWhenFinished,
+            activity => GetStageTranslationWithSecondary(LoadingStage.ExecuteToExecuteWhenFinished, "Reloading",activity,ModContentPack_ReloadContentInt_Patches.CurrentMod ?? "")!
+        ),
+        new(
+            value => CurrentStage == LoadingStage.ExecuteToExecuteWhenFinished && value.Contains(" -> "),
+            value =>
+            {
+                _currentLoadingActivity = value;
+            },
+            LoadingStage.ExecuteToExecuteWhenFinished
+        ),
+        new(
+            value => CurrentStage <= LoadingStage.ExecuteToExecuteWhenFinished && value == "Load all bios",
             value =>
             {
                 CurrentStage = LoadingStage.LoadingAllBios;
@@ -393,7 +431,7 @@ public partial class LoadingProgressWindow
             LoadingStage.InjectSelectedLanguageDataIntoGameData
         ),
         new(
-            value => CurrentStage <= LoadingStage.InjectSelectedLanguageDataIntoGameData && value == "Static constructor calls",
+            value => CurrentStage <= LoadingStage.InjectSelectedLanguageDataIntoGameData && value == "StaticConstructorOnStartupUtilityReplacement.CallAll()",
             value =>
             {
                 CurrentStage = LoadingStage.StaticConstructorOnStartupCallAll;
@@ -402,10 +440,18 @@ public partial class LoadingProgressWindow
             LoadingStage.StaticConstructorOnStartupCallAll
         ),
         new(
-            value => CurrentStage <= LoadingStage.StaticConstructorOnStartupCallAll && value == "Atlas baking.",
+            value => CurrentStage <= LoadingStage.StaticConstructorOnStartupCallAll && value == "ExecuteToExecuteWhenFinished()",
             value =>
             {
-                StageProgress = null;
+                CurrentStage = LoadingStage.ExecuteToExecuteWhenFinished2;
+            },
+            LoadingStage.ExecuteToExecuteWhenFinished2,
+            activity => GetStageTranslation(LoadingStage.ExecuteToExecuteWhenFinished2,activity)!
+        ),
+        new(
+            value => CurrentStage <= LoadingStage.ExecuteToExecuteWhenFinished2 && value == "Atlas baking.",
+            value =>
+            {
                 CurrentStage = LoadingStage.AtlasBaking;
             },
             LoadingStage.AtlasBaking
@@ -429,7 +475,19 @@ public partial class LoadingProgressWindow
         )
     ];
 
-    public static LoadingStage CurrentStage { get; private set; } = LoadingStage.LoadingModClasses;
+    private static LoadingStage currentStage = LoadingStage.LoadingModClasses;
+    public static LoadingStage CurrentStage
+    {
+        get => currentStage;
+        private set
+        {
+            if (currentStage != value)
+            {
+                StageProgress = null; // Reset progress when stage changes
+                currentStage = value;
+            }
+        }
+    }
 
     private static string _currentLoadingActivity = string.Empty;
     internal static void SetCurrentLoadingActivityRaw(string value)
@@ -437,6 +495,7 @@ public partial class LoadingProgressWindow
         _currentLoadingActivity = value;
     }
 
+    private static StageRule? CurrentStageRule;
     internal static string CurrentLoadingActivity
     {
         get => _currentLoadingActivity;
@@ -446,6 +505,7 @@ public partial class LoadingProgressWindow
             {
                 if (rule.Predicate(value))
                 {
+                    CurrentStageRule = rule;
                     rule.Action(value);
                     return;
                 }

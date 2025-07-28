@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Diagnostics;
+using System.Reflection;
 using UnityEngine;
 
 namespace ilyvion.LoadingProgress;
@@ -34,6 +35,20 @@ internal class LoadingProgressMod : Mod
     public static void Message(string msg)
     {
         Log.Message("[Loading Progress] " + msg);
+    }
+
+    public static void DevMessage(string msg)
+    {
+        if (Prefs.DevMode)
+        {
+            Log.Message($"[Loading Progress][DEV] " + msg);
+        }
+    }
+
+    [Conditional("DEBUG")]
+    public static void Debug(string message)
+    {
+        DevMessage(message);
     }
 
     public static void Warning(string msg)
