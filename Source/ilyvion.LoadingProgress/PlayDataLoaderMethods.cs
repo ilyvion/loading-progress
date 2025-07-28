@@ -24,11 +24,9 @@ public static class PlayDataLoaderMethods
                 Type item = list[i];
                 try
                 {
-                    lock (LoadingProgressWindow.windowLock)
-                    {
-                        LoadingProgressWindow.SetCurrentLoadingActivityRaw(item.ToString());
-                        LoadingProgressWindow.StageProgress = (i + 1, list.Count);
-                    }
+                    LoadingProgressWindow.SetCurrentLoadingActivityRaw(item.ToString());
+                    LoadingProgressWindow.StageProgress = (i + 1, list.Count);
+
                     RuntimeHelpers.RunClassConstructor(item.TypeHandle);
                 }
                 catch (Exception ex)

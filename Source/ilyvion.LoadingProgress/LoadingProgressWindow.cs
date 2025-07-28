@@ -4,8 +4,6 @@ namespace ilyvion.LoadingProgress;
 
 public partial class LoadingProgressWindow
 {
-    internal static object windowLock = new();
-
     internal static readonly Vector2 WindowSize = new(776f, 110f);
 
     internal static void DrawWindow(Rect statusRect)
@@ -32,33 +30,30 @@ public partial class LoadingProgressWindow
 
         Text.Font = GameFont.Small;
 
-        lock (windowLock)
+        var rule = StageRules.Find(r => r.Stage == CurrentStage);
+        string? label = rule is not null && rule.CustomLabel is not null
+            ? rule.CustomLabel(_currentLoadingActivity)
+            : GetStageTranslation(CurrentStage, _currentLoadingActivity);
+        if (!string.IsNullOrEmpty(label))
         {
-            var rule = StageRules.Find(r => r.Stage == CurrentStage);
-            string? label = rule is not null && rule.CustomLabel is not null
-                ? rule.CustomLabel(_currentLoadingActivity)
-                : GetStageTranslation(CurrentStage, _currentLoadingActivity);
-            if (!string.IsNullOrEmpty(label))
-            {
-                Widgets.Label(rect3, label);
-            }
+            Widgets.Label(rect3, label);
+        }
 
-            if (StageProgress is (float currentValue, float maxValue))
-            {
-                DrawHorizontalProgressBar(
-                    new Rect(rect3.x, rect3.y + Text.LineHeight + 4f, rect3.width, 20f),
-                    (int)CurrentStage,
-                    (int)LoadingStage.Finished,
-                    currentValue,
-                    maxValue);
-            }
-            else
-            {
-                DrawHorizontalProgressBar(
-                    new Rect(rect3.x, rect3.y + Text.LineHeight + 4f, rect3.width, 20f),
-                    (int)CurrentStage,
-                    (int)LoadingStage.Finished);
-            }
+        if (StageProgress is (float currentValue, float maxValue))
+        {
+            DrawHorizontalProgressBar(
+                new Rect(rect3.x, rect3.y + Text.LineHeight + 4f, rect3.width, 20f),
+                (int)CurrentStage,
+                (int)LoadingStage.Finished,
+                currentValue,
+                maxValue);
+        }
+        else
+        {
+            DrawHorizontalProgressBar(
+                new Rect(rect3.x, rect3.y + Text.LineHeight + 4f, rect3.width, 20f),
+                (int)CurrentStage,
+                (int)LoadingStage.Finished);
         }
 
         Text.Anchor = TextAnchor.UpperLeft;
