@@ -62,20 +62,16 @@ internal static class PlayDataLoader_DoPlayLoad_StaticConstructorOnStartup_Patch
         }
         yield break;
     }
+
     private static bool Prefix()
     {
-        var queue = LongEventHandler.eventQueue.ToList();
-        LongEventHandler.eventQueue.Clear();
-
-        LongEventHandler.QueueLongEvent(PlayDataLoaderMethods.CallingAllStaticConstructors(), "LoadingProgress.CallingAllStaticConstructors");
-        LongEventHandler.QueueLongEvent(FloatMenuMakerMap.Init, "LoadingProgress.FloatMenuMakerMap", false, null);
-        LongEventHandler.QueueLongEvent(PlayDataLoaderMethods.AtlasBaking, "LoadingProgress.AtlasBaking", false, null);
-        LongEventHandler.QueueLongEvent(PlayDataLoaderMethods.GarbageCollection, "LoadingProgress.GarbageCollection", false, null);
-
-        foreach (var queuedEvent in queue)
+        Utilities.LongEventHandlerPrependQueue(() =>
         {
-            LongEventHandler.eventQueue.Enqueue(queuedEvent);
-        }
+            LongEventHandler.QueueLongEvent(PlayDataLoaderMethods.CallingAllStaticConstructors(), "LoadingProgress.CallingAllStaticConstructors");
+            LongEventHandler.QueueLongEvent(FloatMenuMakerMap.Init, "LoadingProgress.FloatMenuMakerMap", false, null);
+            LongEventHandler.QueueLongEvent(PlayDataLoaderMethods.AtlasBaking, "LoadingProgress.AtlasBaking", false, null);
+            LongEventHandler.QueueLongEvent(PlayDataLoaderMethods.GarbageCollection, "LoadingProgress.GarbageCollection", false, null);
+        });
 
         return false;
     }

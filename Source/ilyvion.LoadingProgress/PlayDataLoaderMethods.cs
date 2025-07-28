@@ -43,48 +43,51 @@ public static class PlayDataLoaderMethods
             {
                 StaticConstructorOnStartupUtility.ReportProbablyMissingAttributes();
             }
+
+            yield return null;
+
+            var patches = Harmony.GetPatchInfo(_method_StaticConstructorOnStartupUtility_CallAll);
+            if (patches != null)
+            {
+                var potentiallyProblematicPrefixes = new List<MethodInfo>();
+                foreach (var patch in patches.Prefixes)
+                {
+                    potentiallyProblematicPrefixes.Add(patch.PatchMethod);
+                }
+                var potentiallyProblematicTranspilers = new List<MethodInfo>();
+                foreach (var patch in patches.Transpilers)
+                {
+                    potentiallyProblematicTranspilers.Add(patch.PatchMethod);
+                }
+                if (potentiallyProblematicPrefixes.Count > 0)
+                {
+                    LoadingProgressMod.Warning($"These patches may not work as expected because "
+                    + $"Loading Progress replaces StaticConstructorOnStartupUtility.CallAll. "
+                    + "It still gets called, however, so as long as the patches aren't extremely "
+                    + "timing sensitive, they should still work. Here's the list of potentially "
+                    + "problematic prefixes:\n- "
+                    + string.Join("\n- ", potentiallyProblematicPrefixes.Select(m => m.ToString())));
+                }
+                if (potentiallyProblematicTranspilers.Count > 0)
+                {
+                    LoadingProgressMod.Warning($"These transpilers may not work as expected because "
+                    + $"Loading Progress replaces StaticConstructorOnStartupUtility.CallAll. "
+                    + "It still gets called, however, so as long as the patches aren't extremely "
+                    + "timing sensitive, they should still work. Here's the list of potentially "
+                    + "problematic transpilers:\n- "
+                    + string.Join("\n- ", potentiallyProblematicTranspilers.Select(m => m.ToString())));
+                }
+            }
+
+            // To make sure any custom patches made to StaticConstructorOnStartupUtility.CallAll get to run,
+            // we call it here. Since we've already run all static constructors, this will be a no-op apart
+            // from the patches other mods may have made.
+            StaticConstructorOnStartupUtility.CallAll();
         }
         finally
         {
             DeepProfiler.End();
         }
-
-        yield return null;
-
-        var patches = Harmony.GetPatchInfo(_method_StaticConstructorOnStartupUtility_CallAll);
-        var potentiallyProblematicPrefixes = new List<MethodInfo>();
-        foreach (var patch in patches.Prefixes)
-        {
-            potentiallyProblematicPrefixes.Add(patch.PatchMethod);
-        }
-        var potentiallyProblematicTranspilers = new List<MethodInfo>();
-        foreach (var patch in patches.Transpilers)
-        {
-            potentiallyProblematicTranspilers.Add(patch.PatchMethod);
-        }
-        if (potentiallyProblematicPrefixes.Count > 0)
-        {
-            LoadingProgressMod.Warning($"These patches may not work as expected because "
-            + $"Loading Progress replaces StaticConstructorOnStartupUtility.CallAll. "
-            + "It still gets called, however, so as long as the patches aren't extremely "
-            + "timing sensitive, they should still work. Here's the list of potentially "
-            + "problematic prefixes:\n- "
-            + string.Join("\n- ", potentiallyProblematicPrefixes.Select(m => m.ToString())));
-        }
-        if (potentiallyProblematicTranspilers.Count > 0)
-        {
-            LoadingProgressMod.Warning($"These transpilers may not work as expected because "
-            + $"Loading Progress replaces StaticConstructorOnStartupUtility.CallAll. "
-            + "It still gets called, however, so as long as the patches aren't extremely "
-            + "timing sensitive, they should still work. Here's the list of potentially "
-            + "problematic transpilers:\n- "
-            + string.Join("\n- ", potentiallyProblematicTranspilers.Select(m => m.ToString())));
-        }
-
-        // To make sure any custom patches made to StaticConstructorOnStartupUtility.CallAll get to run,
-        // we call it here. Since we've already run all static constructors, this will be a no-op apart
-        // from the patches other mods may have made.
-        StaticConstructorOnStartupUtility.CallAll();
     }
 
     public static void AtlasBaking()
