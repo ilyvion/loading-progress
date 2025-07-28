@@ -18,7 +18,7 @@ internal static class LongEventHandler_ExecuteToExecuteWhenFinished_Patches
 
     private static bool Prefix()
     {
-        if (LongEventHandler.toExecuteWhenFinished.Count > 0)
+        if (LongEventHandler.toExecuteWhenFinished.Count > 0 && LoadingProgressWindow.CurrentStage != LoadingStage.Finished)
         {
             LoadingProgressMod.Message("Running Enumerable version of ExecuteToExecuteWhenFinished() called with " + LongEventHandler.toExecuteWhenFinished.Count + " actions to execute.\n" + Environment.StackTrace);
             Utilities.LongEventHandlerPrependQueue(() =>

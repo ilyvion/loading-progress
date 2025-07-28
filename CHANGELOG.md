@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Don't hook into delayed execution after the game has already loaded. (Stops constant loading screen flickering.)
+
 ## [0.2.0] - 2025-07-28
 
 ### Changed
