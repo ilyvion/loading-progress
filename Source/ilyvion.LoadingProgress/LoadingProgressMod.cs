@@ -17,7 +17,7 @@ internal class LoadingProgressMod : Mod
 
         new Harmony(content.PackageId).PatchAll(Assembly.GetExecutingAssembly());
 
-        Message("Progress Loading initialized! Enjoy the rest of your loading experience!");
+        Message("Loading Progress initialized! Enjoy the rest of your loading experience!");
     }
 
     public static Settings Settings => instance.GetSettings<Settings>();

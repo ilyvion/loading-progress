@@ -20,7 +20,7 @@ internal static class LongEventHandler_ExecuteToExecuteWhenFinished_Patches
     {
         if (LongEventHandler.toExecuteWhenFinished.Count > 0 && LoadingProgressWindow.CurrentStage != LoadingStage.Finished)
         {
-            LoadingProgressMod.Message("Running Enumerable version of ExecuteToExecuteWhenFinished() called with " + LongEventHandler.toExecuteWhenFinished.Count + " actions to execute.\n" + Environment.StackTrace);
+            LoadingProgressMod.Debug("Running Enumerable version of ExecuteToExecuteWhenFinished() called with " + LongEventHandler.toExecuteWhenFinished.Count + " actions to execute.\n" + Environment.StackTrace);
             Utilities.LongEventHandlerPrependQueue(() =>
             {
                 LongEventHandler.QueueLongEvent(ExecuteToExecuteWhenFinished(), "LoadingProgress.ExecuteToExecuteWhenFinished");
@@ -69,7 +69,7 @@ internal static class LongEventHandler_ExecuteToExecuteWhenFinished_Patches
                 LongEventHandler.toExecuteWhenFinished.RemoveRange(0, i);
                 LongEventHandler.executingToExecuteWhenFinished = false;
 
-                LoadingProgressMod.Message("StaticConstructorOnStartupUtility.CallAll was up, "
+                LoadingProgressMod.Debug("StaticConstructorOnStartupUtility.CallAll was up, "
                     + "interrupting ExecuteToExecuteWhenFinished.");
 
                 yield break;
