@@ -23,6 +23,7 @@ public enum LoadingStage
     LegacyBackstoryTranslations,
     InjectSelectedLanguageDataEarly,
     GlobalOperationsEarly,
+    GenerateImpliedDefs,
     ResolveCrossReferencesBetweenImpliedDefs,
     RebindDefOfsFinal,
     OtherOperationsPreResolve,
@@ -325,7 +326,15 @@ public partial class LoadingProgressWindow
             LoadingStage.GlobalOperationsEarly
         ),
         new(
-            value => CurrentStage <= LoadingStage.GlobalOperationsEarly && value == "Resolve cross-references between Defs made by the implied defs.",
+            value => CurrentStage <= LoadingStage.GlobalOperationsEarly && value == "Generate implied Defs (pre-resolve).",
+            value =>
+            {
+                CurrentStage = LoadingStage.GenerateImpliedDefs;
+            },
+            LoadingStage.GenerateImpliedDefs
+        ),
+        new(
+            value => CurrentStage <= LoadingStage.GenerateImpliedDefs && value == "Resolve cross-references between Defs made by the implied defs.",
             value =>
             {
                 CurrentStage = LoadingStage.ResolveCrossReferencesBetweenImpliedDefs;
@@ -404,7 +413,11 @@ public partial class LoadingProgressWindow
                 _currentLoadingActivity = value["Reload ".Length..];
             },
             LoadingStage.ExecuteToExecuteWhenFinished,
-            activity => GetStageTranslationWithSecondary(LoadingStage.ExecuteToExecuteWhenFinished, "Reloading",activity,ModContentPack_ReloadContentInt_Patches.CurrentMod ?? "")!
+            activity => GetStageTranslationWithSecondary(
+                LoadingStage.ExecuteToExecuteWhenFinished,
+                "Reloading",
+                activity,
+                ModContentPack_ReloadContentInt_Patches.CurrentMod ?? "")!
         ),
         new(
             value => CurrentStage == LoadingStage.ExecuteToExecuteWhenFinished && value.Contains(" -> "),
@@ -446,7 +459,7 @@ public partial class LoadingProgressWindow
                 CurrentStage = LoadingStage.ExecuteToExecuteWhenFinished2;
             },
             LoadingStage.ExecuteToExecuteWhenFinished2,
-            activity => GetStageTranslation(LoadingStage.ExecuteToExecuteWhenFinished2,activity)!
+            activity => GetStageTranslation(LoadingStage.ExecuteToExecuteWhenFinished2, activity)!
         ),
         new(
             value => CurrentStage <= LoadingStage.ExecuteToExecuteWhenFinished2 && value == "Atlas baking.",
@@ -475,7 +488,7 @@ public partial class LoadingProgressWindow
         )
     ];
 
-    private static LoadingStage currentStage = LoadingStage.LoadingModClasses;
+    private static LoadingStage currentStage = LoadingStage.Initializing;
     public static LoadingStage CurrentStage
     {
         get => currentStage;

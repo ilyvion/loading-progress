@@ -22,6 +22,7 @@
     <LoadingProgress.Stage.LegacyBackstoryTranslations>Loading legacy backstory translations...</LoadingProgress.Stage.LegacyBackstoryTranslations>
     <LoadingProgress.Stage.InjectSelectedLanguageDataEarly>Injecting selected language data into game data (early pass)...</LoadingProgress.Stage.InjectSelectedLanguageDataEarly>
     <LoadingProgress.Stage.GlobalOperationsEarly>Running global operations (early pass)...</LoadingProgress.Stage.GlobalOperationsEarly>
+    <LoadingProgress.Stage.GenerateImpliedDefs>Generating implied Defs (pre-resolve)...</LoadingProgress.Stage.GenerateImpliedDefs>
     <LoadingProgress.Stage.ResolveCrossReferencesBetweenImpliedDefs>Resolving cross-references between Defs made by the implied defs...</LoadingProgress.Stage.ResolveCrossReferencesBetweenImpliedDefs>
     <LoadingProgress.Stage.RebindDefOfsFinal>Rebinding DefOfs (final)...</LoadingProgress.Stage.RebindDefOfsFinal>
     <LoadingProgress.Stage.OtherOperationsPreResolve>Running other global operations (pre-resolve)...</LoadingProgress.Stage.OtherOperationsPreResolve>
