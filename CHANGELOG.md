@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Don't rely on RimWorld for translations as it's unreliable this early in the start-up process.
+
 ## [0.3.0] - 2025-07-29
 
 ### Added

@@ -37,4 +37,5 @@
     <LoadingProgress.Stage.InjectSelectedLanguageDataIntoGameData>Injecting selected language data into game data...</LoadingProgress.Stage.InjectSelectedLanguageDataIntoGameData>
     <LoadingProgress.Stage.AtlasBaking>Baking static atlases...</LoadingProgress.Stage.AtlasBaking>
     <LoadingProgress.Stage.GarbageCollection>Running garbage collection...</LoadingProgress.Stage.GarbageCollection>
+    <LoadingProgress.Stage.Finished>Finished!</LoadingProgress.Stage.Finished>
 </LanguageData>

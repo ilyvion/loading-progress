@@ -1,3 +1,5 @@
+using System.IO;
+
 namespace ilyvion.LoadingProgress;
 
 public enum LoadingStage
@@ -54,34 +56,49 @@ public partial class LoadingProgressWindow
         StageDisplayLabel? CustomLabel = null
     );
 
-    private static string? GetStageTranslation(LoadingStage stage, params NamedArgument[] args)
+    private static Dictionary<string, string>? Translations = null;
+    private static string? GetStageTranslation(LoadingStage stage, params object[] args)
     {
-        try
+        if (Translations is not null)
         {
-            return LanguageDatabase.activeLanguage is null
-                ? null
-                : $"LoadingProgress.Stage.{stage}".Translate(args);
+            if (Translations.TryGetValue($"LoadingProgress.Stage.{stage}", out var translation))
+            {
+                return string.Format(translation, args);
+            }
+            else
+            {
+                Log.Warning($"No translation for LoadingProgress.Stage.{stage}");
+                return $"LoadingProgress.Stage.{stage}";
+            }
         }
-        catch (Exception e)
-        {
-            Log.Warning($"Error getting translation for stage {stage}: {e}");
-            return $"LoadingProgress.Stage.{stage}";
-        }
+
+        var stageTranslations = LoadingProgressMod.instance.Content.RootDir + "/Common/Languages/English/Keyed/Stages.xml";
+        var stageTranslationsContent = File.ReadAllText(stageTranslations);
+        Translations = DirectXmlLoaderSimple.ValuesFromXmlFile(stageTranslationsContent).ToDictionary(x => x.key, x => x.value);
+
+        return GetStageTranslation(stage, args);
     }
 
     private static string? GetStageTranslationWithSecondary(LoadingStage stage, string secondary, params NamedArgument[] args)
     {
-        try
+        if (Translations is not null)
         {
-            return LanguageDatabase.activeLanguage is null
-                ? null
-                : $"LoadingProgress.Stage.{stage}.{secondary}".Translate(args);
+            if (Translations.TryGetValue($"LoadingProgress.Stage.{stage}.{secondary}", out var translation))
+            {
+                return string.Format(translation, args);
+            }
+            else
+            {
+                Log.Warning($"No translation for LoadingProgress.Stage.{stage}.{secondary}");
+                return $"LoadingProgress.Stage.{stage}.{secondary}";
+            }
         }
-        catch (Exception e)
-        {
-            Log.Warning($"Error getting translation for stage {stage}.{secondary}: {e}");
-            return $"LoadingProgress.Stage.{stage}.{secondary}";
-        }
+
+        var stageTranslations = LoadingProgressMod.instance.Content.RootDir + "/Common/Languages/English/Keyed/Stages.xml";
+        var stageTranslationsContent = File.ReadAllText(stageTranslations);
+        Translations = DirectXmlLoaderSimple.ValuesFromXmlFile(stageTranslationsContent).ToDictionary(x => x.key, x => x.value);
+
+        return GetStageTranslation(stage, args);
     }
 
     private static readonly List<StageRule> StageRules =
@@ -89,8 +106,7 @@ public partial class LoadingProgressWindow
         new(
             value => false,
             value => {},
-            LoadingStage.Initializing,
-            activity => "Initializing..."
+            LoadingStage.Initializing
         ),
         new(
             value => CurrentStage <= LoadingStage.LoadingModClasses && value.StartsWith("Loading ") && value.EndsWith(" mod class"),
@@ -106,8 +122,7 @@ public partial class LoadingProgressWindow
                 }
                 _currentLoadingActivity = value.Substring("Loading ".Length, value.Length - "Loading ".Length - " mod class".Length);
             },
-            LoadingStage.LoadingModClasses,
-            activity => $"Loading mod classes... (<i>{activity}</i>)"
+            LoadingStage.LoadingModClasses
         ),
         new(
             value => CurrentStage <= LoadingStage.LoadingModClasses && value == "LoadModXML()",
@@ -115,8 +130,7 @@ public partial class LoadingProgressWindow
                 CurrentStage = LoadingStage.LoadModXml;
                 _currentLoadingActivity = string.Empty;
             },
-            LoadingStage.LoadModXml,
-            activity => $"Loading mod XML... (<i>{activity}</i>)"
+            LoadingStage.LoadModXml
         ),
         new(
             value => CurrentStage <= LoadingStage.LoadModXml && value.StartsWith("Loading ") && !value.StartsWith("Loading asset"),
@@ -131,8 +145,7 @@ public partial class LoadingProgressWindow
                 }
                 _currentLoadingActivity = value["Loading ".Length..];
             },
-            LoadingStage.LoadModXml,
-            activity => $"Loading mod XML... (<i>{activity}</i>)"
+            LoadingStage.LoadModXml
         ),
         new(
             value => CurrentStage <= LoadingStage.LoadModXml && value == "CombineIntoUnifiedXML()",
@@ -140,8 +153,7 @@ public partial class LoadingProgressWindow
             {
                 CurrentStage = LoadingStage.CombineIntoUnifiedXml;
             },
-            LoadingStage.CombineIntoUnifiedXml,
-            activity => "Combining XML..."
+            LoadingStage.CombineIntoUnifiedXml
         ),
         new(
             value => CurrentStage <= LoadingStage.CombineIntoUnifiedXml && value == "TKeySystem.Parse()",
@@ -149,8 +161,7 @@ public partial class LoadingProgressWindow
             {
                 CurrentStage = LoadingStage.TKeySystemParse;
             },
-            LoadingStage.TKeySystemParse,
-            activity => "Parsing Translation Key system..."
+            LoadingStage.TKeySystemParse
         ),
         new(
             value => CurrentStage <= LoadingStage.TKeySystemParse && value == "ErrorCheckPatches()",
@@ -158,8 +169,7 @@ public partial class LoadingProgressWindow
             {
                 CurrentStage = LoadingStage.ErrorCheckPatches;
             },
-            LoadingStage.ErrorCheckPatches,
-            activity => "Checking XML patches for errors..."
+            LoadingStage.ErrorCheckPatches
         ),
         new(
             value => CurrentStage <= LoadingStage.ErrorCheckPatches && value == "ApplyPatches()",
@@ -168,8 +178,7 @@ public partial class LoadingProgressWindow
                 CurrentStage = LoadingStage.ApplyPatches;
                 _currentLoadingActivity = string.Empty;
             },
-            LoadingStage.ApplyPatches,
-            activity => $"Applying XML patches... (<i>{activity}</i>)"
+            LoadingStage.ApplyPatches
         ),
         new(
             value => CurrentStage <= LoadingStage.ApplyPatches && value.EndsWith(" Worker"),
@@ -185,8 +194,7 @@ public partial class LoadingProgressWindow
                 }
                 _currentLoadingActivity = value[..^" Worker".Length];
             },
-            LoadingStage.ApplyPatches,
-            activity => $"Applying XML patches... (<i>{activity}</i>)"
+            LoadingStage.ApplyPatches
         ),
         new(
             value => CurrentStage <= LoadingStage.ApplyPatches && value == "ParseAndProcessXML()",
@@ -194,8 +202,7 @@ public partial class LoadingProgressWindow
             {
                 CurrentStage = LoadingStage.ParseAndProcessXml;
             },
-            LoadingStage.ParseAndProcessXml,
-            activity => "Parsing and processing XML..."
+            LoadingStage.ParseAndProcessXml
         ),
         new(
             value => CurrentStage <= LoadingStage.ParseAndProcessXml && value == "XmlInheritance.Resolve()",
@@ -203,8 +210,7 @@ public partial class LoadingProgressWindow
             {
                 CurrentStage = LoadingStage.XmlInheritanceResolve;
             },
-            LoadingStage.XmlInheritanceResolve,
-            activity => "Resolving XML inheritance..."
+            LoadingStage.XmlInheritanceResolve
         ),
         new(
             value => CurrentStage <= LoadingStage.XmlInheritanceResolve && value.StartsWith("Loading defs for "),
@@ -220,8 +226,7 @@ public partial class LoadingProgressWindow
                 }
                 _currentLoadingActivity = string.Empty;
             },
-            LoadingStage.LoadingDefs,
-            activity => $"Loading defs... (<i>{activity}</i>)"
+            LoadingStage.LoadingDefs
         ),
         new(
             value => CurrentStage <= LoadingStage.LoadingDefs && value.StartsWith("ParseValueAndReturnDef "),
@@ -233,8 +238,7 @@ public partial class LoadingProgressWindow
                 }
                 _currentLoadingActivity = value["ParseValueAndReturnDef (for ".Length..][..^1];
             },
-            LoadingStage.LoadingDefs,
-            activity => $"Loading defs... (<i>{activity}</i>)"
+            LoadingStage.LoadingDefs
         ),
         new(
             value => CurrentStage <= LoadingStage.LoadingDefs && value == "ClearCachedPatches()",
@@ -459,7 +463,7 @@ public partial class LoadingProgressWindow
                 CurrentStage = LoadingStage.ExecuteToExecuteWhenFinished2;
             },
             LoadingStage.ExecuteToExecuteWhenFinished2,
-            activity => GetStageTranslation(LoadingStage.ExecuteToExecuteWhenFinished2, activity)!
+            activity => GetStageTranslation(LoadingStage.ExecuteToExecuteWhenFinished, activity)!
         ),
         new(
             value => CurrentStage <= LoadingStage.ExecuteToExecuteWhenFinished2 && value == "Atlas baking.",
@@ -483,8 +487,7 @@ public partial class LoadingProgressWindow
             {
                 CurrentStage = LoadingStage.Finished;
             },
-            LoadingStage.Finished,
-            _ => string.Empty
+            LoadingStage.Finished
         )
     ];
 
