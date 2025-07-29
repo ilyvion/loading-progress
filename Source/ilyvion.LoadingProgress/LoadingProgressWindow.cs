@@ -31,9 +31,9 @@ public partial class LoadingProgressWindow
         Text.Font = GameFont.Small;
 
         var rule = CurrentStageRule;
-        string? label = rule is not null && rule.CustomLabel is not null
+        string? label = rule.CustomLabel is not null
             ? rule.CustomLabel(_currentLoadingActivity)
-            : GetStageTranslation(CurrentStage, _currentLoadingActivity);
+            : GetStageTranslation(rule.Stage, _currentLoadingActivity);
         if (!string.IsNullOrEmpty(label))
         {
             Widgets.Label(rect3, Text.ClampTextWithEllipsis(rect3, label));

@@ -79,13 +79,21 @@ public partial class LoadingProgressWindow
         return GetStageTranslation(stage, args);
     }
 
-    private static string? GetStageTranslationWithSecondary(LoadingStage stage, string secondary, params NamedArgument[] args)
+    private static string? GetStageTranslationWithSecondary(LoadingStage stage, string secondary, params object[] args)
     {
         if (Translations is not null)
         {
             if (Translations.TryGetValue($"LoadingProgress.Stage.{stage}.{secondary}", out var translation))
             {
-                return string.Format(translation, args);
+                try
+                {
+                    return string.Format(translation, args);
+                }
+                catch (Exception e)
+                {
+                    Log.Error($"Error formatting translation for LoadingProgress.Stage.{stage}.{secondary} with translation {translation} and args: {string.Join(", ", args)}.\nException was: {e}");
+                    return $"LoadingProgress.Stage.{stage}.{secondary}";
+                }
             }
             else
             {
@@ -98,7 +106,7 @@ public partial class LoadingProgressWindow
         var stageTranslationsContent = File.ReadAllText(stageTranslations);
         Translations = DirectXmlLoaderSimple.ValuesFromXmlFile(stageTranslationsContent).ToDictionary(x => x.key, x => x.value);
 
-        return GetStageTranslation(stage, args);
+        return GetStageTranslationWithSecondary(stage, secondary, args);
     }
 
     private static readonly List<StageRule> StageRules =
@@ -511,7 +519,7 @@ public partial class LoadingProgressWindow
         _currentLoadingActivity = value;
     }
 
-    private static StageRule? CurrentStageRule;
+    private static StageRule CurrentStageRule = StageRules[0];
     internal static string CurrentLoadingActivity
     {
         get => _currentLoadingActivity;
