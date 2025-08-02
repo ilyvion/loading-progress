@@ -20,7 +20,7 @@
             IDE0160: Convert to block scoped namespace
                     I prefer file scoped namespaces.
         -->
-        <NoWarn>IDE0008; IDE0160</NoWarn>
+        <NoWarn>IDE0008;IDE0160;IDE0022</NoWarn>
 
         <RootNamespace>ilyvion.LoadingProgress</RootNamespace>
         <AssemblyName>ilyvion.LoadingProgress</AssemblyName>

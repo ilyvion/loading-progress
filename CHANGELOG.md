@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Make sure we're not the mod RimWorld uses for language metadata even if we're loaded first.
+
 ## [0.3.2] - 2025-07-29
 
 ### Fixed
