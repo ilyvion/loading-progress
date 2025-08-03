@@ -15,7 +15,26 @@ internal class Verse_LongEventHandler_DrawLongEventWindowContents_Patch
         }
 
         Vector2 windowSize = LoadingProgressWindow.WindowSize;
-        Vector2 offset2 = new((UI.screenWidth - windowSize.x) / 2f, (UI.screenHeight - windowSize.y) / 2f);
+        float yOffset = 0f;
+        switch (LoadingProgressMod.Settings.LoadingWindowPlacement)
+        {
+            case LoadingWindowPlacement.Top:
+                yOffset = 10f + LongEventHandler.StatusRectSize.y + 10f;
+                break;
+            case LoadingWindowPlacement.Middle:
+                yOffset = (UI.screenHeight - windowSize.y) / 2f;
+                break;
+            case LoadingWindowPlacement.Bottom:
+                yOffset = UI.screenHeight - windowSize.y - 10f;
+                break;
+            case LoadingWindowPlacement.Custom:
+                // Custom logic can be added here if needed
+                break;
+            default:
+                break;
+        }
+
+        Vector2 offset2 = new((UI.screenWidth - windowSize.x) / 2f, yOffset);
         Rect rect = new(offset2.x, offset2.y, LoadingProgressWindow.WindowSize.x, LoadingProgressWindow.WindowSize.y);
 
         bool useStandardWindow = LongEventHandler.currentEvent.UseStandardWindow;
@@ -47,7 +66,25 @@ internal class Verse_LongEventHandler_LongEventsOnGUI_Patch
 
         Vector2 statusRectSize = LongEventHandler.StatusRectSize;
         Vector2 windowSize = LoadingProgressWindow.WindowSize;
-        var statusRectTop = ((UI.screenHeight - windowSize.y) / 2f) - statusRectSize.y - 10f;
+
+        float statusRectTop = 0; ;
+        switch (LoadingProgressMod.Settings.LoadingWindowPlacement)
+        {
+            case LoadingWindowPlacement.Top:
+                statusRectTop = 10f;
+                break;
+            case LoadingWindowPlacement.Middle:
+                statusRectTop = ((UI.screenHeight - windowSize.y) / 2f) - statusRectSize.y - 10f;
+                break;
+            case LoadingWindowPlacement.Bottom:
+                statusRectTop = UI.screenHeight - windowSize.y - 10f - statusRectSize.y - 10f;
+                break;
+            case LoadingWindowPlacement.Custom:
+                // Custom logic can be added here if needed
+                break;
+            default:
+                break;
+        }
         r.y = statusRectTop;
         return r;
     }

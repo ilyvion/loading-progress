@@ -42,12 +42,3 @@ internal static class LoadedLanguage_LoadMetadata_Patches
 
     private static bool IsThisMod(ModContentPack mod) => mod == LoadingProgressMod.instance.Content;
 }
-
-[StaticConstructorOnStartup]
-internal static class Foo
-{
-    static Foo()
-    {
-        Thread.Sleep(2000);
-    }
-}
