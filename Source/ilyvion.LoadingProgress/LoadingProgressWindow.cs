@@ -18,13 +18,18 @@ public partial class LoadingProgressWindow
             if (LoadingProgressMod.Settings.ShowLastLoadingTime)
             {
                 windowSize.y += 30f;
-                if (_currentModHash != LoadingProgressMod.Settings.LastLoadingModHash)
+                if (HasLastLoadAndHashChanged())
                 {
                     windowSize.y += Text.LineHeightOf(GameFont.Small) + VerticalWidgetMargin;
                 }
             }
             return windowSize;
         }
+    }
+
+    private static bool HasLastLoadAndHashChanged()
+    {
+        return _lastLoadingTime.HasValue && _currentModHash != LoadingProgressMod.Settings.LastLoadingModHash;
     }
 
     internal static void DrawWindow(Rect statusRect)
@@ -124,7 +129,7 @@ public partial class LoadingProgressWindow
                 : "--:--";
             Widgets.Label(loadingTimeRect, $"{elapsedTimeText} / {lastLoadingTimeText}");
 
-            if (_lastLoadingTime.HasValue && _currentModHash != LoadingProgressMod.Settings.LastLoadingModHash)
+            if (HasLastLoadAndHashChanged())
             {
                 Text.Font = GameFont.Small;
 

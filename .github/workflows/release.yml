@@ -23,6 +23,7 @@ jobs:
   release:
     needs: build
     uses: ilyvion/rimworld-utils/.github/workflows/release_mod.yml@main
+    secrets: inherit
     with:
       artifact_name: ${{ needs.build.outputs.artifact_name }}
       mod_name: "LoadingProgress"
