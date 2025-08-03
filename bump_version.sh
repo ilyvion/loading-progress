@@ -1,0 +1,1 @@
+../rimworld-utils/bump_version.sh

@@ -51,7 +51,7 @@
                 <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.*">
                     <ExcludeAssets>runtime</ExcludeAssets>
                 </PackageReference>
-                <PackageReference Include="Lib.Harmony" Version="2.3.3">
+                <PackageReference Include="Lib.Harmony" Version="2.3.6">
                     <ExcludeAssets>runtime</ExcludeAssets>
                 </PackageReference>
             </ItemGroup>
@@ -82,5 +82,4 @@
         <Publicize Include="Assembly-CSharp:Verse.LongEventHandler.toExecuteWhenFinished" />
         <Publicize Include="Assembly-CSharp:Verse.Translator.PseudoTranslated" />
     </ItemGroup>
-    <!-- class Verse.LongEventHandler  -->
 </Project>
