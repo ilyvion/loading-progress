@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.1] - 2025-08-03
+
 ### Fixed
 
 - Accidentally made 'top' the default loading window position; now it's 'middle' as it should be.
@@ -81,7 +83,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First implementation of the mod.
 
-[Unreleased]: https://github.com/ilyvion/loading-progress/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/ilyvion/loading-progress/compare/v0.4.1...HEAD
+[0.4.1]: https://github.com/ilyvion/loading-progress/compare/v0.4.0..v0.4.1
 [0.4.0]: https://github.com/ilyvion/loading-progress/compare/v0.3.3..v0.4.0
 [0.3.3]: https://github.com/ilyvion/loading-progress/compare/v0.3.2..v0.3.3
 [0.3.2]: https://github.com/ilyvion/loading-progress/compare/v0.3.1..v0.3.2
