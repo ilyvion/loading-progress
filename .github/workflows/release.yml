@@ -28,5 +28,3 @@ jobs:
       mod_name: "LoadingProgress"
       rw_versions: |-
         1.6
-      create_release: false
-      upload_to_steam: false
