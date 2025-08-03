@@ -1,26 +1,33 @@
 name: Continuous Integration
 
 on:
-    push:
-        branches:
-            - development
-            - main
-        paths-ignore:
-            - "README.md"
-            - "CHANGELOG.md"
-            - ".gitignore"
-        tags-ignore:
-            # This will ignore release versions tagged with a version identifier. We'll
-            # use a separate workflow for them.
-            - "v*"
-    pull_request:
-        paths-ignore:
-            - README.md
-            - "CHANGELOG.md"
-            - ".gitignore"
+  push:
+    branches:
+      - development
+      - main
+    paths-ignore:
+      - "README.md"
+      - "CHANGELOG.md"
+      - ".gitignore"
+    tags-ignore:
+      # This will ignore release versions tagged with a version identifier. We'll
+      # use a separate workflow for them.
+      - "v*"
+  pull_request:
+    paths-ignore:
+      - README.md
+      - "CHANGELOG.md"
+      - ".gitignore"
 
 jobs:
-    build:
-        uses: ./.github/workflows/build.yml
-        with:
-            artifact-suffix: ${{ github.sha }}
+  build:
+    uses: ilyvion/rimworld-utils/.github/workflows/build_mod.yml@main
+    with:
+      mod_name: "LoadingProgress"
+      artifact-suffix: ${{ github.sha }}
+      rw_versions: |-
+        1.6
+      license_files: |-
+        LICENSE
+        LICENSE.Apache-2.0
+        LICENSE.MIT
