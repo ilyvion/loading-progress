@@ -1,10 +1,31 @@
+using System.Diagnostics;
 using UnityEngine;
 
 namespace ilyvion.LoadingProgress;
 
 public partial class LoadingProgressWindow
 {
-    internal static readonly Vector2 WindowSize = new(776f, 110f);
+    private const float HorizontalMargin = 21f;
+    private const float VerticalWidgetMargin = 4f;
+    private const float ProgressBarHeight = 20f;
+
+    private static readonly Vector2 BaseWindowSize = new(776f, 110f);
+    internal static Vector2 WindowSize
+    {
+        get
+        {
+            var windowSize = BaseWindowSize;
+            if (LoadingProgressMod.Settings.ShowLastLoadingTime)
+            {
+                windowSize.y += 30f;
+                if (_currentModHash != LoadingProgressMod.Settings.LastLoadingModHash)
+                {
+                    windowSize.y += Text.LineHeightOf(GameFont.Small) + VerticalWidgetMargin;
+                }
+            }
+            return windowSize;
+        }
+    }
 
     internal static void DrawWindow(Rect statusRect)
     {
@@ -14,21 +35,37 @@ public partial class LoadingProgressWindow
         });
     }
 
+    internal static Stopwatch? _loadingStopwatch;
+    internal static TimeSpan? _lastLoadingTime;
+    internal static int _currentModHash;
     internal static void DrawContents(Rect rect)
     {
+        if (LoadingProgressMod.Settings.ShowLastLoadingTime)
+        {
+            _loadingStopwatch ??= Stopwatch.StartNew();
+            _lastLoadingTime = LoadingProgressMod.Settings.LastLoadingTime > 0
+                ? TimeSpan.FromSeconds(LoadingProgressMod.Settings.LastLoadingTime)
+                : null;
+            _currentModHash = StableListHasher.ComputeListHash(
+                LoadedModManager.RunningModsListForReading
+                    .Select(mod => mod.PackageId));
+        }
+
         Text.Font = GameFont.Medium;
         Text.Anchor = TextAnchor.UpperLeft;
-        float num2 = 17f;
-        float num3 = num2 + 4f;
-        Rect rect3 = rect;
-        rect3.x += num3;
-        rect3.y += 10f;
-        rect3.width -= 2 * num3;
 
-        Widgets.Label(rect3, "Loading progress");
-        rect3.yMin += Text.LineHeight + 4f;
+        Rect loadingProgressRect = rect;
+        loadingProgressRect.x += HorizontalMargin;
+        loadingProgressRect.y += 10f;
+        loadingProgressRect.width -= 2 * HorizontalMargin;
+        loadingProgressRect.height = Text.LineHeight;
 
+        Widgets.Label(loadingProgressRect, "Loading progress");
+
+        Rect loadingActivityRect = loadingProgressRect;
+        loadingProgressRect.y += loadingProgressRect.height + VerticalWidgetMargin;
         Text.Font = GameFont.Small;
+        loadingActivityRect.height = Text.LineHeight;
 
         var rule = CurrentStageRule;
         string? label = rule.CustomLabel is not null
@@ -36,13 +73,16 @@ public partial class LoadingProgressWindow
             : GetStageTranslation(rule.Stage, _currentLoadingActivity);
         if (!string.IsNullOrEmpty(label))
         {
-            Widgets.Label(rect3, Text.ClampTextWithEllipsis(rect3, label));
+            Widgets.Label(loadingProgressRect, Text.ClampTextWithEllipsis(loadingProgressRect, label));
         }
 
+        Rect progressRect = loadingProgressRect;
+        progressRect.y += loadingActivityRect.height + VerticalWidgetMargin;
+        progressRect.height = ProgressBarHeight;
         if (StageProgress is (float currentValue, float maxValue))
         {
             DrawHorizontalProgressBar(
-                new Rect(rect3.x, rect3.y + Text.LineHeight + 4f, rect3.width, 20f),
+                progressRect,
                 (int)CurrentStage,
                 (int)LoadingStage.Finished,
                 currentValue,
@@ -51,9 +91,48 @@ public partial class LoadingProgressWindow
         else
         {
             DrawHorizontalProgressBar(
-                new Rect(rect3.x, rect3.y + Text.LineHeight + 4f, rect3.width, 20f),
+                progressRect,
                 (int)CurrentStage,
                 (int)LoadingStage.Finished);
+        }
+
+        if (LoadingProgressMod.Settings.ShowLastLoadingTime)
+        {
+            Text.Anchor = TextAnchor.MiddleCenter;
+            Text.Font = GameFont.Medium;
+
+            Rect loadingTimeRect = progressRect;
+            loadingTimeRect.y += progressRect.height + VerticalWidgetMargin;
+            loadingTimeRect.height = Text.LineHeight;
+
+            TimeSpan elapsed = _loadingStopwatch!.Elapsed;
+            if (_lastLoadingTime.HasValue)
+            {
+                float totalSeconds = (float)_lastLoadingTime.Value.TotalSeconds;
+                DrawHorizontalProgressBar(
+                    loadingTimeRect,
+                    Math.Clamp((float)elapsed.TotalSeconds, 0f, totalSeconds),
+                    totalSeconds,
+                    (float)elapsed.TotalSeconds > totalSeconds ? (float)elapsed.TotalSeconds - totalSeconds : null,
+                    (float)elapsed.TotalSeconds > totalSeconds ? 10f : null,
+                    TimeBarColor,
+                    TimerSmallBarColor);
+            }
+            var elapsedTimeText = elapsed.ToString("mm\\:ss");
+            string lastLoadingTimeText = _lastLoadingTime.HasValue
+                ? "~" + _lastLoadingTime.Value.ToString("mm\\:ss")
+                : "--:--";
+            Widgets.Label(loadingTimeRect, $"{elapsedTimeText} / {lastLoadingTimeText}");
+
+            if (_lastLoadingTime.HasValue && _currentModHash != LoadingProgressMod.Settings.LastLoadingModHash)
+            {
+                Text.Font = GameFont.Small;
+
+                Rect modHashRect = loadingTimeRect;
+                modHashRect.y += loadingTimeRect.height + VerticalWidgetMargin;
+                modHashRect.height = Text.LineHeight;
+                Widgets.Label(modHashRect, Translations.GetTranslation("LoadingProgress.ModHashChanged"));
+            }
         }
 
         Text.Anchor = TextAnchor.UpperLeft;
@@ -64,7 +143,9 @@ public partial class LoadingProgressWindow
         float currentValue,
         float maxValue,
         float? smallCurrentValue = null,
-        float? smallMaxValue = null)
+        float? smallMaxValue = null,
+        Color? customBarColor = null,
+        Color? customSmallBarColor = null)
     {
         // draw a box for the bar
         GUI.color = Color.gray;
@@ -77,7 +158,7 @@ public partial class LoadingProgressWindow
         barRect.width = currentValue * unit;
 
         // draw the bar
-        Widgets.DrawBoxSolid(barRect, BarColor);
+        Widgets.DrawBoxSolid(barRect, customBarColor ?? BarColor);
 
         if (smallCurrentValue.HasValue && smallMaxValue.HasValue)
         {
@@ -96,10 +177,13 @@ public partial class LoadingProgressWindow
                 smallBarRect.xMin += (smallCurrentValue.Value - smallMaxValue.Value) * smallUnit;
             }
 
-            Widgets.DrawBoxSolid(smallBarRect, SmallBarColor);
+            Widgets.DrawBoxSolid(smallBarRect, customSmallBarColor ?? SmallBarColor);
         }
     }
 
     private static readonly Color BarColor = new(0.2f, 0.8f, 0.85f);
-    private static readonly Color SmallBarColor = Color.white.ToTransparent(0.5f);
+    private static readonly Color SmallBarColor = Color.white.ToTransparent(0.75f);
+
+    private static readonly Color TimeBarColor = BarColor.Darken(0.2f);
+    private static readonly Color TimerSmallBarColor = Color.white.Darken(0.2f).ToTransparent(0.75f);
 }

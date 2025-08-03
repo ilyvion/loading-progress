@@ -80,6 +80,7 @@
         <Publicize Include="Assembly-CSharp:Verse.LongEventHandler.ExecuteToExecuteWhenFinished" />
         <Publicize Include="Assembly-CSharp:Verse.LongEventHandler.executingToExecuteWhenFinished" />
         <Publicize Include="Assembly-CSharp:Verse.LongEventHandler.toExecuteWhenFinished" />
+        <Publicize Include="Assembly-CSharp:Verse.Translator.PseudoTranslated" />
     </ItemGroup>
     <!-- class Verse.LongEventHandler  -->
 </Project>

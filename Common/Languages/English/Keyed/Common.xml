@@ -3,4 +3,6 @@
 <LanguageData>
     <LoadingProgress.ExecuteToExecuteWhenFinished>Loading progress: Executing delayed initialization tasks</LoadingProgress.ExecuteToExecuteWhenFinished>
     <LoadingProgress.CallAll>Loading progress: Calling all static constructors</LoadingProgress.CallAll>
+
+    <LoadingProgress.ModHashChanged>(Mod list has changed since last game start; estimate may be inaccurate.)</LoadingProgress.ModHashChanged>
 </LanguageData>

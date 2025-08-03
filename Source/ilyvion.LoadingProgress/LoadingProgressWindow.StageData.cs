@@ -56,57 +56,15 @@ public partial class LoadingProgressWindow
         StageDisplayLabel? CustomLabel = null
     );
 
-    private static Dictionary<string, string>? Translations = null;
+
     private static string? GetStageTranslation(LoadingStage stage, params object[] args)
     {
-        if (Translations is not null)
-        {
-            if (Translations.TryGetValue($"LoadingProgress.Stage.{stage}", out var translation))
-            {
-                return string.Format(translation, args);
-            }
-            else
-            {
-                Log.Warning($"No translation for LoadingProgress.Stage.{stage}");
-                return $"LoadingProgress.Stage.{stage}";
-            }
-        }
-
-        var stageTranslations = LoadingProgressMod.instance.Content.RootDir + "/Common/Languages/English/Keyed/Stages.xml";
-        var stageTranslationsContent = File.ReadAllText(stageTranslations);
-        Translations = DirectXmlLoaderSimple.ValuesFromXmlFile(stageTranslationsContent).ToDictionary(x => x.key, x => x.value);
-
-        return GetStageTranslation(stage, args);
+        return Translations.GetTranslation($"LoadingProgress.Stage.{stage}", args);
     }
 
     private static string? GetStageTranslationWithSecondary(LoadingStage stage, string secondary, params object[] args)
     {
-        if (Translations is not null)
-        {
-            if (Translations.TryGetValue($"LoadingProgress.Stage.{stage}.{secondary}", out var translation))
-            {
-                try
-                {
-                    return string.Format(translation, args);
-                }
-                catch (Exception e)
-                {
-                    Log.Error($"Error formatting translation for LoadingProgress.Stage.{stage}.{secondary} with translation {translation} and args: {string.Join(", ", args)}.\nException was: {e}");
-                    return $"LoadingProgress.Stage.{stage}.{secondary}";
-                }
-            }
-            else
-            {
-                Log.Warning($"No translation for LoadingProgress.Stage.{stage}.{secondary}");
-                return $"LoadingProgress.Stage.{stage}.{secondary}";
-            }
-        }
-
-        var stageTranslations = LoadingProgressMod.instance.Content.RootDir + "/Common/Languages/English/Keyed/Stages.xml";
-        var stageTranslationsContent = File.ReadAllText(stageTranslations);
-        Translations = DirectXmlLoaderSimple.ValuesFromXmlFile(stageTranslationsContent).ToDictionary(x => x.key, x => x.value);
-
-        return GetStageTranslationWithSecondary(stage, secondary, args);
+        return Translations.GetTranslation($"LoadingProgress.Stage.{stage}.{secondary}", args);
     }
 
     private static readonly List<StageRule> StageRules =
@@ -494,6 +452,13 @@ public partial class LoadingProgressWindow
             value =>
             {
                 CurrentStage = LoadingStage.Finished;
+                if (_loadingStopwatch is { } loadingStopwatch)
+                {
+                    LoadingProgressMod.Settings.LastLoadingTime = (float)loadingStopwatch.Elapsed.TotalSeconds;
+                    LoadingProgressMod.Settings.LastLoadingModHash = _currentModHash;
+                    LoadingProgressMod.Settings.Write();
+                    loadingStopwatch.Stop();
+                }
             },
             LoadingStage.Finished
         )

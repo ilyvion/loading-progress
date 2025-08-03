@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Loading time tracking and display features, all of which can be disabled in the settings.
+
 ## [0.4.1] - 2025-08-03
 
 ### Fixed

@@ -18,12 +18,44 @@ public class Settings : ModSettings
         set => _loadingWindowPlacement = value;
     }
 
+    private float _lastLoadingTime = -1f;
+    public float LastLoadingTime
+    {
+        get => _lastLoadingTime;
+        set => _lastLoadingTime = value;
+    }
+
+    private int _lastLoadingModHash = -1;
+    public int LastLoadingModHash
+    {
+        get => _lastLoadingModHash;
+        set => _lastLoadingModHash = value;
+    }
+
+    private bool _showLastLoadingTime = true;
+    public bool ShowLastLoadingTime
+    {
+        get => _showLastLoadingTime;
+        set => _showLastLoadingTime = value;
+    }
+
+    private bool _showLastLoadingTimeProgressBar = true;
+    public bool ShowLastLoadingTimeProgressBar
+    {
+        get => _showLastLoadingTimeProgressBar;
+        set => _showLastLoadingTimeProgressBar = value;
+    }
+
     public override void ExposeData()
     {
         base.ExposeData();
 
         Scribe_Values.Look(ref _patchInitialization, "patchInitialization", true);
         Scribe_Values.Look(ref _loadingWindowPlacement, "loadingWindowPlacement", LoadingWindowPlacement.Middle);
+        Scribe_Values.Look(ref _lastLoadingTime, "lastLoadingTime", -1f);
+        Scribe_Values.Look(ref _lastLoadingModHash, "lastLoadingModHash", -1);
+        Scribe_Values.Look(ref _showLastLoadingTime, "showLastLoadingTime", true);
+        Scribe_Values.Look(ref _showLastLoadingTimeProgressBar, "showLastLoadingTimeProgressBar", true);
     }
 
     public void DoSettingsWindowContents(Rect inRect)
@@ -35,6 +67,16 @@ public class Settings : ModSettings
             "LoadingProgress.PatchInitialization".Translate(),
             ref _patchInitialization,
             "LoadingProgress.PatchInitialization.Tip".Translate());
+
+        listingStandard.CheckboxLabeled(
+            "LoadingProgress.LastLoadingTime".Translate(),
+            ref _showLastLoadingTime,
+            "LoadingProgress.LastLoadingTime.Tip".Translate());
+
+        listingStandard.CheckboxLabeled(
+            "LoadingProgress.LastLoadingTimeProgressBar".Translate(),
+            ref _showLastLoadingTimeProgressBar,
+            "LoadingProgress.LastLoadingTimeProgressBar.Tip".Translate());
 
         if (listingStandard.ButtonTextLabeledPct(
             "LoadingProgress.LoadingWindowPlacement".Translate(),
