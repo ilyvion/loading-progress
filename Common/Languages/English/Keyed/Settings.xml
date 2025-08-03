@@ -3,4 +3,11 @@
 <LanguageData>
     <LoadingProgress.PatchInitialization>Enable patching of initialization code</LoadingProgress.PatchInitialization>
     <LoadingProgress.PatchInitialization.Tip>When enabled, the mod will patch the part during RimWorld's startup process where the game typically hangs to make it more responsive. This allows the mod to track and display loading progress for each static constructor. This should not cause any problems unless you are running mods that very specifically have targeted this code and is very timing sensitive.\n\nIf you experience any issues with Loading Progress, try disabling this setting to see if it resolves the issue.</LoadingProgress.PatchInitialization.Tip>
+
+    <LoadingProgress.LoadingWindowPlacement>Loading window placement</LoadingProgress.LoadingWindowPlacement>
+
+    <LoadingProgress.Top>Top</LoadingProgress.Top>
+    <LoadingProgress.Middle>Middle</LoadingProgress.Middle>
+    <LoadingProgress.Bottom>Bottom</LoadingProgress.Bottom>
+    <LoadingProgress.Custom>Custom</LoadingProgress.Custom>
 </LanguageData>

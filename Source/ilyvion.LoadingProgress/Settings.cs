@@ -11,7 +11,7 @@ public class Settings : ModSettings
         set => _patchInitialization = value;
     }
 
-    private LoadingWindowPlacement _loadingWindowPlacement = LoadingWindowPlacement.Top;
+    private LoadingWindowPlacement _loadingWindowPlacement = LoadingWindowPlacement.Middle;
     public LoadingWindowPlacement LoadingWindowPlacement
     {
         get => _loadingWindowPlacement;

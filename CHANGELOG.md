@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Accidentally made 'top' the default loading window position; now it's 'middle' as it should be.
+- Forgot to include translations for new setting.
+
 ## [0.4.0] - 2025-08-03
 
 ### Added
