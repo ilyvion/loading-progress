@@ -15,11 +15,11 @@ internal static class Translations
         ActiveLanguageTranslationValues = null;
     }
 
-    public static string? GetTranslation(string translationKey, params object[] args)
+    public static string GetTranslation(string translationKey, params object[] args)
     {
         if (translationKey == null)
         {
-            return null;
+            return "[null translation key]";
         }
 
         if (!_englishTranslationsLoaded)

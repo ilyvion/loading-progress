@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Countdown mode for showing expected loading time, disabled by default, can be enabled in the settings.
+
 ## [0.6.0] - 2025-08-05
 
 ### Added

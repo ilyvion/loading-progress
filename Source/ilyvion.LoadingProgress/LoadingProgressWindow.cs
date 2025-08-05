@@ -120,11 +120,25 @@ public partial class LoadingProgressWindow
                     TimeBarColor,
                     TimerSmallBarColor);
             }
-            var elapsedTimeText = elapsed.ToString("mm\\:ss");
-            string lastLoadingTimeText = _lastLoadingTime.HasValue
-                ? "~" + _lastLoadingTime.Value.ToString("mm\\:ss")
+
+            var lastLoadingTimeText = _lastLoadingTime.HasValue
+                ? $"~{_lastLoadingTime.Value:mm\\:ss}"
                 : "--:--";
-            Widgets.Label(loadingTimeRect, $"{elapsedTimeText} / {lastLoadingTimeText}");
+            string loadingTimeText;
+            if (LoadingProgressMod.Settings.ShowLoadingTimeAsCountDown)
+            {
+                var remainingTime = _lastLoadingTime.HasValue
+                    ? _lastLoadingTime.Value - elapsed
+                    : TimeSpan.Zero;
+                loadingTimeText = remainingTime > TimeSpan.Zero
+                    ? Translations.GetTranslation("LoadingProgress.TimeRemaining", $"{remainingTime:mm\\:ss}", lastLoadingTimeText)
+                    : Translations.GetTranslation("LoadingProgress.TimeOverEstimate", $"{remainingTime:mm\\:ss}", lastLoadingTimeText);
+            }
+            else
+            {
+                loadingTimeText = $"{elapsed:mm\\:ss} / {lastLoadingTimeText}";
+            }
+            Widgets.Label(loadingTimeRect, loadingTimeText);
 
             if (HasLastLoadAndHashChanged())
             {

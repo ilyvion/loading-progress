@@ -8,4 +8,7 @@
 
     <LoadingProgress.LoadingTime>Game took {0} to load</LoadingProgress.LoadingTime>
     <LoadingProgress.LoadingTime.Tip>Information added by Loading Progress mod; can be disabled in the settings.</LoadingProgress.LoadingTime.Tip>
+
+    <LoadingProgress.TimeRemaining>{0} left of {1}</LoadingProgress.TimeRemaining>
+    <LoadingProgress.TimeOverEstimate>{0} over {1}</LoadingProgress.TimeOverEstimate>
 </LanguageData>

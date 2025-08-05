@@ -6,6 +6,8 @@
 
     <LoadingProgress.LastLoadingTime>Show loading time</LoadingProgress.LastLoadingTime>
     <LoadingProgress.LastLoadingTime.Tip>When enabled, the mod will display the time elapsed so far. Once the game has loaded at least once, it will store it for next time, and use it as the estimated loading time for the next loading session.</LoadingProgress.LastLoadingTime.Tip>
+    <LoadingProgress.LoadingTimeAsCountDown>Show loading time as countdown</LoadingProgress.LoadingTimeAsCountDown>
+    <LoadingProgress.LoadingTimeAsCountDown.Tip>When enabled, the mod will display the loading time as a countdown, starting from the estimated loading time. This is useful to see how much time is left until the game is fully loaded.</LoadingProgress.LoadingTimeAsCountDown.Tip>
     <LoadingProgress.LastLoadingTimeProgressBar> - Show loading time progress bar</LoadingProgress.LastLoadingTimeProgressBar>
     <LoadingProgress.LastLoadingTimeProgressBar.Tip>When enabled, the mod will show a progress bar during loading that indicates how much time has passed since the game started loading compared to the expected time.</LoadingProgress.LastLoadingTimeProgressBar.Tip>
     <LoadingProgress.LastLoadingTimeInCorner>Show loading time in bottom-right corner of the main menu</LoadingProgress.LastLoadingTimeInCorner>

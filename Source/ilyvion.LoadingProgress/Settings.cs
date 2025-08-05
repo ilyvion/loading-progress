@@ -39,6 +39,13 @@ public class Settings : ModSettings
         set => _showLastLoadingTime = value;
     }
 
+    private bool _showLoadingTimeAsCountDown = false;
+    public bool ShowLoadingTimeAsCountDown
+    {
+        get => _showLoadingTimeAsCountDown;
+        set => _showLoadingTimeAsCountDown = value;
+    }
+
     private bool _showLastLoadingTimeProgressBar = true;
     public bool ShowLastLoadingTimeProgressBar
     {
@@ -62,6 +69,7 @@ public class Settings : ModSettings
         Scribe_Values.Look(ref _lastLoadingTime, "lastLoadingTime", -1f);
         Scribe_Values.Look(ref _lastLoadingModHash, "lastLoadingModHash", -1);
         Scribe_Values.Look(ref _showLastLoadingTime, "showLastLoadingTime", true);
+        Scribe_Values.Look(ref _showLoadingTimeAsCountDown, "showLoadingTimeAsCountDown", false);
         Scribe_Values.Look(ref _showLastLoadingTimeProgressBar, "showLastLoadingTimeProgressBar", true);
         Scribe_Values.Look(ref _showLastLoadingTimeInCorner, "showLastLoadingTimeInCorner", true);
     }
@@ -80,6 +88,11 @@ public class Settings : ModSettings
             "LoadingProgress.LastLoadingTime".Translate(),
             ref _showLastLoadingTime,
             "LoadingProgress.LastLoadingTime.Tip".Translate());
+
+        listingStandard.CheckboxLabeled(
+            "LoadingProgress.LoadingTimeAsCountDown".Translate(),
+            ref _showLoadingTimeAsCountDown,
+            "LoadingProgress.LoadingTimeAsCountDown.Tip".Translate());
 
         listingStandard.CheckboxLabeled(
             "LoadingProgress.LastLoadingTimeProgressBar".Translate(),
