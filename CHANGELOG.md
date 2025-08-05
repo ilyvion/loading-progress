@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2025-08-05
+
 ### Added
 
 - Mod is now fully translatable. Since we're loading very early on, we can't use the game's translation system, so I had to write my own. If you make a translation, and it doesn't work, please let me know so I can investigate.
@@ -104,7 +106,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First implementation of the mod.
 
-[Unreleased]: https://github.com/ilyvion/loading-progress/compare/v0.5.1...HEAD
+[Unreleased]: https://github.com/ilyvion/loading-progress/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/ilyvion/loading-progress/compare/v0.5.1..v0.6.0
 [0.5.1]: https://github.com/ilyvion/loading-progress/compare/v0.5.0..v0.5.1
 [0.5.0]: https://github.com/ilyvion/loading-progress/compare/v0.4.1..v0.5.0
 [0.4.1]: https://github.com/ilyvion/loading-progress/compare/v0.4.0..v0.4.1
