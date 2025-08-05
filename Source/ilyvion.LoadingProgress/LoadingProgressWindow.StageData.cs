@@ -1,5 +1,3 @@
-using System.IO;
-
 namespace ilyvion.LoadingProgress;
 
 public enum LoadingStage
@@ -57,12 +55,12 @@ public partial class LoadingProgressWindow
     );
 
 
-    private static string? GetStageTranslation(LoadingStage stage, params object[] args)
+    private static string GetStageTranslation(LoadingStage stage, params object[] args)
     {
         return Translations.GetTranslation($"LoadingProgress.Stage.{stage}", args);
     }
 
-    private static string? GetStageTranslationWithSecondary(LoadingStage stage, string secondary, params object[] args)
+    private static string GetStageTranslationWithSecondary(LoadingStage stage, string secondary, params object[] args)
     {
         return Translations.GetTranslation($"LoadingProgress.Stage.{stage}.{secondary}", args);
     }
@@ -491,15 +489,35 @@ public partial class LoadingProgressWindow
         get => _currentLoadingActivity;
         set
         {
-            foreach (var rule in StageRules)
+            for (int i = 0; i < StageRules.Count; i++)
             {
+                var rule = StageRules[i];
                 if (rule.Predicate(value))
                 {
+                    // Remove all prior rules that do NOT share the same LoadingStage as the matched rule
+                    if (i > 0)
+                    {
+                        var matchedStage = rule.Stage;
+                        int removeCount = 0;
+                        for (int j = 0; j < i; j++)
+                        {
+                            if (StageRules[j].Stage != matchedStage)
+                            {
+                                removeCount++;
+                            }
+                        }
+                        if (removeCount > 0)
+                        {
+                            // Remove only those rules
+                            StageRules.RemoveAll((r, idx) => idx < i && r.Stage != matchedStage);
+                        }
+                    }
                     CurrentStageRule = rule;
                     rule.Action(value);
                     return;
                 }
             }
+            LoadingProgressMod.Warning($"No stage display rule matched for current activity: {value}");
         }
     }
 
