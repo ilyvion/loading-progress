@@ -458,6 +458,7 @@ public partial class LoadingProgressWindow
                     LoadingProgressMod.Settings.LastLoadingModHash = _currentModHash;
                     LoadingProgressMod.Settings.Write();
                     loadingStopwatch.Stop();
+                    Translations.Clear();
                 }
             },
             LoadingStage.Finished
