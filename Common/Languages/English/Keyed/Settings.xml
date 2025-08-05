@@ -4,10 +4,12 @@
     <LoadingProgress.PatchInitialization>Enable patching of initialization code</LoadingProgress.PatchInitialization>
     <LoadingProgress.PatchInitialization.Tip>When enabled, the mod will patch the part during RimWorld's startup process where the game typically hangs to make it more responsive. This allows the mod to track and display loading progress for each static constructor. This should not cause any problems unless you are running mods that very specifically have targeted this code and is very timing sensitive.\n\nIf you experience any issues with Loading Progress, try disabling this setting to see if it resolves the issue.</LoadingProgress.PatchInitialization.Tip>
 
-    <LoadingProgress.LastLoadingTime>Track and show loading time</LoadingProgress.LastLoadingTime>
-    <LoadingProgress.LastLoadingTime.Tip>When enabled, the mod will run a stopwatch when the game is loading and display the time elapsed so far. Once the game loads, it will store it for next time, and display it as the estimated loading time for that session.</LoadingProgress.LastLoadingTime.Tip>
+    <LoadingProgress.LastLoadingTime>Show loading time</LoadingProgress.LastLoadingTime>
+    <LoadingProgress.LastLoadingTime.Tip>When enabled, the mod will display the time elapsed so far. Once the game has loaded at least once, it will store it for next time, and use it as the estimated loading time for the next loading session.</LoadingProgress.LastLoadingTime.Tip>
     <LoadingProgress.LastLoadingTimeProgressBar> - Show loading time progress bar</LoadingProgress.LastLoadingTimeProgressBar>
     <LoadingProgress.LastLoadingTimeProgressBar.Tip>When enabled, the mod will show a progress bar during loading that indicates how much time has passed since the game started loading compared to the expected time.</LoadingProgress.LastLoadingTimeProgressBar.Tip>
+    <LoadingProgress.LastLoadingTimeInCorner>Show loading time in bottom-right corner of the main menu</LoadingProgress.LastLoadingTimeInCorner>
+    <LoadingProgress.LastLoadingTimeInCorner.Tip>When enabled, the mod will show the time it took to load the game in the bottom-right corner of the main menu.</LoadingProgress.LastLoadingTimeInCorner.Tip>
 
     <LoadingProgress.LoadingWindowPlacement>Loading window placement</LoadingProgress.LoadingWindowPlacement>
 

@@ -45,16 +45,13 @@ public partial class LoadingProgressWindow
     internal static int _currentModHash;
     internal static void DrawContents(Rect rect)
     {
-        if (LoadingProgressMod.Settings.ShowLastLoadingTime)
-        {
-            _loadingStopwatch ??= Stopwatch.StartNew();
-            _lastLoadingTime = LoadingProgressMod.Settings.LastLoadingTime > 0
-                ? TimeSpan.FromSeconds(LoadingProgressMod.Settings.LastLoadingTime)
-                : null;
-            _currentModHash = StableListHasher.ComputeListHash(
-                LoadedModManager.RunningModsListForReading
-                    .Select(mod => mod.PackageId));
-        }
+        _loadingStopwatch ??= Stopwatch.StartNew();
+        _lastLoadingTime = LoadingProgressMod.Settings.LastLoadingTime > 0
+            ? TimeSpan.FromSeconds(LoadingProgressMod.Settings.LastLoadingTime)
+            : null;
+        _currentModHash = StableListHasher.ComputeListHash(
+            LoadedModManager.RunningModsListForReading
+                .Select(mod => mod.PackageId));
 
         Text.Font = GameFont.Medium;
         Text.Anchor = TextAnchor.UpperLeft;

@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Mod is now fully translatable. Since we're loading very early on, we can't use the game's translation system, so I had to write my own. If you make a translation, and it doesn't work, please let me know so I can investigate.
+- Loading time display in the bottom-right corner of the main menu.
+
+### Changed
+
+- Loading time and mod list changes are always tracked now.
 
 ## [0.5.1] - 2025-08-03
 

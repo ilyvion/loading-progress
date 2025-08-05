@@ -5,4 +5,7 @@
     <LoadingProgress.CallAll>Loading progress: Calling all static constructors</LoadingProgress.CallAll>
 
     <LoadingProgress.ModHashChanged>(Mod list has changed since last game start; estimate may be inaccurate.)</LoadingProgress.ModHashChanged>
+
+    <LoadingProgress.LoadingTime>Game took {0} to load</LoadingProgress.LoadingTime>
+    <LoadingProgress.LoadingTime.Tip>Information added by Loading Progress mod; can be disabled in the settings.</LoadingProgress.LoadingTime.Tip>
 </LanguageData>

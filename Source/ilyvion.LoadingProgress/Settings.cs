@@ -46,6 +46,13 @@ public class Settings : ModSettings
         set => _showLastLoadingTimeProgressBar = value;
     }
 
+    private bool _showLastLoadingTimeInCorner = true;
+    public bool ShowLastLoadingTimeInCorner
+    {
+        get => _showLastLoadingTimeInCorner;
+        set => _showLastLoadingTimeInCorner = value;
+    }
+
     public override void ExposeData()
     {
         base.ExposeData();
@@ -56,6 +63,7 @@ public class Settings : ModSettings
         Scribe_Values.Look(ref _lastLoadingModHash, "lastLoadingModHash", -1);
         Scribe_Values.Look(ref _showLastLoadingTime, "showLastLoadingTime", true);
         Scribe_Values.Look(ref _showLastLoadingTimeProgressBar, "showLastLoadingTimeProgressBar", true);
+        Scribe_Values.Look(ref _showLastLoadingTimeInCorner, "showLastLoadingTimeInCorner", true);
     }
 
     public void DoSettingsWindowContents(Rect inRect)
@@ -77,6 +85,11 @@ public class Settings : ModSettings
             "LoadingProgress.LastLoadingTimeProgressBar".Translate(),
             ref _showLastLoadingTimeProgressBar,
             "LoadingProgress.LastLoadingTimeProgressBar.Tip".Translate());
+
+        listingStandard.CheckboxLabeled(
+            "LoadingProgress.LastLoadingTimeInCorner".Translate(),
+            ref _showLastLoadingTimeInCorner,
+            "LoadingProgress.LastLoadingTimeInCorner.Tip".Translate());
 
         if (listingStandard.ButtonTextLabeledPct(
             "LoadingProgress.LoadingWindowPlacement".Translate(),
