@@ -81,7 +81,7 @@ public partial class LoadingProgressWindow
         {
             var ellipsisRect = loadingProgressRect;
             ellipsisRect.width -= 10f;
-            Widgets.Label(loadingProgressRect, Text.ClampTextWithEllipsis(ellipsisRect, label));
+            Widgets.Label(loadingProgressRect, Utilities.ClampTextWithEllipsisMarkupAware(ellipsisRect, label));
         }
 
         Rect progressRect = loadingProgressRect;
@@ -197,8 +197,11 @@ public partial class LoadingProgressWindow
                 smallBarRect.xMin += (smallCurrentValue.Value - smallMaxValue.Value) * smallUnit;
             }
 
-            // draw the big/main bar with "internal" progress
-            barRect.width += clampedSmallCurrentValue / smallMaxValue.Value * unit;
+            if (currentValue < maxValue)
+            {
+                // draw the big/main bar with "internal" progress
+                barRect.width += clampedSmallCurrentValue / smallMaxValue.Value * unit;
+            }
             Widgets.DrawBoxSolid(barRect, customBarColor ?? BarColor);
 
             // draw the small bar

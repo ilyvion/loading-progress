@@ -126,6 +126,70 @@ public static class Utilities
         v = Mathf.Max(0, v - amount); // reduce lightness
         return Color.HSVToRGB(h, s, v);
     }
+
+    public static string ClampTextWithEllipsisMarkupAware(Rect rect, string text)
+    {
+        if (text.Length <= 4)
+        {
+            return text;
+        }
+
+        if (Text.CalcSize(text).x <= rect.width - 13f)
+        {
+            return text;
+        }
+
+        var output = new StringBuilder();
+        var stack = new Stack<string>();
+        int visibleChars = 0;
+
+        // forward pass to capture tag info
+        for (int i = 0; i < text.Length; i++)
+        {
+            if (text[i] == '<')
+            {
+                int closing = text.IndexOf('>', i);
+                if (closing == -1)
+                {
+                    break;
+                }
+
+                string tag = text.Substring(i, closing - i + 1);
+                _ = output.Append(tag);
+
+                if (!tag.StartsWith("</"))
+                {
+                    int spaceIdx = tag.IndexOf(' ');
+                    int tagNameEnd = spaceIdx != -1 ? spaceIdx : tag.Length - 1;
+                    stack.Push(tag[1..tagNameEnd]);
+                }
+                else if (stack.Count > 0)
+                {
+                    _ = stack.Pop();
+                }
+                i = closing;
+            }
+            else
+            {
+                _ = output.Append(text[i]);
+                visibleChars++;
+                if (Text.CalcSize(output.ToString() + "...").x > rect.width - 13f)
+                {
+                    output.Length -= 1; // remove last character
+                    break;
+                }
+            }
+        }
+
+        _ = output.Append("...");
+        // close tags
+        while (stack.Count > 0)
+        {
+            _ = output.Append("</" + stack.Pop() + ">");
+        }
+
+        return output.ToString();
+    }
 }
 
 public static class StableListHasher
