@@ -4,7 +4,7 @@ using System.Reflection.Emit;
 namespace ilyvion.LoadingProgress;
 
 [HarmonyPatch(typeof(LongEventHandler), nameof(LongEventHandler.ExecuteToExecuteWhenFinished))]
-internal static class LongEventHandler_ExecuteToExecuteWhenFinished_Patches
+internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patches
 {
     private static bool Prepare()
     {
@@ -38,6 +38,13 @@ internal static class LongEventHandler_ExecuteToExecuteWhenFinished_Patches
             yield break;
         }
 
+        HashSet<ModContentPack>? fasterGameLoadingLoadedMods = null;
+        if (ModsConfig.ActiveModsInLoadOrder.Any(mod => mod.PackageId.Equals("taranchuk.fastergameloading", StringComparison.CurrentCultureIgnoreCase)))
+        {
+            fasterGameLoadingLoadedMods = AccessTools.Field("FasterGameLoading.ModContentPack_ReloadContentInt_Patch:loadedMods")
+                .GetValue(null) as HashSet<ModContentPack>;
+        }
+
         var methods = StaticConstructorOnStartupCallAllFinder.FindMethod();
         MethodInfo? staticConstructorOnStartupUtilityCallAllMethod = null;
         if (methods.Count() != 1)
@@ -50,16 +57,32 @@ internal static class LongEventHandler_ExecuteToExecuteWhenFinished_Patches
             staticConstructorOnStartupUtilityCallAllMethod = methods.First();
         }
 
+        var methodFields = ReloadContentIntFinder.FindMethod();
+        MethodInfo? reloadContentIntMethod = null;
+        FieldInfo? reloadContentIntmodContentPackField = null;
+        if (methodFields.Count() != 1)
+        {
+            LoadingProgressMod.Error("Could not find call to ModContentPack.ReloadContentInt in ModContentPack; "
+                + "reloading content will be done without showing detailed progress.");
+        }
+        else
+        {
+            (reloadContentIntMethod, reloadContentIntmodContentPackField) = methodFields.First();
+        }
+
         LongEventHandler.executingToExecuteWhenFinished = true;
         if (LongEventHandler.toExecuteWhenFinished.Count > 0)
         {
             DeepProfiler.Start("ExecuteToExecuteWhenFinished()");
         }
-        var reloadContentCount = LongEventHandler.toExecuteWhenFinished.Count(te => te.Method.Name.Contains("ReloadContent"));
+        var reloadContentStepCount = LongEventHandler.toExecuteWhenFinished.Count(te => te.Method.Name.Contains("ReloadContent")) * 4;
+        var reloadContentStepCounter = 0;
         for (int i = 0; i < LongEventHandler.toExecuteWhenFinished.Count; i++)
         {
+            Action toExecuteWhenFinished = LongEventHandler.toExecuteWhenFinished[i];
+
             if (!StaticConstructorOnStartupUtilityReplacement._callAllCalled
-                && LongEventHandler.toExecuteWhenFinished[i].Method == staticConstructorOnStartupUtilityCallAllMethod)
+                && toExecuteWhenFinished.Method == staticConstructorOnStartupUtilityCallAllMethod)
             {
                 // If this is the StaticConstructorOnStartupUtility.CallAll method, we want to run it and bail to
                 // let it do its own QueueLongEvent.
@@ -75,7 +98,49 @@ internal static class LongEventHandler_ExecuteToExecuteWhenFinished_Patches
                 yield break;
             }
 
-            string label = LongEventHandler.toExecuteWhenFinished[i].Method.DeclaringType.ToString() + " -> " + LongEventHandler.toExecuteWhenFinished[i].Method.ToString();
+            if (toExecuteWhenFinished is { } action
+                && action.Method == reloadContentIntMethod
+                && action.Target.GetType() == reloadContentIntMethod.DeclaringType
+                && reloadContentIntmodContentPackField is not null)
+            {
+                ModContentPack modContentPack = (ModContentPack)reloadContentIntmodContentPackField.GetValue(action.Target)!;
+                bool skipReload = false;
+                if (fasterGameLoadingLoadedMods is not null)
+                {
+                    skipReload = fasterGameLoadingLoadedMods.Contains(modContentPack);
+                    if (skipReload)
+                    {
+                        // Skipping reloading content for {modContentPack.Name} because Faster Game Loading has already loaded it.
+                        reloadContentStepCounter += 4; // Skip the 4 steps of reloading content.
+                    }
+                    else
+                    {
+                        _ = fasterGameLoadingLoadedMods.Add(modContentPack);
+                    }
+                }
+
+                if (!skipReload)
+                {
+                    // Reloading content for {modContentPack.Name}.
+                    foreach (var value in ReloadContentIntReplacement.ReloadContentInt(modContentPack))
+                    {
+                        LoadingDataTracker.Current = modContentPack.Name;
+                        LoadingProgressWindow.CurrentLoadingActivity = $"LP.Reload {value}";
+                        LoadingProgressWindow.StageProgress = (reloadContentStepCounter + 1, reloadContentStepCount);
+                        yield return value;
+                        reloadContentStepCounter++;
+                    }
+                    continue;
+                }
+            }
+            else if (toExecuteWhenFinished is Action action2 && action2.Method == reloadContentIntMethod)
+            {
+                LoadingProgressMod.Error("ReloadContentInt was called with target being "
+                + action2.Target.GetType().FullName + ":"
+                + action2.Target + ", but we expected it to be " + reloadContentIntMethod.DeclaringType.FullName + ":" + reloadContentIntMethod);
+            }
+
+            string label = toExecuteWhenFinished.Method.DeclaringType.ToString() + " -> " + toExecuteWhenFinished.Method.ToString();
             DeepProfiler.Start(label);
             try
             {
@@ -86,16 +151,9 @@ internal static class LongEventHandler_ExecuteToExecuteWhenFinished_Patches
                     {
                         LoadingProgressWindow.SetCurrentLoadingActivityRaw(label);
                     }
-                    if (LongEventHandler.toExecuteWhenFinished[i].Method.Name.Contains("ReloadContent"))
-                    {
-                        LoadingProgressWindow.StageProgress = (i + 1, reloadContentCount);
-                    }
-                    else
-                    {
-                        LoadingProgressWindow.StageProgress = (i + 1, LongEventHandler.toExecuteWhenFinished.Count);
-                    }
+                    LoadingProgressWindow.StageProgress = (i + 1, LongEventHandler.toExecuteWhenFinished.Count);
                 }
-                LongEventHandler.toExecuteWhenFinished[i]();
+                toExecuteWhenFinished();
             }
             catch (Exception ex)
             {

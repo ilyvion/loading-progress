@@ -375,18 +375,16 @@ public partial class LoadingProgressWindow
             LoadingStage.ExecuteToExecuteWhenFinished
         ),
         new(
-            value => CurrentStage == LoadingStage.ExecuteToExecuteWhenFinished && value.StartsWith("Reload "),
+            value => CurrentStage == LoadingStage.ExecuteToExecuteWhenFinished && value.StartsWith("LP.Reload "),
             value =>
             {
-                _currentLoadingActivity = value["Reload ".Length..];
+                _currentLoadingActivity = value["LP.Reload ".Length..];
             },
             LoadingStage.ExecuteToExecuteWhenFinished,
             activity => GetStageTranslationWithSecondary(
                 LoadingStage.ExecuteToExecuteWhenFinished,
-                "Reloading",
-                activity,
-                ModContentPack_ReloadContentInt_Patches.CurrentMod ?? "")!
-        ),
+                $"Reloading.{activity.Replace(" ", "_")}",
+                LoadingDataTracker.Current ?? "")!),
         new(
             value => CurrentStage == LoadingStage.ExecuteToExecuteWhenFinished && value.Contains(" -> "),
             value =>

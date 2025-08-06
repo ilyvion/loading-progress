@@ -48,6 +48,7 @@ internal class LoadingProgressMod : Mod
     [Conditional("DEBUG")]
     public static void Debug(string message)
     {
+        Log.ResetMessageCount();
         DevMessage(message);
     }
 
