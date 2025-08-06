@@ -8,7 +8,7 @@ public static class Utilities
 {
     public static void LongEventHandlerPrependQueue(Action prependAction, string keepPrefix = "LoadingProgress.")
     {
-        LoadingProgressMod.DevMessage("Event queue before modification:\n- " + string.Join("\n- ", LongEventHandler.eventQueue.Select(e => $"{e.eventTextKey} ({e.eventText})"))); // + "\n" + Environment.StackTrace);
+        LoadingProgressMod.Debug("Event queue before modification:\n- " + string.Join("\n- ", LongEventHandler.eventQueue.Select(e => $"{e.eventTextKey} ({e.eventText})"))); // + "\n" + Environment.StackTrace);
 
         // Separate events to keep and to temporarily remove
         var keepEvents = LongEventHandler.eventQueue.Where(e => e.eventTextKey != null && e.eventTextKey.StartsWith(keepPrefix)).ToList();
@@ -29,7 +29,7 @@ public static class Utilities
             LongEventHandler.eventQueue.Enqueue(queuedEvent);
         }
 
-        LoadingProgressMod.DevMessage("Event queue after modification:\n- " + string.Join("\n- ", LongEventHandler.eventQueue.Select(e => $"{e.eventTextKey} ({e.eventText})")));
+        LoadingProgressMod.Debug("Event queue after modification:\n- " + string.Join("\n- ", LongEventHandler.eventQueue.Select(e => $"{e.eventTextKey} ({e.eventText})")));
     }
 
     public static void WarnAboutPatches(MethodBase method)
