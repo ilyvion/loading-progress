@@ -71,6 +71,7 @@
     <ItemGroup>
         <Publicize Include="Assembly-CSharp:Verse.LongEventHandler.StatusRectSize" />
         <Publicize Include="Assembly-CSharp:Verse.ModContentPack.ReloadContentInt" />
+        <Publicize Include="Assembly-CSharp:Verse.ModContentPack.LoadPatches" />
         <Publicize Include="Assembly-CSharp:Verse.PlayDataLoader.DoPlayLoad" />
         <Publicize Include="Assembly-CSharp:Verse.LongEventHandler.eventQueue" />
         <Publicize Include="Assembly-CSharp:Verse.LongEventHandler+QueuedLongEvent" />
@@ -81,5 +82,19 @@
         <Publicize Include="Assembly-CSharp:Verse.LongEventHandler.executingToExecuteWhenFinished" />
         <Publicize Include="Assembly-CSharp:Verse.LongEventHandler.toExecuteWhenFinished" />
         <Publicize Include="Assembly-CSharp:Verse.Translator.PseudoTranslated" />
+        <Publicize Include="Assembly-CSharp:Verse.ModContentPack.audioClips" />
+        <Publicize Include="Assembly-CSharp:Verse.ModContentPack.textures" />
+        <Publicize Include="Assembly-CSharp:Verse.ModContentPack.strings" />
+        <Publicize Include="Assembly-CSharp:Verse.ModContentPack.assetBundles" />
+        <Publicize Include="Assembly-CSharp:Verse.ModContentPack.allAssetNamesInBundleCached" />
+        <Publicize Include="Assembly-CSharp:Verse.ModContentPack.allAssetNamesInBundleCachedTrie" />
+        <Publicize Include="Assembly-CSharp:Verse.ModAssetBundlesHandler.mod" />
+        <Publicize Include="Assembly-CSharp:Verse.ModContentHolder`1.mod" />
+        <Publicize Include="Assembly-CSharp:Verse.PatchOperationSequence.operations" />
+        <Publicize Include="Assembly-CSharp:Verse.XmlInheritance.unresolvedNodes" />
+        <Publicize Include="Assembly-CSharp:Verse.XmlInheritance.ResolveXmlNodes" />
+        <Publicize Include="Assembly-CSharp:Verse.XmlInheritance+XmlInheritanceNode" />
+        <Publicize Include="Assembly-CSharp:Verse.DirectXmlCrossRefLoader+WantedRef" />
+        <Publicize Include="Assembly-CSharp:Verse.DirectXmlCrossRefLoader.wantedRefs" />
     </ItemGroup>
 </Project>

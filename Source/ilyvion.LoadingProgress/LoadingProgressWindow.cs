@@ -70,12 +70,18 @@ public partial class LoadingProgressWindow
         loadingActivityRect.height = Text.LineHeight;
 
         var rule = CurrentStageRule;
-        string? label = rule.CustomLabel is not null
-            ? rule.CustomLabel(_currentLoadingActivity)
-            : GetStageTranslation(rule.Stage, _currentLoadingActivity);
+        string? label = null;
+        if (rule.CustomLabel is StageDisplayLabel customLabel)
+        {
+            label = customLabel(_currentLoadingActivity);
+        }
+        label ??= GetStageTranslation(rule.Stage, _currentLoadingActivity);
+
         if (!string.IsNullOrEmpty(label))
         {
-            Widgets.Label(loadingProgressRect, Text.ClampTextWithEllipsis(loadingProgressRect, label));
+            var ellipsisRect = loadingProgressRect;
+            ellipsisRect.width -= 10f;
+            Widgets.Label(loadingProgressRect, Text.ClampTextWithEllipsis(ellipsisRect, label));
         }
 
         Rect progressRect = loadingProgressRect;

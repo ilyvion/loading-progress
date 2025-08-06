@@ -1,3 +1,6 @@
+using System.Text;
+using LudeonTK;
+
 namespace ilyvion.LoadingProgress;
 
 public enum LoadingStage
@@ -17,7 +20,8 @@ public enum LoadingStage
     LoadLanguageMetadata,
     LoadLanguage,
     CopyAllDefsToGlobalDatabases,
-    ResolveCrossReferencesBetweenNonImpliedDefs,
+    ResolveCrossReferencesBetweenNonImpliedDefsStage1,
+    ResolveCrossReferencesBetweenNonImpliedDefsStage2,
     RebindDefOfsEarly,
     TKeySystemBuildMappings,
     LegacyBackstoryTranslations,
@@ -45,7 +49,7 @@ public partial class LoadingProgressWindow
 {
     private delegate bool StagePredicate(string value);
     private delegate void StageAction(string value);
-    private delegate string StageDisplayLabel(string value);
+    private delegate string? StageDisplayLabel(string value);
 
     private record StageRule(
         StagePredicate Predicate,
@@ -136,6 +140,27 @@ public partial class LoadingProgressWindow
             LoadingStage.ErrorCheckPatches
         ),
         new(
+            value => CurrentStage == LoadingStage.ErrorCheckPatches && value.StartsWith("Loading all patches"),
+            value => {
+                if (StageProgress is (float current, float max))
+                {
+                    if (LoadingDataTracker.ModChanged)
+                    {
+                        StageProgress = ((int)current + 1, max);
+                    }
+                }
+                else
+                {
+                    StageProgress = (1, LoadedModManager.RunningModsListForReading.Count);
+                }
+            },
+            LoadingStage.ErrorCheckPatches,
+            activity => GetStageTranslationWithSecondary(
+                LoadingStage.ErrorCheckPatches,
+                $"ForMod",
+                LoadingDataTracker.Current ?? "")
+        ),
+        new(
             value => CurrentStage <= LoadingStage.ErrorCheckPatches && value == "ApplyPatches()",
             value =>
             {
@@ -154,7 +179,7 @@ public partial class LoadingProgressWindow
                 }
                 else
                 {
-                    StageProgress = (1, LoadedModManager.RunningMods.SelectMany(rm => rm.Patches).Count());
+                    StageProgress = (1, GetApproximatePatchOperationCount());
                 }
                 _currentLoadingActivity = value[..^" Worker".Length];
             },
@@ -167,6 +192,33 @@ public partial class LoadingProgressWindow
                 CurrentStage = LoadingStage.ParseAndProcessXml;
             },
             LoadingStage.ParseAndProcessXml
+        ),
+        new(
+            value => CurrentStage == LoadingStage.ParseAndProcessXml && value.StartsWith("Loading asset nodes"),
+            value =>
+            {
+                value = value["Loading asset nodes ".Length..];
+                if (int.TryParse(value, out int count))
+                {
+                    StageProgress = (0, count);
+                }
+            },
+            LoadingStage.ParseAndProcessXml
+        ),
+        new(
+            value => CurrentStage == LoadingStage.ParseAndProcessXml && value == "XmlInheritance.TryRegister",
+            value =>
+            {
+                if (StageProgress is (float current, float max))
+                {
+                    StageProgress = ((int)current + 1, max);
+                }
+            },
+            LoadingStage.ParseAndProcessXml,
+            activity => GetStageTranslationWithSecondary(
+                LoadingStage.ParseAndProcessXml,
+                $"ForMod",
+                LoadingDataTracker.Current ?? "")
         ),
         new(
             value => CurrentStage <= LoadingStage.ParseAndProcessXml && value == "XmlInheritance.Resolve()",
@@ -202,7 +254,15 @@ public partial class LoadingProgressWindow
                 }
                 _currentLoadingActivity = value["ParseValueAndReturnDef (for ".Length..][..^1];
             },
-            LoadingStage.LoadingDefs
+            LoadingStage.LoadingDefs,
+            _ => LoadingDataTracker.LastDef != null
+                ? GetStageTranslationWithSecondary(
+                    LoadingStage.LoadingDefs,
+                    $"WithDef",
+                    LoadingDataTracker.LastDef.modContentPack?.Name ?? "[unknown mod]",
+                    LoadingDataTracker.LastDef.GetType().FullName,
+                    LoadingDataTracker.LastDef.defName)
+                : null
         ),
         new(
             value => CurrentStage <= LoadingStage.LoadingDefs && value == "ClearCachedPatches()",
@@ -249,12 +309,17 @@ public partial class LoadingProgressWindow
             value => CurrentStage <= LoadingStage.CopyAllDefsToGlobalDatabases && value == "Resolve cross-references between non-implied Defs.",
             value =>
             {
-                CurrentStage = LoadingStage.ResolveCrossReferencesBetweenNonImpliedDefs;
+                CurrentStage = LoadingStage.ResolveCrossReferencesBetweenNonImpliedDefsStage1;
             },
-            LoadingStage.ResolveCrossReferencesBetweenNonImpliedDefs
+            LoadingStage.ResolveCrossReferencesBetweenNonImpliedDefsStage1
         ),
         new(
-            value => CurrentStage <= LoadingStage.ResolveCrossReferencesBetweenNonImpliedDefs && value == "Rebind DefOfs (early).",
+            value => false,
+            value => { },
+            LoadingStage.ResolveCrossReferencesBetweenNonImpliedDefsStage2
+        ),
+        new(
+            value => CurrentStage <= LoadingStage.ResolveCrossReferencesBetweenNonImpliedDefsStage2 && value == "Rebind DefOfs (early).",
             value =>
             {
                 CurrentStage = LoadingStage.RebindDefOfsEarly;
@@ -461,15 +526,40 @@ public partial class LoadingProgressWindow
         )
     ];
 
+    private static int GetApproximatePatchOperationCount()
+    {
+        int count = 0;
+        var patches = LoadedModManager.RunningMods.SelectMany(rm => rm.Patches);
+        foreach (var patch in patches)
+        {
+            if (patch is PatchOperationSequence sequence)
+            {
+                count += sequence.operations.Count;
+            }
+            else if (patch is PatchOperationConditional or PatchOperationFindMod)
+            {
+                count += 2;
+            }
+            else
+            {
+                count++;
+            }
+        }
+        return count;
+    }
+
     private static LoadingStage currentStage = LoadingStage.Initializing;
     public static LoadingStage CurrentStage
     {
         get => currentStage;
-        private set
+        set
         {
             if (currentStage != value)
             {
-                StageProgress = null; // Reset progress when stage changes
+                // Reset progress when stage changes
+                StageProgress = null;
+                LoadingDataTracker.Current = null;
+
                 currentStage = value;
             }
         }
@@ -487,6 +577,58 @@ public partial class LoadingProgressWindow
         get => _currentLoadingActivity;
         set
         {
+            // Skip very frequent messages (10k-100k+ in big mod packs) to avoid the cost of the processing below
+            var currentStage = CurrentStage;
+#pragma warning disable IDE0010
+            switch (currentStage)
+            {
+                case LoadingStage.ParseAndProcessXml:
+                    if (value is "assetlookup.TryGetValue"
+                        or "XmlInheritance.TryRegister")
+                    {
+                        return;
+                    }
+                    break;
+                case LoadingStage.XmlInheritanceResolve:
+                    if (value.StartsWith("RecursiveNodeCopyOverwriteElements"))
+                    {
+                        return;
+                    }
+                    break;
+                case LoadingStage.LoadingDefs:
+                    if (value.StartsWith("RegisterObjectWantsCrossRef")
+                        || value == "RegisterListWantsCrossRef")
+                    {
+                        return;
+                    }
+                    break;
+                case LoadingStage.ResolveCrossReferencesBetweenNonImpliedDefsStage1:
+                    if (value == "TryResolveDef")
+                    {
+                        return;
+                    }
+                    break;
+                case LoadingStage.GenerateImpliedDefs:
+                    if (value == "RegisterListWantsCrossRef")
+                    {
+                        return;
+                    }
+                    break;
+                case LoadingStage.ResolveReferences:
+                    if (value == "Resolver call")
+                    {
+                        return;
+                    }
+                    break;
+            }
+#pragma warning restore IDE0010
+
+            // This one is in so many stages that it's not worth differentiating
+            if (value == "TryDoPostLoad")
+            {
+                return;
+            }
+
             for (int i = 0; i < StageRules.Count; i++)
             {
                 var rule = StageRules[i];
@@ -515,9 +657,45 @@ public partial class LoadingProgressWindow
                     return;
                 }
             }
-            LoadingProgressMod.Warning($"No stage display rule matched for current activity: {value}");
+
+            if (Prefs.DevMode)
+            {
+                lock (_unmatchedStageActivitiesLock)
+                {
+                    if (!_unmatchedStageActivities.TryGetValue(value, out var tuple))
+                    {
+                        _unmatchedStageActivities.Add(value, (1, [CurrentStage]));
+                    }
+                    else
+                    {
+                        _ = tuple.Item2.Add(CurrentStage);
+                        _unmatchedStageActivities[value] = (tuple.Item1 + 1, tuple.Item2);
+                    }
+                }
+            }
         }
     }
 
     internal static (float currentValue, float maxValue)? StageProgress { get; set; } = null;
+
+    private static readonly object _unmatchedStageActivitiesLock = new();
+    private static readonly Dictionary<string, (int, HashSet<LoadingStage>)> _unmatchedStageActivities = [];
+
+    [DebugOutput("Loading Progress", false)]
+    public static void ShowUnmatchedStageActivities()
+    {
+        if (_unmatchedStageActivities.Count == 0)
+        {
+            LoadingProgressMod.Warning("Unmatched stage activities are only recorded when the game is launched with development mode enabled.");
+            return;
+        }
+
+        var stringBuilder = new StringBuilder();
+        foreach (var kvp in _unmatchedStageActivities.OrderByDescending(kvp => kvp.Value.Item1))
+        {
+            _ = stringBuilder.AppendLine($"{kvp.Key}: {kvp.Value.Item1} times, in stages: "
+                + string.Join(", ", kvp.Value.Item2.Select(s => s.ToString())));
+        }
+        LoadingProgressMod.DevMessage(stringBuilder.ToString());
+    }
 }

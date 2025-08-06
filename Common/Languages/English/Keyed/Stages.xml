@@ -7,16 +7,20 @@
     <LoadingProgress.Stage.CombineIntoUnifiedXml>Combining XML...</LoadingProgress.Stage.CombineIntoUnifiedXml>
     <LoadingProgress.Stage.TKeySystemParse>Parsing Translation Key system...</LoadingProgress.Stage.TKeySystemParse>
     <LoadingProgress.Stage.ErrorCheckPatches>Checking XML patches for errors...</LoadingProgress.Stage.ErrorCheckPatches>
+    <LoadingProgress.Stage.ErrorCheckPatches.ForMod>Checking XML patches for errors.. (&lt;i&gt;{0}&lt;/i&gt;)</LoadingProgress.Stage.ErrorCheckPatches.ForMod>
     <LoadingProgress.Stage.ApplyPatches>Applying XML patches... (&lt;i&gt;{0}&lt;/i&gt;)</LoadingProgress.Stage.ApplyPatches>
     <LoadingProgress.Stage.ParseAndProcessXml>Parsing and processing XML...</LoadingProgress.Stage.ParseAndProcessXml>
+    <LoadingProgress.Stage.ParseAndProcessXml.ForMod>Parsing and processing XML... (&lt;i&gt;{0}&lt;/i&gt;)</LoadingProgress.Stage.ParseAndProcessXml.ForMod>
     <LoadingProgress.Stage.XmlInheritanceResolve>Resolving XML inheritance...</LoadingProgress.Stage.XmlInheritanceResolve>
     <LoadingProgress.Stage.LoadingDefs>Loading defs... (&lt;i&gt;{0}&lt;/i&gt;)</LoadingProgress.Stage.LoadingDefs>
+    <LoadingProgress.Stage.LoadingDefs.WithDef>Loading defs... (&lt;i&gt;{0} — {1} ({2})&lt;/i&gt;)</LoadingProgress.Stage.LoadingDefs.WithDef>
     <LoadingProgress.Stage.ClearCachedPatches>Clearing cached patches...</LoadingProgress.Stage.ClearCachedPatches>
     <LoadingProgress.Stage.XmlInheritanceClear>Clearing XML inheritance...</LoadingProgress.Stage.XmlInheritanceClear>
     <LoadingProgress.Stage.LoadLanguageMetadata>Loading language metadata...</LoadingProgress.Stage.LoadLanguageMetadata>
     <LoadingProgress.Stage.LoadLanguage>Loading language data... (&lt;i&gt;{0}&lt;/i&gt;)</LoadingProgress.Stage.LoadLanguage>
     <LoadingProgress.Stage.CopyAllDefsToGlobalDatabases>Copying all Defs from mods to global databases...</LoadingProgress.Stage.CopyAllDefsToGlobalDatabases>
-    <LoadingProgress.Stage.ResolveCrossReferencesBetweenNonImpliedDefs>Resolving cross-references between non-implied Defs...</LoadingProgress.Stage.ResolveCrossReferencesBetweenNonImpliedDefs>
+    <LoadingProgress.Stage.ResolveCrossReferencesBetweenNonImpliedDefsStage1>Resolving cross-references between non-implied Defs (stage 1)...</LoadingProgress.Stage.ResolveCrossReferencesBetweenNonImpliedDefsStage1>
+    <LoadingProgress.Stage.ResolveCrossReferencesBetweenNonImpliedDefsStage2>Resolving cross-references between non-implied Defs (stage 2)...</LoadingProgress.Stage.ResolveCrossReferencesBetweenNonImpliedDefsStage2>
     <LoadingProgress.Stage.RebindDefOfsEarly>Rebinding DefOfs (early)...</LoadingProgress.Stage.RebindDefOfsEarly>
     <LoadingProgress.Stage.TKeySystemBuildMappings>Building Translation Key system mappings...</LoadingProgress.Stage.TKeySystemBuildMappings>
     <LoadingProgress.Stage.LegacyBackstoryTranslations>Loading legacy backstory translations...</LoadingProgress.Stage.LegacyBackstoryTranslations>
@@ -31,7 +35,10 @@
     <LoadingProgress.Stage.ErrorCheckAllDefs>Checking all defs for errors...</LoadingProgress.Stage.ErrorCheckAllDefs>
     <LoadingProgress.Stage.ShortHashGiving>Giving short hashes to defs...</LoadingProgress.Stage.ShortHashGiving>
     <LoadingProgress.Stage.ExecuteToExecuteWhenFinished>Running delayed initialization tasks... (&lt;i&gt;{0}&lt;/i&gt;)</LoadingProgress.Stage.ExecuteToExecuteWhenFinished>
-    <LoadingProgress.Stage.ExecuteToExecuteWhenFinished.Reloading>Reloading {0} for {1}...</LoadingProgress.Stage.ExecuteToExecuteWhenFinished.Reloading>
+    <LoadingProgress.Stage.ExecuteToExecuteWhenFinished.Reloading.audio_clips>Reloading audio clips for &lt;i&gt;{0}&lt;/i&gt;</LoadingProgress.Stage.ExecuteToExecuteWhenFinished.Reloading.audio_clips>
+    <LoadingProgress.Stage.ExecuteToExecuteWhenFinished.Reloading.textures>Reloading textures for &lt;i&gt;{0}&lt;/i&gt;</LoadingProgress.Stage.ExecuteToExecuteWhenFinished.Reloading.textures>
+    <LoadingProgress.Stage.ExecuteToExecuteWhenFinished.Reloading.strings>Reloading strings for &lt;i&gt;{0}&lt;/i&gt;</LoadingProgress.Stage.ExecuteToExecuteWhenFinished.Reloading.strings>
+    <LoadingProgress.Stage.ExecuteToExecuteWhenFinished.Reloading.asset_bundles>Reloading asset bundles for &lt;i&gt;{0}&lt;/i&gt;</LoadingProgress.Stage.ExecuteToExecuteWhenFinished.Reloading.asset_bundles>
     <LoadingProgress.Stage.StaticConstructorOnStartupCallAll>Calling all static constructors... (&lt;i&gt;{0}&lt;/i&gt;)</LoadingProgress.Stage.StaticConstructorOnStartupCallAll>
     <LoadingProgress.Stage.LoadingAllBios>Loading all bios...</LoadingProgress.Stage.LoadingAllBios>
     <LoadingProgress.Stage.InjectSelectedLanguageDataIntoGameData>Injecting selected language data into game data...</LoadingProgress.Stage.InjectSelectedLanguageDataIntoGameData>
