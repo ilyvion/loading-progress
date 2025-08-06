@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Enhanced "reload content" handling so it's more responsive.
+- Made it so the big progress bar also progresses though "one step" while the smaller one does its full range for smoother progress tracking.
 
 ### Fixed
 

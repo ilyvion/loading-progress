@@ -173,9 +173,6 @@ public partial class LoadingProgressWindow
         var unit = barRect.width / maxValue;
         barRect.width = currentValue * unit;
 
-        // draw the bar
-        Widgets.DrawBoxSolid(barRect, customBarColor ?? BarColor);
-
         if (smallCurrentValue.HasValue && smallMaxValue.HasValue)
         {
             smallCurrentValue = smallCurrentValue.Value % (2 * smallMaxValue.Value);
@@ -186,6 +183,7 @@ public partial class LoadingProgressWindow
             var smallUnit = smallBarRect.width / smallMaxValue.Value;
             smallBarRect.width = smallCurrentValue.Value * smallUnit;
 
+            float clampedSmallCurrentValue = Mathf.Clamp(smallCurrentValue.Value, 0f, smallMaxValue.Value);
             if (smallCurrentValue.Value > smallMaxValue.Value)
             {
                 // Once we're past max, start drawing the bar with a gap on the left side equal to the overflow.
@@ -193,7 +191,17 @@ public partial class LoadingProgressWindow
                 smallBarRect.xMin += (smallCurrentValue.Value - smallMaxValue.Value) * smallUnit;
             }
 
+            // draw the big/main bar with "internal" progress
+            barRect.width += clampedSmallCurrentValue / smallMaxValue.Value * unit;
+            Widgets.DrawBoxSolid(barRect, customBarColor ?? BarColor);
+
+            // draw the small bar
             Widgets.DrawBoxSolid(smallBarRect, customSmallBarColor ?? SmallBarColor);
+        }
+        else
+        {
+            // draw the big/main bar
+            Widgets.DrawBoxSolid(barRect, customBarColor ?? BarColor);
         }
     }
 
