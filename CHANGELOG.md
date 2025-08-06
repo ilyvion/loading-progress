@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2025-08-06
+
 ### Changed
 
 - Enhanced "reload content" handling so it's more responsive.
@@ -120,7 +122,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First implementation of the mod.
 
-[Unreleased]: https://github.com/ilyvion/loading-progress/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/ilyvion/loading-progress/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/ilyvion/loading-progress/compare/v0.6.0..v0.7.0
 [0.6.0]: https://github.com/ilyvion/loading-progress/compare/v0.5.1..v0.6.0
 [0.5.1]: https://github.com/ilyvion/loading-progress/compare/v0.5.0..v0.5.1
 [0.5.0]: https://github.com/ilyvion/loading-progress/compare/v0.4.1..v0.5.0
