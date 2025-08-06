@@ -38,7 +38,7 @@ internal static class LongEventHandler_ExecuteToExecuteWhenFinished_Patches
             yield break;
         }
 
-        var methods = FindMethodThatCallsStaticConstructorOnStartupUtilityCallAll();
+        var methods = StaticConstructorOnStartupCallAllFinder.FindMethod();
         MethodInfo? staticConstructorOnStartupUtilityCallAllMethod = null;
         if (methods.Count() != 1)
         {
@@ -113,32 +113,5 @@ internal static class LongEventHandler_ExecuteToExecuteWhenFinished_Patches
         }
         LongEventHandler.toExecuteWhenFinished.Clear();
         LongEventHandler.executingToExecuteWhenFinished = false;
-    }
-
-    private static readonly MethodInfo _method_StaticConstructorOnStartupUtility_CallAll
-        = AccessTools.Method(
-            typeof(StaticConstructorOnStartupUtility), nameof(StaticConstructorOnStartupUtility.CallAll));
-
-    private static readonly CodeMatch[] toMatch =
-    [
-        new(OpCodes.Call, _method_StaticConstructorOnStartupUtility_CallAll),
-    ];
-    private static IEnumerable<MethodInfo> FindMethodThatCallsStaticConstructorOnStartupUtilityCallAll()
-    {
-        // Find all possible candidates, both from the wrapping type and all nested types.
-        var candidates = AccessTools.GetDeclaredMethods(typeof(PlayDataLoader)).ToHashSet();
-        candidates.AddRange(typeof(PlayDataLoader).GetNestedTypes(AccessTools.all).SelectMany(AccessTools.GetDeclaredMethods));
-
-        //check all candidates for the target instructions, return those that match.
-        foreach (var method in candidates)
-        {
-            var instructions = PatchProcessor.GetCurrentInstructions(method);
-            var matched = instructions.Matches(toMatch);
-            if (matched)
-            {
-                yield return method;
-            }
-        }
-        yield break;
     }
 }
