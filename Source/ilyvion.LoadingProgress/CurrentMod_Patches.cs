@@ -267,7 +267,7 @@ internal static partial class DirectXmlCrossRefLoader_ResolveAllWantedCrossRefer
 
     private static void Stage2Progress()
     {
-        if (LoadingProgressWindow.CurrentStage != LoadingStage.ResolveCrossReferencesBetweenNonImpliedDefsStage2)
+        if (LoadingProgressWindow.CurrentStage <= LoadingStage.ResolveCrossReferencesBetweenNonImpliedDefsStage2)
         {
             LoadingProgressWindow.CurrentStage = LoadingStage.ResolveCrossReferencesBetweenNonImpliedDefsStage2;
         }
