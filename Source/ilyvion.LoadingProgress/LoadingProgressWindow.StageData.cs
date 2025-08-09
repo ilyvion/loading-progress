@@ -255,13 +255,13 @@ public partial class LoadingProgressWindow
                 _currentLoadingActivity = value["ParseValueAndReturnDef (for ".Length..][..^1];
             },
             LoadingStage.LoadingDefs,
-            _ => LoadingDataTracker.LastDef != null
+            _ => LoadingDataTracker.LastDef is Def def
                 ? GetStageTranslationWithSecondary(
                     LoadingStage.LoadingDefs,
                     $"WithDef",
-                    LoadingDataTracker.LastDef.modContentPack?.Name ?? "[unknown mod]",
-                    LoadingDataTracker.LastDef.GetType().FullName,
-                    LoadingDataTracker.LastDef.defName)
+                    def.modContentPack?.Name ?? "[unknown mod]",
+                    def.GetType().FullName,
+                    def.defName)
                 : null
         ),
         new(
