@@ -5,6 +5,8 @@ namespace ilyvion.LoadingProgress;
 [HarmonyPatch(typeof(LongEventHandler), nameof(LongEventHandler.ExecuteToExecuteWhenFinished))]
 internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patches
 {
+    private static bool _hasWarnedAboutReloadIntPatches;
+
     private static bool Prepare()
     {
         if (!LoadingProgressMod.Settings.PatchInitialization)
@@ -31,6 +33,8 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
 
     internal static IEnumerable ExecuteToExecuteWhenFinished()
     {
+        var patchReloadContent = LoadingProgressMod.Settings.PatchReloadContent;
+
         if (LongEventHandler.executingToExecuteWhenFinished)
         {
             Log.Warning("Already executing.");
@@ -44,7 +48,7 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
                 .GetValue(null) as HashSet<ModContentPack>;
         }
 
-        var methods = StaticConstructorOnStartupCallAllFinder.FindMethod();
+        var methods = StaticConstructorOnStartupCallAllFinder.FindMethodCalling();
         MethodInfo? staticConstructorOnStartupUtilityCallAllMethod = null;
         if (methods.Count() != 1)
         {
@@ -56,7 +60,7 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
             staticConstructorOnStartupUtilityCallAllMethod = methods.First();
         }
 
-        var methodFields = ReloadContentIntFinder.FindMethod();
+        var methodFields = ReloadContentIntFinder.FindMethodCalling();
         MethodInfo? reloadContentIntMethod = null;
         FieldInfo? reloadContentIntmodContentPackField = null;
         if (methodFields.Count() != 1)
@@ -97,13 +101,29 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
                 yield break;
             }
 
-            if (toExecuteWhenFinished is { } action
+            bool skipReload = false;
+            if (patchReloadContent
+                && toExecuteWhenFinished is { } action
                 && action.Method == reloadContentIntMethod
                 && action.Target.GetType() == reloadContentIntMethod.DeclaringType
                 && reloadContentIntmodContentPackField is not null)
             {
+                // Pause Faster Game Loading's content loader; we're taking over now.
+                FasterGameLoading_DelayedActions_LateUpdate_Patches._pauseFasterGameLoading_DelayedActions_LateUpdate = true;
+
+                // We replace ReloadContentInt with our own enumerated implementation and do not let the original run,
+                // so transpilers might not work as expected. Warn players about potential issues.
+                if (!_hasWarnedAboutReloadIntPatches)
+                {
+                    Utilities.WarnAboutPatches(
+                        AccessTools.Method(typeof(ModContentPack), nameof(ModContentPack.ReloadContentInt)),
+                        false,
+                        warnKinds: PatchKinds.Transpiler);
+                    _hasWarnedAboutReloadIntPatches = true;
+                }
+
                 ModContentPack modContentPack = (ModContentPack)reloadContentIntmodContentPackField.GetValue(action.Target)!;
-                bool skipReload = false;
+                ModContentPack_ReloadContentInt_Patch.CurrentModContentPack = modContentPack;
                 if (fasterGameLoadingLoadedMods is not null)
                 {
                     skipReload = fasterGameLoadingLoadedMods.Contains(modContentPack);
@@ -114,6 +134,7 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
                     }
                     else
                     {
+                        // We add this mod to the list of loaded mods so Faster Game Loading skips it.
                         _ = fasterGameLoadingLoadedMods.Add(modContentPack);
                     }
                 }
@@ -129,8 +150,16 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
                         yield return value;
                         reloadContentStepCounter++;
                     }
-                    continue;
+                    // Run the original method to let other mods' prefixes and postfixes run
+                    modContentPack.ReloadContentInt();
+                    ModContentPack_ReloadContentInt_Patch.CurrentModContentPack = null;
+                    yield return null;
                 }
+                else
+                {
+                    ModContentPack_ReloadContentInt_Patch.CurrentModContentPack = null;
+                }
+                continue;
             }
             else if (toExecuteWhenFinished is Action action2 && action2.Method == reloadContentIntMethod)
             {
@@ -170,5 +199,6 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
         }
         LongEventHandler.toExecuteWhenFinished.Clear();
         LongEventHandler.executingToExecuteWhenFinished = false;
+        FasterGameLoading_DelayedActions_LateUpdate_Patches._pauseFasterGameLoading_DelayedActions_LateUpdate = false;
     }
 }

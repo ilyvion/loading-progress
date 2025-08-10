@@ -11,6 +11,13 @@ public class Settings : ModSettings
         set => _patchInitialization = value;
     }
 
+    private bool _patchReloadContent = true;
+    public bool PatchReloadContent
+    {
+        get => _patchReloadContent;
+        set => _patchReloadContent = value;
+    }
+
     private LoadingWindowPlacement _loadingWindowPlacement = LoadingWindowPlacement.Middle;
     public LoadingWindowPlacement LoadingWindowPlacement
     {
@@ -65,6 +72,7 @@ public class Settings : ModSettings
         base.ExposeData();
 
         Scribe_Values.Look(ref _patchInitialization, "patchInitialization", true);
+        Scribe_Values.Look(ref _patchReloadContent, "patchReloadContent", true);
         Scribe_Values.Look(ref _loadingWindowPlacement, "loadingWindowPlacement", LoadingWindowPlacement.Middle);
         Scribe_Values.Look(ref _lastLoadingTime, "lastLoadingTime", -1f);
         Scribe_Values.Look(ref _lastLoadingModHash, "lastLoadingModHash", -1);
@@ -83,6 +91,11 @@ public class Settings : ModSettings
             "LoadingProgress.PatchInitialization".Translate(),
             ref _patchInitialization,
             "LoadingProgress.PatchInitialization.Tip".Translate());
+
+        listingStandard.CheckboxLabeled(
+            "LoadingProgress.PatchReloadContent".Translate(),
+            ref _patchReloadContent,
+            "LoadingProgress.PatchReloadContent.Tip".Translate());
 
         listingStandard.CheckboxLabeled(
             "LoadingProgress.LastLoadingTime".Translate(),

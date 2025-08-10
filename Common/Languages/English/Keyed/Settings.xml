@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <LanguageData>
-    <LoadingProgress.PatchInitialization>Enable patching of initialization code</LoadingProgress.PatchInitialization>
+    <LoadingProgress.PatchInitialization>Patch late-loading initialization code to show loading progress</LoadingProgress.PatchInitialization>
     <LoadingProgress.PatchInitialization.Tip>When enabled, the mod will patch the part during RimWorld's startup process where the game typically hangs to make it more responsive. This allows the mod to track and display loading progress for each static constructor. This should not cause any problems unless you are running mods that very specifically have targeted this code and is very timing sensitive.\n\nIf you experience any issues with Loading Progress, try disabling this setting to see if it resolves the issue.</LoadingProgress.PatchInitialization.Tip>
+
+
+    <LoadingProgress.PatchReloadContent>Patch content loading code to show loading progress</LoadingProgress.PatchReloadContent>
+    <LoadingProgress.PatchReloadContent.Tip>When enabled, the mod will replace the method that loads mod content to track and display loading progress for each content pack being reloaded. This should not cause any problems unless you are running mods that very specifically have targeted this code. The mod will log a warning if it detects any other mods patching this code.\n\nIf you experience any issues with Loading Progress, try disabling this setting to see if it resolves the issue. Feel free to report any problems you encounter with mods that triggered the warning message.</LoadingProgress.PatchReloadContent.Tip>
 
     <LoadingProgress.LastLoadingTime>Show loading time</LoadingProgress.LastLoadingTime>
     <LoadingProgress.LastLoadingTime.Tip>When enabled, the mod will display the time elapsed so far. Once the game has loaded at least once, it will store it for next time, and use it as the estimated loading time for the next loading session.</LoadingProgress.LastLoadingTime.Tip>

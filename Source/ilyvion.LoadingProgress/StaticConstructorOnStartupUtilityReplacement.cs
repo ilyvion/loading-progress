@@ -57,7 +57,7 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
             new(OpCodes.Call, _method_StaticConstructorOnStartupUtility_CallAll),
         ];
 
-        public static IEnumerable<MethodInfo> FindMethod()
+        public static IEnumerable<MethodInfo> FindMethodCalling()
         {
             // Find all possible candidates, both from the wrapping type and all nested types.
             var candidates = AccessTools.GetDeclaredMethods(typeof(PlayDataLoader)).ToHashSet();

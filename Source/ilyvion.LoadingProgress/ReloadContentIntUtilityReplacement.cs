@@ -69,7 +69,7 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
             new(OpCodes.Call, _method_ModContentPack_ReloadContentInt),
         ];
 
-        public static IEnumerable<(MethodInfo method, FieldInfo thisField)> FindMethod()
+        public static IEnumerable<(MethodInfo method, FieldInfo thisField)> FindMethodCalling()
         {
             // Find all possible candidates, both from the wrapping type and all nested types.
             var candidates = AccessTools

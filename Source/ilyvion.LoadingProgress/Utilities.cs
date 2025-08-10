@@ -4,6 +4,17 @@ using UnityEngine;
 
 namespace ilyvion.LoadingProgress;
 
+[System.Flags]
+public enum PatchKinds
+{
+    None = 0,
+    Prefix = 1 << 0,
+    Transpiler = 1 << 1,
+    Postfix = 1 << 2,
+    Finalizer = 1 << 3,
+    All = Prefix | Transpiler | Postfix | Finalizer,
+}
+
 public static class Utilities
 {
     public static void LongEventHandlerPrependQueue(Action prependAction, string keepPrefix = "LoadingProgress.")
@@ -32,90 +43,115 @@ public static class Utilities
         LoadingProgressMod.Debug("Event queue after modification:\n- " + string.Join("\n- ", LongEventHandler.eventQueue.Select(e => $"{e.eventTextKey} ({e.eventText})")));
     }
 
-    public static void WarnAboutPatches(MethodBase method)
+    public static void WarnAboutPatches(
+        MethodBase method,
+        bool stillCallsOriginal,
+        Assembly[]? ignoredAssemblies = null,
+        MethodBase[]? ignoredMethods = null,
+        PatchKinds warnKinds = PatchKinds.All)
     {
+        HashSet<Assembly> ignoredAssemblySet = [Assembly.GetExecutingAssembly(), .. ignoredAssemblies ?? []];
+        HashSet<MethodBase> ignoredMethodsSet = [.. ignoredMethods ?? []];
+
         var patches = Harmony.GetPatchInfo(method);
         if (patches != null)
         {
-            var potentiallyProblematicPrefixes = new List<MethodInfo>();
-            foreach (var patch in patches.Prefixes)
+            List<MethodInfo>? potentiallyProblematicPrefixes = null;
+            if ((warnKinds & PatchKinds.Prefix) != 0)
             {
-                if (patch.PatchMethod.DeclaringType.Assembly == Assembly.GetExecutingAssembly())
+                potentiallyProblematicPrefixes ??= [];
+                foreach (var patch in patches.Prefixes)
                 {
-                    continue; // Skip our own patches
+                    if (ignoredAssemblySet.Contains(patch.PatchMethod.DeclaringType.Assembly) || ignoredMethodsSet.Contains(patch.PatchMethod))
+                    {
+                        continue; // Skip ignored assemblies and methods
+                    }
+                    potentiallyProblematicPrefixes.Add(patch.PatchMethod);
+                }
+            }
+
+            List<MethodInfo>? potentiallyProblematicTranspilers = null;
+            if ((warnKinds & PatchKinds.Transpiler) != 0)
+            {
+                potentiallyProblematicTranspilers ??= [];
+                foreach (var patch in patches.Transpilers)
+                {
+                    if (ignoredAssemblySet.Contains(patch.PatchMethod.DeclaringType.Assembly) || ignoredMethodsSet.Contains(patch.PatchMethod))
+                    {
+                        continue; // Skip ignored assemblies and methods
+                    }
+                    potentiallyProblematicTranspilers.Add(patch.PatchMethod);
+                }
+            }
+
+            List<MethodInfo>? potentiallyProblematicPostfixes = null;
+            if ((warnKinds & PatchKinds.Postfix) != 0)
+            {
+                potentiallyProblematicPostfixes ??= [];
+                foreach (var patch in patches.Postfixes)
+                {
+                    if (ignoredAssemblySet.Contains(patch.PatchMethod.DeclaringType.Assembly) || ignoredMethodsSet.Contains(patch.PatchMethod))
+                    {
+                        continue; // Skip ignored assemblies and methods
+                    }
+                    potentiallyProblematicPostfixes.Add(patch.PatchMethod);
+                }
+            }
+
+            List<MethodInfo>? potentiallyProblematicFinalizers = null;
+            if ((warnKinds & PatchKinds.Finalizer) != 0)
+            {
+                potentiallyProblematicFinalizers ??= [];
+                foreach (var patch in patches.Finalizers)
+                {
+                    if (ignoredAssemblySet.Contains(patch.PatchMethod.DeclaringType.Assembly) || ignoredMethodsSet.Contains(patch.PatchMethod))
+                    {
+                        continue; // Skip ignored assemblies and methods
+                    }
+                    potentiallyProblematicFinalizers.Add(patch.PatchMethod);
+                }
+            }
+            int totalCount = (potentiallyProblematicPrefixes?.Count ?? 0)
+                              + (potentiallyProblematicTranspilers?.Count ?? 0)
+                              + (potentiallyProblematicPostfixes?.Count ?? 0)
+                              + (potentiallyProblematicFinalizers?.Count ?? 0);
+            if (totalCount > 0)
+            {
+                var sb = new StringBuilder();
+                _ = sb.Append("These patches may not work as expected because ")
+                      .Append($"Loading Progress replaces {method.DeclaringType}:{method}.\n");
+
+                if (stillCallsOriginal)
+                {
+                    _ = sb.Append("Note: The original method is still called; unless patches are extremely timing-sensitive, they should still work.\n");
                 }
 
-                // Only warn about patches from other assemblies
-                potentiallyProblematicPrefixes.Add(patch.PatchMethod);
-            }
-            var potentiallyProblematicTranspilers = new List<MethodInfo>();
-            foreach (var patch in patches.Transpilers)
-            {
-                if (patch.PatchMethod.DeclaringType.Assembly == Assembly.GetExecutingAssembly())
+                if ((warnKinds & PatchKinds.Prefix) != 0 && potentiallyProblematicPrefixes != null && potentiallyProblematicPrefixes.Count > 0)
                 {
-                    continue; // Skip our own patches
+                    _ = sb.Append($"Potentially problematic prefixes ({potentiallyProblematicPrefixes.Count}):\n  - ")
+                         .Append(string.Join("\n  - ", potentiallyProblematicPrefixes.Select(m => $"{m.DeclaringType}:{m}")))
+                         .Append('\n');
+                }
+                if ((warnKinds & PatchKinds.Transpiler) != 0 && potentiallyProblematicTranspilers != null && potentiallyProblematicTranspilers.Count > 0)
+                {
+                    _ = sb.Append($"Potentially problematic transpilers ({potentiallyProblematicTranspilers.Count}):\n  - ")
+                         .Append(string.Join("\n  - ", potentiallyProblematicTranspilers.Select(m => $"{m.DeclaringType}:{m}")))
+                         .Append('\n');
+                }
+                if ((warnKinds & PatchKinds.Postfix) != 0 && potentiallyProblematicPostfixes != null && potentiallyProblematicPostfixes.Count > 0)
+                {
+                    _ = sb.Append($"Potentially problematic postfixes ({potentiallyProblematicPostfixes.Count}):\n  - ")
+                         .Append(string.Join("\n  - ", potentiallyProblematicPostfixes.Select(m => $"{m.DeclaringType}:{m}")))
+                         .Append('\n');
+                }
+                if ((warnKinds & PatchKinds.Finalizer) != 0 && potentiallyProblematicFinalizers != null && potentiallyProblematicFinalizers.Count > 0)
+                {
+                    _ = sb.Append($"Potentially problematic finalizers ({potentiallyProblematicFinalizers.Count}):\n  - ")
+                         .Append(string.Join("\n  - ", potentiallyProblematicFinalizers.Select(m => $"{m.DeclaringType}:{m}")))
+                         .Append('\n');
                 }
 
-                // Only warn about patches from other assemblies
-                potentiallyProblematicTranspilers.Add(patch.PatchMethod);
-            }
-            var potentiallyProblematicPostfixes = new List<MethodInfo>();
-            foreach (var patch in patches.Postfixes)
-            {
-                if (patch.PatchMethod.DeclaringType.Assembly == Assembly.GetExecutingAssembly())
-                {
-                    continue; // Skip our own patches
-                }
-
-                // Only warn about patches from other assemblies
-                potentiallyProblematicPostfixes.Add(patch.PatchMethod);
-            }
-            var potentiallyProblematicFinalizers = new List<MethodInfo>();
-            foreach (var patch in patches.Finalizers)
-            {
-                if (patch.PatchMethod.DeclaringType.Assembly == Assembly.GetExecutingAssembly())
-                {
-                    continue; // Skip our own patches
-                }
-
-                // Only warn about patches from other assemblies
-                potentiallyProblematicFinalizers.Add(patch.PatchMethod);
-            }
-            if (potentiallyProblematicPrefixes.Count > 0)
-            {
-                LoadingProgressMod.Warning($"These patches may not work as expected because "
-                + $"Loading Progress replaces {method.DeclaringType}:{method}."
-                + "It still gets called, however, so as long as the patches aren't extremely "
-                + "timing sensitive, they should still work. Here's the list of potentially "
-                + "problematic prefixes:\n- "
-                + string.Join("\n- ", potentiallyProblematicPrefixes.Select(m => $"{m.DeclaringType}:{m}")));
-            }
-            if (potentiallyProblematicTranspilers.Count > 0)
-            {
-                LoadingProgressMod.Warning($"These transpilers may not work as expected because "
-                + $"Loading Progress replaces {method.DeclaringType}:{method}."
-                + "It still gets called, however, so as long as the patches aren't extremely "
-                + "timing sensitive, they should still work. Here's the list of potentially "
-                + "problematic transpilers:\n- "
-                + string.Join("\n- ", potentiallyProblematicTranspilers.Select(m => $"{m.DeclaringType}:{m}")));
-            }
-            if (potentiallyProblematicPostfixes.Count > 0)
-            {
-                LoadingProgressMod.Warning($"These patches may not work as expected because "
-                + $"Loading Progress replaces {method.DeclaringType}:{method}."
-                + "It still gets called, however, so as long as the patches aren't extremely "
-                + "timing sensitive, they should still work. Here's the list of potentially "
-                + "problematic postfixes:\n- "
-                + string.Join("\n- ", potentiallyProblematicPostfixes.Select(m => $"{m.DeclaringType}:{m}")));
-            }
-            if (potentiallyProblematicFinalizers.Count > 0)
-            {
-                LoadingProgressMod.Warning($"These patches may not work as expected because "
-                + $"Loading Progress replaces {method.DeclaringType}:{method}."
-                + "It still gets called, however, so as long as the patches aren't extremely "
-                + "timing sensitive, they should still work. Here's the list of potentially "
-                + "problematic finalizers:\n- "
-                + string.Join("\n- ", potentiallyProblematicFinalizers.Select(m => m.ToString())));
+                LoadingProgressMod.Warning(sb.ToString().TrimEnd());
             }
         }
     }
