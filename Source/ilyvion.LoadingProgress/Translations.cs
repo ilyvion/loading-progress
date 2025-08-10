@@ -32,23 +32,24 @@ internal static class Translations
         if (!_activeLanguageTranslationsLoaded && Prefs.LangFolderName != "English")
         {
             var languageFolderName = Prefs.LangFolderName;
-            foreach (var modDir in ModLister.AllActiveModDirs)
+            foreach (var mod in LoadedModManager.RunningMods)
             {
-                foreach (var mod in LoadedModManager.RunningMods)
+                foreach (var loadFolder in mod.foldersToLoadDescendingOrder)
                 {
-                    foreach (var loadFolder in mod.foldersToLoadDescendingOrder)
+                    var languageDirectory = Path.Join(Path.Join(loadFolder, "Languages", languageFolderName), "Keyed");
+                    if (Directory.Exists(languageDirectory))
                     {
-                        var languageDirectory = Path.Join(Path.Join(loadFolder, "Languages", languageFolderName), "Keyed");
-                        if (Directory.Exists(languageDirectory))
+                        LoadLanguage(ref ActiveLanguageTranslationValues, languageDirectory);
+                        if (ActiveLanguageTranslationValues is not null)
                         {
-                            LoadLanguage(ref ActiveLanguageTranslationValues, languageDirectory);
-                            if (ActiveLanguageTranslationValues is not null)
-                            {
-                                LoadingProgressMod.Message($"Loaded translations for {languageFolderName} from {mod.Name} from {languageDirectory}.");
-                                break;
-                            }
+                            LoadingProgressMod.Message($"Loaded translations for {languageFolderName} from {mod.Name} from {languageDirectory}.");
+                            break;
                         }
                     }
+                }
+                if (ActiveLanguageTranslationValues is not null)
+                {
+                    break;
                 }
             }
             _activeLanguageTranslationsLoaded = true;
