@@ -35,10 +35,10 @@
     <LoadingProgress.Stage.ErrorCheckAllDefs>Checking all defs for errors...</LoadingProgress.Stage.ErrorCheckAllDefs>
     <LoadingProgress.Stage.ShortHashGiving>Giving short hashes to defs...</LoadingProgress.Stage.ShortHashGiving>
     <LoadingProgress.Stage.ExecuteToExecuteWhenFinished>Running delayed initialization tasks... (&lt;i&gt;{0}&lt;/i&gt;)</LoadingProgress.Stage.ExecuteToExecuteWhenFinished>
-    <LoadingProgress.Stage.ExecuteToExecuteWhenFinished.Reloading.audio_clips>Reloading audio clips for &lt;i&gt;{0}&lt;/i&gt;</LoadingProgress.Stage.ExecuteToExecuteWhenFinished.Reloading.audio_clips>
-    <LoadingProgress.Stage.ExecuteToExecuteWhenFinished.Reloading.textures>Reloading textures for &lt;i&gt;{0}&lt;/i&gt;</LoadingProgress.Stage.ExecuteToExecuteWhenFinished.Reloading.textures>
-    <LoadingProgress.Stage.ExecuteToExecuteWhenFinished.Reloading.strings>Reloading strings for &lt;i&gt;{0}&lt;/i&gt;</LoadingProgress.Stage.ExecuteToExecuteWhenFinished.Reloading.strings>
-    <LoadingProgress.Stage.ExecuteToExecuteWhenFinished.Reloading.asset_bundles>Reloading asset bundles for &lt;i&gt;{0}&lt;/i&gt;</LoadingProgress.Stage.ExecuteToExecuteWhenFinished.Reloading.asset_bundles>
+    <LoadingProgress.Stage.ExecuteToExecuteWhenFinished.Reloading.audio_clips>Loading audio clips for &lt;i&gt;{0}&lt;/i&gt;</LoadingProgress.Stage.ExecuteToExecuteWhenFinished.Reloading.audio_clips>
+    <LoadingProgress.Stage.ExecuteToExecuteWhenFinished.Reloading.textures>Loading textures for &lt;i&gt;{0}&lt;/i&gt;</LoadingProgress.Stage.ExecuteToExecuteWhenFinished.Reloading.textures>
+    <LoadingProgress.Stage.ExecuteToExecuteWhenFinished.Reloading.strings>Loading strings for &lt;i&gt;{0}&lt;/i&gt;</LoadingProgress.Stage.ExecuteToExecuteWhenFinished.Reloading.strings>
+    <LoadingProgress.Stage.ExecuteToExecuteWhenFinished.Reloading.asset_bundles>Loading asset bundles for &lt;i&gt;{0}&lt;/i&gt;</LoadingProgress.Stage.ExecuteToExecuteWhenFinished.Reloading.asset_bundles>
     <LoadingProgress.Stage.StaticConstructorOnStartupCallAll>Calling all static constructors... (&lt;i&gt;{0}&lt;/i&gt;)</LoadingProgress.Stage.StaticConstructorOnStartupCallAll>
     <LoadingProgress.Stage.LoadingAllBios>Loading all bios...</LoadingProgress.Stage.LoadingAllBios>
     <LoadingProgress.Stage.InjectSelectedLanguageDataIntoGameData>Injecting selected language data into game data...</LoadingProgress.Stage.InjectSelectedLanguageDataIntoGameData>

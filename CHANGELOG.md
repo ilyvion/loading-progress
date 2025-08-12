@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Additional progress window for Faster Game Loading's early mod content loading process. Only shown when the mod is active and can be disabled in the settings.
+
 ### Changed
 
 - Attempt to improve mod compatibility by letting other mods' patches run on a specific method that we've taken over. Also, "take over" for Faster Game Loading once the content loading part of it merges with ours, so it's not constantly staying one mod ahead of us, ruining the progress tracking.

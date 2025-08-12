@@ -67,6 +67,13 @@ public class Settings : ModSettings
         set => _showLastLoadingTimeInCorner = value;
     }
 
+    private bool _showFasterGameLoadingEarlyModContentLoading = true;
+    public bool ShowFasterGameLoadingEarlyModContentLoading
+    {
+        get => _showFasterGameLoadingEarlyModContentLoading;
+        set => _showFasterGameLoadingEarlyModContentLoading = value;
+    }
+
     public override void ExposeData()
     {
         base.ExposeData();
@@ -80,6 +87,7 @@ public class Settings : ModSettings
         Scribe_Values.Look(ref _showLoadingTimeAsCountDown, "showLoadingTimeAsCountDown", false);
         Scribe_Values.Look(ref _showLastLoadingTimeProgressBar, "showLastLoadingTimeProgressBar", true);
         Scribe_Values.Look(ref _showLastLoadingTimeInCorner, "showLastLoadingTimeInCorner", true);
+        Scribe_Values.Look(ref _showFasterGameLoadingEarlyModContentLoading, "showFasterGameLoadingEarlyModContentLoading", true);
     }
 
     public void DoSettingsWindowContents(Rect inRect)
@@ -116,6 +124,11 @@ public class Settings : ModSettings
             "LoadingProgress.LastLoadingTimeInCorner".Translate(),
             ref _showLastLoadingTimeInCorner,
             "LoadingProgress.LastLoadingTimeInCorner.Tip".Translate());
+
+        listingStandard.CheckboxLabeled(
+            "LoadingProgress.FasterGameLoadingEarlyModContentLoading".Translate(),
+            ref _showFasterGameLoadingEarlyModContentLoading,
+            "LoadingProgress.FasterGameLoadingEarlyModContentLoading.Tip".Translate());
 
         if (listingStandard.ButtonTextLabeledPct(
             "LoadingProgress.LoadingWindowPlacement".Translate(),

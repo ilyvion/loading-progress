@@ -1,4 +1,5 @@
 using System.Reflection;
+using ilyvion.LoadingProgress.FasterGameLoading;
 
 namespace ilyvion.LoadingProgress;
 
@@ -42,10 +43,9 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
         }
 
         HashSet<ModContentPack>? fasterGameLoadingLoadedMods = null;
-        if (ModsConfig.ActiveModsInLoadOrder.Any(mod => mod.PackageId.Equals("taranchuk.fastergameloading", StringComparison.CurrentCultureIgnoreCase)))
+        if (FasterGameLoadingUtils.HasFasterGameLoading)
         {
-            fasterGameLoadingLoadedMods = AccessTools.Field("FasterGameLoading.ModContentPack_ReloadContentInt_Patch:loadedMods")
-                .GetValue(null) as HashSet<ModContentPack>;
+            fasterGameLoadingLoadedMods = FasterGameLoadingUtils.LoadedMods;
         }
 
         var methods = StaticConstructorOnStartupCallAllFinder.FindMethodCalling();
@@ -152,12 +152,10 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
                     }
                     // Run the original method to let other mods' prefixes and postfixes run
                     modContentPack.ReloadContentInt();
-                    ModContentPack_ReloadContentInt_Patch.CurrentModContentPack = null;
                     yield return null;
                 }
                 else
                 {
-                    ModContentPack_ReloadContentInt_Patch.CurrentModContentPack = null;
                 }
                 continue;
             }
@@ -167,6 +165,8 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
                 + action2.Target.GetType().FullName + ":"
                 + action2.Target + ", but we expected it to be " + reloadContentIntMethod.DeclaringType.FullName + ":" + reloadContentIntMethod);
             }
+
+            ModContentPack_ReloadContentInt_Patch.CurrentModContentPack = null;
 
             string label = toExecuteWhenFinished.Method.DeclaringType.ToString() + " -> " + toExecuteWhenFinished.Method.ToString();
             if (LoadingProgressWindow.CurrentStage is

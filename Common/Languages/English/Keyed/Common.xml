@@ -11,4 +11,7 @@
 
     <LoadingProgress.TimeRemaining>{0} left of {1}</LoadingProgress.TimeRemaining>
     <LoadingProgress.TimeOverEstimate>{0} over {1}</LoadingProgress.TimeOverEstimate>
+
+    <LoadingProgress.FasterGameLoadingEarlyModContentLoading>Loading progress — Faster Game Loading Early Mod Content Loading</LoadingProgress.FasterGameLoadingEarlyModContentLoading>
+    <LoadingProgress.FasterGameLoadingEarlyModContentLoading.ForMod>Faster Game Loading is early loading content for &lt;i&gt;{0}&lt;/i&gt;...</LoadingProgress.FasterGameLoadingEarlyModContentLoading.ForMod>
 </LanguageData>

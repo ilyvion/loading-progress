@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Reflection.Emit;
+using ilyvion.LoadingProgress.FasterGameLoading;
 using UnityEngine;
 
 namespace ilyvion.LoadingProgress;
@@ -14,18 +15,19 @@ internal class Verse_LongEventHandler_DrawLongEventWindowContents_Patch
             return;
         }
 
-        Vector2 windowSize = LoadingProgressWindow.WindowSize;
-        float yOffset = 0f;
+        Vector2 loadingProgressWindowSize = LoadingProgressWindow.WindowSize;
+        Vector2 fasterGameLoadingProgressWindowSize = FasterGameLoadingProgressWindow.WindowSize;
+        float loadingProgressWindowOffset = 0f;
         switch (LoadingProgressMod.Settings.LoadingWindowPlacement)
         {
             case LoadingWindowPlacement.Top:
-                yOffset = 10f + LongEventHandler.StatusRectSize.y + 10f;
+                loadingProgressWindowOffset = 10f + LongEventHandler.StatusRectSize.y + 10f;
                 break;
             case LoadingWindowPlacement.Middle:
-                yOffset = (UI.screenHeight - windowSize.y) / 2f;
+                loadingProgressWindowOffset = (UI.screenHeight - loadingProgressWindowSize.y - fasterGameLoadingProgressWindowSize.y) / 2f;
                 break;
             case LoadingWindowPlacement.Bottom:
-                yOffset = UI.screenHeight - windowSize.y - 10f;
+                loadingProgressWindowOffset = UI.screenHeight - loadingProgressWindowSize.y - fasterGameLoadingProgressWindowSize.y - 10f - (fasterGameLoadingProgressWindowSize.y > 0 ? 10f : 0f);
                 break;
             case LoadingWindowPlacement.Custom:
                 // Custom logic can be added here if needed
@@ -34,8 +36,8 @@ internal class Verse_LongEventHandler_DrawLongEventWindowContents_Patch
                 break;
         }
 
-        Vector2 offset2 = new((UI.screenWidth - windowSize.x) / 2f, yOffset);
-        Rect rect = new(offset2.x, offset2.y, LoadingProgressWindow.WindowSize.x, LoadingProgressWindow.WindowSize.y);
+        Vector2 loadingProgressWindowPosition = new((UI.screenWidth - loadingProgressWindowSize.x) / 2f, loadingProgressWindowOffset);
+        Rect rect = new(loadingProgressWindowPosition.x, loadingProgressWindowPosition.y, loadingProgressWindowSize.x, loadingProgressWindowSize.y);
 
         bool useStandardWindow = LongEventHandler.currentEvent.UseStandardWindow;
         if (!useStandardWindow || Find.UIRoot == null || Find.WindowStack == null)
@@ -47,6 +49,19 @@ internal class Verse_LongEventHandler_DrawLongEventWindowContents_Patch
         else
         {
             LoadingProgressWindow.DrawWindow(rect);
+        }
+
+        Vector2 fasterGameLoadingProgressWindowPosition = new((UI.screenWidth - fasterGameLoadingProgressWindowSize.x) / 2f, rect.yMax + 10f);
+        rect = new(fasterGameLoadingProgressWindowPosition.x, fasterGameLoadingProgressWindowPosition.y, fasterGameLoadingProgressWindowSize.x, fasterGameLoadingProgressWindowSize.y);
+        if (!useStandardWindow || Find.UIRoot == null || Find.WindowStack == null)
+        {
+            Widgets.DrawShadowAround(rect);
+            Widgets.DrawWindowBackground(rect);
+            FasterGameLoadingProgressWindow.DrawContents(rect);
+        }
+        else
+        {
+            FasterGameLoadingProgressWindow.DrawWindow(rect);
         }
     }
 }
@@ -65,7 +80,8 @@ internal class Verse_LongEventHandler_LongEventsOnGUI_Patch
         }
 
         Vector2 statusRectSize = LongEventHandler.StatusRectSize;
-        Vector2 windowSize = LoadingProgressWindow.WindowSize;
+        Vector2 loadingProgressWindowSize = LoadingProgressWindow.WindowSize;
+        Vector2 fasterGameLoadingProgressWindowSize = FasterGameLoadingProgressWindow.WindowSize;
 
         float statusRectTop = 0; ;
         switch (LoadingProgressMod.Settings.LoadingWindowPlacement)
@@ -74,10 +90,10 @@ internal class Verse_LongEventHandler_LongEventsOnGUI_Patch
                 statusRectTop = 10f;
                 break;
             case LoadingWindowPlacement.Middle:
-                statusRectTop = ((UI.screenHeight - windowSize.y) / 2f) - statusRectSize.y - 10f;
+                statusRectTop = ((UI.screenHeight - loadingProgressWindowSize.y - fasterGameLoadingProgressWindowSize.y) / 2f) - statusRectSize.y - 10f;
                 break;
             case LoadingWindowPlacement.Bottom:
-                statusRectTop = UI.screenHeight - windowSize.y - 10f - statusRectSize.y - 10f;
+                statusRectTop = UI.screenHeight - loadingProgressWindowSize.y - fasterGameLoadingProgressWindowSize.y - 10f - (fasterGameLoadingProgressWindowSize.y > 0 ? 10f : 0f) - statusRectSize.y - 10f;
                 break;
             case LoadingWindowPlacement.Custom:
                 // Custom logic can be added here if needed

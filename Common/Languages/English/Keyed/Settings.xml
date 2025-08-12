@@ -16,6 +16,8 @@
     <LoadingProgress.LastLoadingTimeProgressBar.Tip>When enabled, the mod will show a progress bar during loading that indicates how much time has passed since the game started loading compared to the expected time.</LoadingProgress.LastLoadingTimeProgressBar.Tip>
     <LoadingProgress.LastLoadingTimeInCorner>Show loading time in bottom-right corner of the main menu</LoadingProgress.LastLoadingTimeInCorner>
     <LoadingProgress.LastLoadingTimeInCorner.Tip>When enabled, the mod will show the time it took to load the game in the bottom-right corner of the main menu.</LoadingProgress.LastLoadingTimeInCorner.Tip>
+    <LoadingProgress.ShowFasterGameLoadingEarlyModContentLoading>Show Faster Game Loading's early mod content loading progress</LoadingProgress.ShowFasterGameLoadingEarlyModContentLoading>
+    <LoadingProgress.ShowFasterGameLoadingEarlyModContentLoading.Tip>When enabled, and Faster Game Loading is active, the mod will show an additional loading indicator for mod content that is loaded early during the game startup process.</LoadingProgress.ShowFasterGameLoadingEarlyModContentLoading.Tip>
 
     <LoadingProgress.LoadingWindowPlacement>Loading window placement</LoadingProgress.LoadingWindowPlacement>
 
