@@ -169,19 +169,23 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
             }
 
             string label = toExecuteWhenFinished.Method.DeclaringType.ToString() + " -> " + toExecuteWhenFinished.Method.ToString();
+            if (LoadingProgressWindow.CurrentStage is
+                LoadingStage.ExecuteToExecuteWhenFinished or LoadingStage.ExecuteToExecuteWhenFinished2)
+            {
+                if (!label.Contains("ModContentPack") || !label.Contains("ReloadContent"))
+                {
+                    LoadingProgressWindow.SetCurrentLoadingActivityRaw(label);
+                }
+                LoadingProgressWindow.StageProgress = (i + 1, LongEventHandler.toExecuteWhenFinished.Count);
+            }
+            yield return null;
             DeepProfiler.Start(label);
             try
             {
-                if (LoadingProgressWindow.CurrentStage is
-                    LoadingStage.ExecuteToExecuteWhenFinished or LoadingStage.ExecuteToExecuteWhenFinished2)
-                {
-                    if (!label.Contains("ModContentPack") || !label.Contains("ReloadContent"))
-                    {
-                        LoadingProgressWindow.SetCurrentLoadingActivityRaw(label);
-                    }
-                    LoadingProgressWindow.StageProgress = (i + 1, LongEventHandler.toExecuteWhenFinished.Count);
-                }
+                DateTime now = DateTime.Now;
+                LoadingProgressMod.Debug($"About to call {label} @ {now:HH:mm:ss.fff}");
                 toExecuteWhenFinished();
+                LoadingProgressMod.Debug($"Finished calling {label} @ {DateTime.Now:HH:mm:ss.fff}; took {DateTime.Now - now:mm\\:ss\\.fff}");
             }
             catch (Exception ex)
             {
@@ -191,7 +195,6 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
             {
                 DeepProfiler.End();
             }
-            yield return null;
         }
         if (LongEventHandler.toExecuteWhenFinished.Count > 0)
         {

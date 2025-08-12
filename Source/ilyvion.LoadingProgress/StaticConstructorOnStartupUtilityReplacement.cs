@@ -25,18 +25,22 @@ internal class StaticConstructorOnStartupUtilityReplacement
         for (int i = 0; i < list.Count; i++)
         {
             Type item = list[i];
+
+            LoadingProgressWindow.SetCurrentLoadingActivityRaw(item.ToString());
+            LoadingProgressWindow.StageProgress = (i + 1, list.Count);
+            yield return null;
+
             try
             {
-                LoadingProgressWindow.SetCurrentLoadingActivityRaw(item.ToString());
-                LoadingProgressWindow.StageProgress = (i + 1, list.Count);
-
+                DateTime now = DateTime.Now;
+                LoadingProgressMod.Debug($"About to run static constructor for {item} @ {now:HH:mm:ss.fff}");
                 RuntimeHelpers.RunClassConstructor(item.TypeHandle);
+                LoadingProgressMod.Debug($"Finished running static constructor for {item} @ {DateTime.Now:HH:mm:ss.fff}; took {DateTime.Now - now:mm\\:ss\\.fff}");
             }
             catch (Exception ex)
             {
                 Log.Error("Error in static constructor of " + item?.ToString() + ": " + ex);
             }
-            yield return null;
         }
         DeepProfiler.End();
         StaticConstructorOnStartupUtility.coreStaticAssetsLoaded = true;
