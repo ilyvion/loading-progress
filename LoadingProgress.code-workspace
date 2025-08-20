@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../../../../.var/app/com.valvesoftware.Steam/.steam/steam/steamapps/common/RimWorld/Data"
+		},
+		{
+			"path": "../../../../.var/app/com.valvesoftware.Steam/.steam/steam/steamapps/common/RimWorld/Mods/ilyvion.LoadingProgress.Norwegian"
+		}
+	],
+	"settings": {}
+}
