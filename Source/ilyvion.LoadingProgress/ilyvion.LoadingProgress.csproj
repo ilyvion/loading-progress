@@ -1,73 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <OutputType>Library</OutputType>
-        <TargetFramework>net481</TargetFramework>
-        <PlatformTarget>x64</PlatformTarget>
-        <LangVersion>12.0</LangVersion>
-        <Nullable>enable</Nullable>
-
-        <EnableNETAnalyzers>True</EnableNETAnalyzers>
-        <AnalysisLevel>preview-all</AnalysisLevel>
-        <ErrorReport>prompt</ErrorReport>
-        <WarningLevel>5</WarningLevel>
-
-        <!-- 
-            Reasons:
-
-            IDE0008: Use explicit type instead of 'var'
-                    I prefer var.
-
-            IDE0160: Convert to block scoped namespace
-                    I prefer file scoped namespaces.
-        -->
-        <NoWarn>IDE0008;IDE0160;IDE0022</NoWarn>
-
         <RootNamespace>ilyvion.LoadingProgress</RootNamespace>
         <AssemblyName>ilyvion.LoadingProgress</AssemblyName>
 
-        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+        <!-- TODO: Remove these when ready -->
+        <ImplicitUsings>disable</ImplicitUsings>
+        <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
+        <NoWarn>CS1591</NoWarn>
     </PropertyGroup>
-
-    <PropertyGroup>
-        <OutputPath>../../$(RimWorldVersion)/Assemblies</OutputPath>
-        <DebugType>portable</DebugType>
-        <DebugSymbols>true</DebugSymbols>
-    </PropertyGroup>
-
-    <PropertyGroup Condition="'$(Configuration)' == 'Release'">
-        <Optimize>true</Optimize>
-    </PropertyGroup>
-
-    <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
-        <Optimize>false</Optimize>
-    </PropertyGroup>
-
-    <Choose>
-        <When Condition="'$(RimWorldVersion)' == '1.6'">
-            <PropertyGroup>
-                <DefineConstants>$(DefineConstants);v1_6</DefineConstants>
-            </PropertyGroup>
-            <ItemGroup>
-                <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.*">
-                    <ExcludeAssets>runtime</ExcludeAssets>
-                </PackageReference>
-                <PackageReference Include="Lib.Harmony" Version="2.3.6">
-                    <ExcludeAssets>runtime</ExcludeAssets>
-                </PackageReference>
-            </ItemGroup>
-        </When>
-    </Choose>
-
-    <ItemGroup>
-        <PackageReference Include="Krafs.Publicizer" Version="2.2.1">
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-            <PrivateAssets>all</PrivateAssets>
-        </PackageReference>
-        <PackageReference Include="PolySharp" Version="1.14.1">
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-            <PrivateAssets>all</PrivateAssets>
-        </PackageReference>
-    </ItemGroup>
     <ItemGroup>
         <Publicize Include="Assembly-CSharp:Verse.LongEventHandler.StatusRectSize" />
         <Publicize Include="Assembly-CSharp:Verse.ModContentPack.ReloadContentInt" />

@@ -11,7 +11,7 @@ jobs:
   build:
     uses: ilyvion/rimworld-utils/.github/workflows/build_mod.yml@main
     with:
-      mod_name: "LoadingProgress"
+      mod_name: "ilyvion.LoadingProgress"
       rw_versions: |-
         1.6
       artifact_suffix: Release
@@ -26,6 +26,6 @@ jobs:
     secrets: inherit
     with:
       artifact_name: ${{ needs.build.outputs.artifact_name }}
-      mod_name: "LoadingProgress"
+      mod_name: "ilyvion.LoadingProgress"
       rw_versions: |-
         1.6
