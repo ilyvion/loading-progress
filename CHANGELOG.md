@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.3] - 2025-08-22
+
 ### Fixed
 
 - The mod should work fine with startup impact profiling enabled again now, as the cause of the problem has been addressed. For the sake of avoiding causing issues for people, I'm going to leave the setting disabled for now still.
@@ -172,7 +174,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First implementation of the mod.
 
-[Unreleased]: https://github.com/ilyvion/loading-progress/compare/v0.9.2...HEAD
+[Unreleased]: https://github.com/ilyvion/loading-progress/compare/v0.9.3...HEAD
+[0.9.3]: https://github.com/ilyvion/loading-progress/compare/v0.9.2..v0.9.3
 [0.9.2]: https://github.com/ilyvion/loading-progress/compare/v0.9.1..v0.9.2
 [0.9.1]: https://github.com/ilyvion/loading-progress/compare/v0.9.0..v0.9.1
 [0.9.0]: https://github.com/ilyvion/loading-progress/compare/v0.8.0..v0.9.0
