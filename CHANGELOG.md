@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- The mod should work fine with startup impact profiling enabled again now, as the cause of the problem has been addressed. For the sake of avoiding causing issues for people, I'm going to leave the setting disabled for now still.
+
 ## [0.9.2] - 2025-08-22
 
 ### Changed
