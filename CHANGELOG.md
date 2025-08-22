@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.2] - 2025-08-22
+
 ### Changed
 
 - Set startup impact profiling to disabled by default until we figure out why it's causing problems for people.
@@ -166,7 +168,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First implementation of the mod.
 
-[Unreleased]: https://github.com/ilyvion/loading-progress/compare/v0.9.1...HEAD
+[Unreleased]: https://github.com/ilyvion/loading-progress/compare/v0.9.2...HEAD
+[0.9.2]: https://github.com/ilyvion/loading-progress/compare/v0.9.1..v0.9.2
 [0.9.1]: https://github.com/ilyvion/loading-progress/compare/v0.9.0..v0.9.1
 [0.9.0]: https://github.com/ilyvion/loading-progress/compare/v0.8.0..v0.9.0
 [0.8.0]: https://github.com/ilyvion/loading-progress/compare/v0.7.3..v0.8.0
