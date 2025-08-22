@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Set startup impact profiling to disabled by default until we figure out why it's causing problems for people.
+
 ## [0.9.1] - 2025-08-22
 
 ### Fixed

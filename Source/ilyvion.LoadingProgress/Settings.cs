@@ -72,7 +72,7 @@ public class Settings : ModSettings
         set => _showFasterGameLoadingEarlyModContentLoading = value;
     }
 
-    private bool _trackStartupLoadingImpact = true;
+    private bool _trackStartupLoadingImpact = false;
     public bool TrackStartupLoadingImpact
     {
         get => _trackStartupLoadingImpact;
@@ -93,7 +93,7 @@ public class Settings : ModSettings
         Scribe_Values.Look(ref _showLastLoadingTimeProgressBar, "showLastLoadingTimeProgressBar", true);
         Scribe_Values.Look(ref _showLastLoadingTimeInCorner, "showLastLoadingTimeInCorner", true);
         Scribe_Values.Look(ref _showFasterGameLoadingEarlyModContentLoading, "showFasterGameLoadingEarlyModContentLoading", true);
-        Scribe_Values.Look(ref _trackStartupLoadingImpact, "trackStartupLoadingImpact", true);
+        Scribe_Values.Look(ref _trackStartupLoadingImpact, "trackStartupLoadingImpact", false);
     }
 
     public void DoSettingsWindowContents(Rect inRect)
