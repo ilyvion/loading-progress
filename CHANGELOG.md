@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Startup impact profiling for mod loading and base game processes. This feature provides insights into the performance impact of individual mods and core game loading steps during startup.
+
 ## [0.8.0] - 2025-08-20
 
 ### Added

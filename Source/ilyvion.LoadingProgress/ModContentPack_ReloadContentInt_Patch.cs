@@ -1,9 +1,4 @@
-using System.Diagnostics;
-using System.Reflection;
-
 using ilyvion.LoadingProgress.FasterGameLoading;
-
-using UnityEngine;
 
 namespace ilyvion.LoadingProgress;
 
@@ -26,11 +21,11 @@ public static class ModContentPack_ReloadContentInt_Patch
         if (!shouldRunOriginal)
         {
             // NOTE: This will only happen if *no other mod* (such as Faster Game Loading) already destructively prefixed ReloadContentInt.
-            LoadingProgressMod.Debug("Skipping ReloadContentInt for " + __instance.Name + " because we're running our custom loader on it");
+            // LoadingProgressMod.Debug("Skipping ReloadContentInt for " + __instance.Name + " because we're running our custom loader on it");
         }
         else
         {
-            LoadingProgressMod.Debug("Letting original ReloadContentInt for " + __instance.Name + " run because we're not the one controlling it");
+            // LoadingProgressMod.Debug("Letting original ReloadContentInt for " + __instance.Name + " run because we're not the one controlling it");
         }
         return shouldRunOriginal;
     }

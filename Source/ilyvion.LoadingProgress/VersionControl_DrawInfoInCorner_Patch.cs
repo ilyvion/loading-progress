@@ -1,4 +1,4 @@
-using UnityEngine;
+using ilyvion.LoadingProgress.StartupImpact.Dialog;
 
 namespace ilyvion.LoadingProgress;
 
@@ -6,7 +6,7 @@ namespace ilyvion.LoadingProgress;
 internal static class VersionControl_DrawInfoInCorner_Patch
 {
     private static TimeSpan? _loadingTime;
-    private static void Postfix()
+    internal static void Postfix()
     {
         if (!LoadingProgressMod.Settings.ShowLastLoadingTimeInCorner)
         {
@@ -25,6 +25,10 @@ internal static class VersionControl_DrawInfoInCorner_Patch
             var tip = new TipSignal("LoadingProgress.LoadingTime.Tip".Translate());
             TooltipHandler.TipRegion(rect, tip);
             Widgets.DrawHighlight(rect);
+        }
+        if (Widgets.ButtonInvisible(rect))
+        {
+            Find.WindowStack.Add(new DialogStartupImpact());
         }
     }
 

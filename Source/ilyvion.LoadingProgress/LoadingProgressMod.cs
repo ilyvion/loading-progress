@@ -1,6 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Reflection;
-using UnityEngine;
 
 namespace ilyvion.LoadingProgress;
 
@@ -9,13 +7,22 @@ internal class LoadingProgressMod : Mod
 {
 #pragma warning disable CS8618 // Set by constructor
     internal static LoadingProgressMod instance;
+    internal StartupImpact.StartupImpact StartupImpact;
+    internal Harmony harmony;
 #pragma warning restore CS8618
 
     public LoadingProgressMod(ModContentPack content) : base(content)
     {
         instance = this;
+        StartupImpact = new StartupImpact.StartupImpact();
 
-        new Harmony(content.PackageId).PatchAll(Assembly.GetExecutingAssembly());
+        harmony = new(content.PackageId);
+        harmony.PatchAllUncategorized(Assembly.GetExecutingAssembly());
+
+        if (Settings.TrackStartupLoadingImpact)
+        {
+            harmony.PatchCategory(Assembly.GetExecutingAssembly(), "StartupImpact");
+        }
 
         Message("Loading Progress initialized! Enjoy the rest of your loading experience!");
     }

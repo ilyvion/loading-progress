@@ -1,5 +1,5 @@
-using System.Reflection;
 using ilyvion.LoadingProgress.FasterGameLoading;
+using ilyvion.LoadingProgress.StartupImpact;
 
 namespace ilyvion.LoadingProgress;
 
@@ -22,7 +22,7 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
     {
         if (LongEventHandler.toExecuteWhenFinished.Count > 0 && LoadingProgressWindow.CurrentStage != LoadingStage.Finished)
         {
-            LoadingProgressMod.Debug("Running Enumerable version of ExecuteToExecuteWhenFinished() called with " + LongEventHandler.toExecuteWhenFinished.Count + " actions to execute.\n" + Environment.StackTrace);
+            //LoadingProgressMod.Debug("Running Enumerable version of ExecuteToExecuteWhenFinished() called with " + LongEventHandler.toExecuteWhenFinished.Count + " actions to execute.\n" + Environment.StackTrace);
             Utilities.LongEventHandlerPrependQueue(() =>
             {
                 LongEventHandler.QueueLongEvent(ExecuteToExecuteWhenFinished(), "LoadingProgress.ExecuteToExecuteWhenFinished");
@@ -34,6 +34,9 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
 
     internal static IEnumerable ExecuteToExecuteWhenFinished()
     {
+        // Once we start with the ExecuteToExecuteWhenFinished, we need to switch the active thread ID
+        LoadingProgressMod.instance.StartupImpact.UpdateActiveThreadId();
+
         var patchReloadContent = LoadingProgressMod.Settings.PatchReloadContent;
 
         if (LongEventHandler.executingToExecuteWhenFinished)
@@ -95,8 +98,8 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
                 LongEventHandler.toExecuteWhenFinished.RemoveRange(0, i);
                 LongEventHandler.executingToExecuteWhenFinished = false;
 
-                LoadingProgressMod.Debug("StaticConstructorOnStartupUtility.CallAll was up, "
-                    + "interrupting ExecuteToExecuteWhenFinished.");
+                // LoadingProgressMod.Debug("StaticConstructorOnStartupUtility.CallAll was up, "
+                //     + "interrupting ExecuteToExecuteWhenFinished.");
 
                 yield break;
             }
@@ -182,10 +185,32 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
             DeepProfiler.Start(label);
             try
             {
-                DateTime now = DateTime.Now;
-                LoadingProgressMod.Debug($"About to call {label} @ {now:HH:mm:ss.fff}");
+                var methodAssembly = toExecuteWhenFinished.Method.DeclaringType.Assembly;
+                var assemblyMod = Utilities.FindModByAssembly(methodAssembly);
+                var isBaseGame = methodAssembly.FullName.StartsWith("Assembly-CSharp");
+                if (isBaseGame)
+                {
+                    StartupImpactProfilerUtil.StartBaseGameProfiler(
+                        $"LoadingProgress.StartupImpact.ExecuteToExecuteWhenFinished|{label}");
+                }
+                else
+                {
+                    StartupImpactProfilerUtil.StartModProfiler(
+                        assemblyMod, $"LoadingProgress.StartupImpact.ExecuteToExecuteWhenFinished|{label}");
+                }
+
                 toExecuteWhenFinished();
-                LoadingProgressMod.Debug($"Finished calling {label} @ {DateTime.Now:HH:mm:ss.fff}; took {DateTime.Now - now:mm\\:ss\\.fff}");
+
+                if (isBaseGame)
+                {
+                    StartupImpactProfilerUtil.StopBaseGameProfiler(
+                        $"LoadingProgress.StartupImpact.ExecuteToExecuteWhenFinished|{label}");
+                }
+                else
+                {
+                    StartupImpactProfilerUtil.StopModProfiler(
+                        assemblyMod, $"LoadingProgress.StartupImpact.ExecuteToExecuteWhenFinished|{label}");
+                }
             }
             catch (Exception ex)
             {

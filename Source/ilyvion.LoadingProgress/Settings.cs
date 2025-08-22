@@ -1,5 +1,3 @@
-using UnityEngine;
-
 namespace ilyvion.LoadingProgress;
 
 public class Settings : ModSettings
@@ -74,6 +72,13 @@ public class Settings : ModSettings
         set => _showFasterGameLoadingEarlyModContentLoading = value;
     }
 
+    private bool _trackStartupLoadingImpact = true;
+    public bool TrackStartupLoadingImpact
+    {
+        get => _trackStartupLoadingImpact;
+        set => _trackStartupLoadingImpact = value;
+    }
+
     public override void ExposeData()
     {
         base.ExposeData();
@@ -88,6 +93,7 @@ public class Settings : ModSettings
         Scribe_Values.Look(ref _showLastLoadingTimeProgressBar, "showLastLoadingTimeProgressBar", true);
         Scribe_Values.Look(ref _showLastLoadingTimeInCorner, "showLastLoadingTimeInCorner", true);
         Scribe_Values.Look(ref _showFasterGameLoadingEarlyModContentLoading, "showFasterGameLoadingEarlyModContentLoading", true);
+        Scribe_Values.Look(ref _trackStartupLoadingImpact, "trackStartupLoadingImpact", true);
     }
 
     public void DoSettingsWindowContents(Rect inRect)
@@ -126,9 +132,14 @@ public class Settings : ModSettings
             "LoadingProgress.LastLoadingTimeInCorner.Tip".Translate());
 
         listingStandard.CheckboxLabeled(
-            "LoadingProgress.FasterGameLoadingEarlyModContentLoading".Translate(),
+            "LoadingProgress.ShowFasterGameLoadingEarlyModContentLoading".Translate(),
             ref _showFasterGameLoadingEarlyModContentLoading,
-            "LoadingProgress.FasterGameLoadingEarlyModContentLoading.Tip".Translate());
+            "LoadingProgress.ShowFasterGameLoadingEarlyModContentLoading.Tip".Translate());
+
+        listingStandard.CheckboxLabeled(
+            "LoadingProgress.TrackStartupLoadingImpact".Translate(),
+            ref _trackStartupLoadingImpact,
+            "LoadingProgress.TrackStartupLoadingImpact.Tip".Translate());
 
         if (listingStandard.ButtonTextLabeledPct(
             "LoadingProgress.LoadingWindowPlacement".Translate(),

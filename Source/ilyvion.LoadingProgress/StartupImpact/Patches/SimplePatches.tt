@@ -1,0 +1,100 @@
+<#@ template language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+#nullable enable
+
+namespace ilyvion.LoadingProgress.StartupImpact.Patches;
+
+<#
+    List<(string, string, string)> baseGamePatches = new()
+    {
+        ("LoadedModManager", "CombineIntoUnifiedXML", "CombineXml"),
+        ("TKeySystem", "Parse", "TKeySystemParse"),
+        ("LoadedModManager", "ParseAndProcessXML", "LoadedModManagerParseAndProcessXML"),
+        ("XmlInheritance", "Resolve", "ResolveXmlInheritance"),
+        ("XmlInheritance", "Clear", "ClearCachedXmlInheritance"),
+        ("TKeySystem", "BuildMappings", "TKeySystemBuildMappings"),
+        ("BackstoryTranslationUtility", "LoadAndInjectBackstoryData", "BackstoryTranslationUtilityLoadAndInjectBackstoryData"),
+        ("LoadedLanguage", "InjectIntoData_BeforeImpliedDefs", "LoadedLanguageInjectIntoDataBeforeImpliedDefs"),
+        ("ColoredText", "ResetStaticData", "ColoredTextResetStaticData"),
+        ("DefGenerator", "GenerateImpliedDefs_PreResolve", "DefGeneratorGenerateImpliedDefsPreResolve"),
+        ("PlayDataLoader", "ResetStaticDataPre", "PlayDataLoaderResetStaticDataPre"),
+        ("DefGenerator", "GenerateImpliedDefs_PostResolve", "DefGeneratorGenerateImpliedDefsPostResolve"),
+        ("PlayDataLoader", "ResetStaticDataPost", "PlayDataLoaderResetStaticDataPost"),
+        ("KeyPrefs", "Init", "KeyPrefsInit"),
+        ("ShortHashGiver", "GiveAllShortHashes", "ShortHashGiverGiveAllShortHashes"),
+        ("SolidBioDatabase", "LoadAllBios", "SolidBioDatabaseLoadAllBios"),
+        ("LoadedLanguage", "InjectIntoData_AfterImpliedDefs", "LoadedLanguageInjectIntoDataAfterImpliedDefs"),
+        ("FloatMenuMakerMap", "Init", "FloatMenuMakerMapInit"),
+        ("GlobalTextureAtlasManager", "BakeStaticAtlases", "GlobalTextureAtlasManagerBakeStaticAtlases"),
+        ("RimWorld.IO.AbstractFilesystem", "ClearAllCache", "AbstractFilesystemClearAllCache")
+    };
+    foreach (var (type, method, profilerKey) in baseGamePatches)
+    {
+#>
+[HarmonyPatch(typeof(<#= type #>), nameof(<#= type #>.<#= method #>))]
+[HarmonyPatchCategory("StartupImpact")]
+internal static partial class <#= type.Replace('.', '_') #>_<#= method #>_Patches
+{
+    static partial void BeforePrefix();
+    static partial void AfterPrefix();
+
+    internal static void Prefix()
+    {
+        BeforePrefix();
+        StartupImpactProfilerUtil.StartBaseGameProfiler("LoadingProgress.StartupImpact.<#= profilerKey #>");
+        AfterPrefix();
+    }
+
+    static partial void BeforePostfix();
+    static partial void AfterPostfix();
+
+    internal static void Postfix()
+    {
+        BeforePostfix();
+        StartupImpactProfilerUtil.StopBaseGameProfiler("LoadingProgress.StartupImpact.<#= profilerKey #>");
+        AfterPostfix();
+    }
+}
+
+<#
+    }
+
+    List<(string, string, string, string)> modPatches = new()
+    {
+        ("ModContentPack", "LoadPatches", "__instance", "LoadPatches"),
+        ("XmlInheritance", "TryRegister", "mod", "RegisterXmlInheritance"),
+    };
+    foreach (var (type, method, parameterName, profilerKey) in modPatches)
+    {
+#>
+[HarmonyPatch(typeof(<#= type #>), nameof(<#= type #>.<#= method #>))]
+[HarmonyPatchCategory("StartupImpact")]
+internal static partial class <#= type #>_<#= method #>_Patches
+{
+    static partial void BeforePrefix(ModContentPack? modContentPack);
+    static partial void AfterPrefix(ModContentPack? modContentPack);
+
+    internal static void Prefix(ModContentPack? <#= parameterName #>)
+    {
+        BeforePrefix(<#= parameterName #>);
+        StartupImpactProfilerUtil.StartModProfiler(<#= parameterName #>, "LoadingProgress.StartupImpact.<#= profilerKey #>");
+        AfterPrefix(<#= parameterName #>);
+    }
+
+    static partial void BeforePostfix(ModContentPack? modContentPack);
+    static partial void AfterPostfix(ModContentPack? modContentPack);
+
+    internal static void Postfix(ModContentPack? <#= parameterName #>)
+    {
+        BeforePostfix(<#= parameterName #>);
+        StartupImpactProfilerUtil.StopModProfiler(<#= parameterName #>, "LoadingProgress.StartupImpact.<#= profilerKey #>");
+        AfterPostfix(<#= parameterName #>);
+    }
+}
+
+<#
+    }
+#>

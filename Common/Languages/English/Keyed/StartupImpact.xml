@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+    <LoadingProgress.StartupImpact.ModConstructor>Running mod constructor</LoadingProgress.StartupImpact.ModConstructor>
+    <LoadingProgress.StartupImpact.LoadDefs>Loading defs</LoadingProgress.StartupImpact.LoadDefs>
+    <LoadingProgress.StartupImpact.CombineXml>Combining XML into a single XML document</LoadingProgress.StartupImpact.CombineXml>
+    <LoadingProgress.StartupImpact.TKeySystemParse>Translation key system parsing</LoadingProgress.StartupImpact.TKeySystemParse>
+    <LoadingProgress.StartupImpact.LoadedModManagerParseAndProcessXML>Parsing and processing XML</LoadingProgress.StartupImpact.LoadedModManagerParseAndProcessXML>
+    <LoadingProgress.StartupImpact.ErrorCheckPatches>Error checking patches</LoadingProgress.StartupImpact.ErrorCheckPatches>
+    <LoadingProgress.StartupImpact.LoadPatches>Loading patches</LoadingProgress.StartupImpact.LoadPatches>
+    <LoadingProgress.StartupImpact.ApplyPatches>Applying patches</LoadingProgress.StartupImpact.ApplyPatches>
+    <LoadingProgress.StartupImpact.RegisterXmlInheritance>Registering XML inheritance</LoadingProgress.StartupImpact.RegisterXmlInheritance>
+    <LoadingProgress.StartupImpact.ResolveXmlInheritance>Resolving XML inheritance</LoadingProgress.StartupImpact.ResolveXmlInheritance>
+    <LoadingProgress.StartupImpact.ClearCachedPatches>Clearing cached patches</LoadingProgress.StartupImpact.ClearCachedPatches>
+    <LoadingProgress.StartupImpact.ClearCachedXmlInheritance>Clearing cached XML inheritance</LoadingProgress.StartupImpact.ClearCachedXmlInheritance>
+    <LoadingProgress.StartupImpact.LanguageDatabaseInitAllMetadata>Loading language metadata</LoadingProgress.StartupImpact.LanguageDatabaseInitAllMetadata>
+    <LoadingProgress.StartupImpact.DefDatabaseAddAllInMods>Copying all Defs from mods to global databases</LoadingProgress.StartupImpact.DefDatabaseAddAllInMods>
+    <LoadingProgress.StartupImpact.ResolveAllWantedCrossReferences.NonImplied>Resolving cross-references between non-implied Defs</LoadingProgress.StartupImpact.ResolveAllWantedCrossReferences.NonImplied>
+    <LoadingProgress.StartupImpact.DefOfHelperRebindAllDefOfs.Early>Rebinding DefOfs (early)</LoadingProgress.StartupImpact.DefOfHelperRebindAllDefOfs.Early>
+    <LoadingProgress.StartupImpact.TKeySystemBuildMappings>Translation key system mapping</LoadingProgress.StartupImpact.TKeySystemBuildMappings>
+    <LoadingProgress.StartupImpact.BackStoryTranslationUtilityLoadAndInjectBackstoryData>Loading and injecting legacy backstory translations</LoadingProgress.StartupImpact.BackStoryTranslationUtilityLoadAndInjectBackstoryData>
+    <LoadingProgress.StartupImpact.ModContentPackReloadContentInt.AudioClips>Loading audio clips</LoadingProgress.StartupImpact.ModContentPackReloadContentInt.AudioClips>
+    <LoadingProgress.StartupImpact.ModContentPackReloadContentInt.Textures>Loading textures</LoadingProgress.StartupImpact.ModContentPackReloadContentInt.Textures>
+    <LoadingProgress.StartupImpact.ModContentPackReloadContentInt.Strings>Loading strings</LoadingProgress.StartupImpact.ModContentPackReloadContentInt.Strings>
+    <LoadingProgress.StartupImpact.ModContentPackReloadContentInt.AssetBundles>Loading asset bundles</LoadingProgress.StartupImpact.ModContentPackReloadContentInt.AssetBundles>
+    <LoadingProgress.StartupImpact.LoadedLanguageInjectIntoDataBeforeImpliedDefs>Injecting selected language data into game data (early pass)</LoadingProgress.StartupImpact.LoadedLanguageInjectIntoDataBeforeImpliedDefs>
+    <LoadingProgress.StartupImpact.ColoredTextResetStaticData>Running global operations (early pass)</LoadingProgress.StartupImpact.ColoredTextResetStaticData>
+    <LoadingProgress.StartupImpact.DefGeneratorGenerateImpliedDefsPreResolve>Generating implied Defs (pre-resolve)</LoadingProgress.StartupImpact.DefGeneratorGenerateImpliedDefsPreResolve>
+    <LoadingProgress.StartupImpact.ResolveAllWantedCrossReferences.Implied>Resolving cross-references between Defs made by the implied defs</LoadingProgress.StartupImpact.ResolveAllWantedCrossReferences.Implied>
+    <LoadingProgress.StartupImpact.DefOfHelperRebindAllDefOfs.Final>Rebinding DefOfs (final)</LoadingProgress.StartupImpact.DefOfHelperRebindAllDefOfs.Final>
+    <LoadingProgress.StartupImpact.PlayDataLoaderResetStaticDataPre>Other def binding, resetting and global operations (pre-resolve)</LoadingProgress.StartupImpact.PlayDataLoaderResetStaticDataPre>
+    <LoadingProgress.StartupImpact.ResolveReferences>Resolving references</LoadingProgress.StartupImpact.ResolveReferences>
+    <LoadingProgress.StartupImpact.DefGeneratorGenerateImpliedDefsPostResolve>Generating implied Defs (post-resolve)</LoadingProgress.StartupImpact.DefGeneratorGenerateImpliedDefsPostResolve>
+    <LoadingProgress.StartupImpact.PlayDataLoaderResetStaticDataPost>Other def binding, resetting and global operations (post-resolve)</LoadingProgress.StartupImpact.PlayDataLoaderResetStaticDataPost>
+    <LoadingProgress.StartupImpact.ErrorCheckAllDefs>Error checking all defs</LoadingProgress.StartupImpact.ErrorCheckAllDefs>
+    <LoadingProgress.StartupImpact.KeyPrefsInit>Loading keyboard preferences</LoadingProgress.StartupImpact.KeyPrefsInit>
+    <LoadingProgress.StartupImpact.ShortHashGiverGiveAllShortHashes>Short hash giving</LoadingProgress.StartupImpact.ShortHashGiverGiveAllShortHashes>
+    <LoadingProgress.StartupImpact.ExecuteToExecuteWhenFinished>Running delayed initialization task {0}</LoadingProgress.StartupImpact.ExecuteToExecuteWhenFinished>
+    <LoadingProgress.StartupImpact.SolidBioDatabaseLoadAllBios>Loading all bios</LoadingProgress.StartupImpact.SolidBioDatabaseLoadAllBios>
+    <LoadingProgress.StartupImpact.LoadedLanguageInjectIntoDataAfterImpliedDefs>Injecting selected language data into game data</LoadingProgress.StartupImpact.LoadedLanguageInjectIntoDataAfterImpliedDefs>
+    <LoadingProgress.StartupImpact.StaticConstructorOnStartupUtilityCallAll>Running static constructors</LoadingProgress.StartupImpact.StaticConstructorOnStartupUtilityCallAll>
+    <LoadingProgress.StartupImpact.FloatMenuMakerMapInit>Initializing float menu maker map</LoadingProgress.StartupImpact.FloatMenuMakerMapInit>
+    <LoadingProgress.StartupImpact.GlobalTextureAtlasManagerBakeStaticAtlases>Texture atlas baking</LoadingProgress.StartupImpact.GlobalTextureAtlasManagerBakeStaticAtlases>
+    <LoadingProgress.StartupImpact.AbstractFilesystemClearAllCache>Clearing filesystem cache</LoadingProgress.StartupImpact.AbstractFilesystemClearAllCache>
+    <LoadingProgress.StartupImpact.Total.Mods>Mods</LoadingProgress.StartupImpact.Total.Mods>
+    <LoadingProgress.StartupImpact.Total.ModsHidden>Hidden mods</LoadingProgress.StartupImpact.Total.ModsHidden>
+    <LoadingProgress.StartupImpact.Total.BaseGame>Not directly related to mods</LoadingProgress.StartupImpact.Total.BaseGame>
+    <LoadingProgress.StartupImpact.Total.Others>Untracked</LoadingProgress.StartupImpact.Total.Others>
+
+    <LoadingProgress.StartupImpact.Seconds>{0} s</LoadingProgress.StartupImpact.Seconds>
+    <LoadingProgress.StartupImpact.Milliseconds>{0} ms</LoadingProgress.StartupImpact.Milliseconds>
+
+    <LoadingProgress.StartupImpact.StartupTime>Startup time: {0}</LoadingProgress.StartupImpact.StartupTime>
+    <LoadingProgress.StartupImpact.StartupMods>Mods startup impact: {0}</LoadingProgress.StartupImpact.StartupMods>
+    <LoadingProgress.StartupImpact.StartupNonmods>Not directly related to mods: {0}</LoadingProgress.StartupImpact.StartupNonmods>
+
+    <LoadingProgress.StartupImpact.LogarithmicScale>Use logarithmic scale</LoadingProgress.StartupImpact.LogarithmicScale>
+    <LoadingProgress.StartupImpact.LogarithmicScale.Tip>When this is enabled, the startup impact values will be displayed on a logarithmic scale meaning that a value that is 10 times as big as another in the linear space will only be twice as big, allowing for better comparisons of large differences in impact.</LoadingProgress.StartupImpact.LogarithmicScale.Tip>
+
+    <LoadingProgress.StartupImpact.ToggleModVisibility.Tip>Toggle the visibility of this mod's impact on startup performance. If this is currently the mod with the highest impact, its impact will no longer be used as a reference point for other mods, but instead the next highest impact mod will be used.</LoadingProgress.StartupImpact.ToggleModVisibility.Tip>
+
+    <LoadingProgress.StartupImpact.Saved>Saved successfully</LoadingProgress.StartupImpact.Saved>
+    <LoadingProgress.StartupImpact.SaveFailed>Saving failed: {0}</LoadingProgress.StartupImpact.SaveFailed>
+    <LoadingProgress.StartupImpact.Loaded>Loaded successfully</LoadingProgress.StartupImpact.Loaded>
+    <LoadingProgress.StartupImpact.LoadFailedNoData>Loading failed: No saved data found</LoadingProgress.StartupImpact.LoadFailedNoData>
+    <LoadingProgress.StartupImpact.LoadFailed>Loading failed: {0}</LoadingProgress.StartupImpact.LoadFailed>
+
+    <LoadingProgress.StartupImpact.Disabled>&lt;i&gt;Startup loading impact has been disabled in the settings&lt;/i&gt;</LoadingProgress.StartupImpact.Disabled>
+</LanguageData>

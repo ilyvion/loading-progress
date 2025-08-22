@@ -1,7 +1,5 @@
-using System.Reflection;
 using System.Reflection.Emit;
 using ilyvion.LoadingProgress.FasterGameLoading;
-using UnityEngine;
 
 namespace ilyvion.LoadingProgress;
 
@@ -70,7 +68,7 @@ internal class Verse_LongEventHandler_DrawLongEventWindowContents_Patch
 internal class Verse_LongEventHandler_LongEventsOnGUI_Patch
 {
     private static readonly MethodInfo _method_GenUI_Rounded = AccessTools.Method(typeof(GenUI), nameof(GenUI.Rounded), [typeof(Rect)]);
-    private static readonly MethodInfo _methodAdjustStatusWindowRect = AccessTools.Method(typeof(Verse_LongEventHandler_LongEventsOnGUI_Patch), nameof(Verse_LongEventHandler_LongEventsOnGUI_Patch.AdjustStatusWindowRect));
+    private static readonly MethodInfo _methodAdjustStatusWindowRect = AccessTools.Method(typeof(Verse_LongEventHandler_LongEventsOnGUI_Patch), nameof(AdjustStatusWindowRect));
 
     private static Rect AdjustStatusWindowRect(Rect r)
     {

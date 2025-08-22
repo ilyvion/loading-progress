@@ -1,4 +1,3 @@
-using System.Reflection;
 using System.Reflection.Emit;
 
 namespace ilyvion.LoadingProgress;
@@ -7,7 +6,10 @@ internal class ReloadContentIntReplacement
 {
     public static IEnumerable ReloadContentInt(ModContentPack modContentPack)
     {
+        var info = LoadingProgressMod.instance.StartupImpact.Modlist.GetModInfoFor(modContentPack);
+
         yield return "audio clips";
+        info?.Start("LoadingProgress.StartupImpact.ModContentPackReloadContentInt.AudioClips");
         DeepProfiler.Start("Reload audio clips");
         try
         {
@@ -17,8 +19,10 @@ internal class ReloadContentIntReplacement
         {
             DeepProfiler.End();
         }
+        _ = info?.Stop("LoadingProgress.StartupImpact.ModContentPackReloadContentInt.AudioClips");
 
         yield return "textures";
+        info?.Start("LoadingProgress.StartupImpact.ModContentPackReloadContentInt.Textures");
         DeepProfiler.Start("Reload textures");
         try
         {
@@ -28,8 +32,10 @@ internal class ReloadContentIntReplacement
         {
             DeepProfiler.End();
         }
+        _ = info?.Stop("LoadingProgress.StartupImpact.ModContentPackReloadContentInt.Textures");
 
         yield return "strings";
+        info?.Start("LoadingProgress.StartupImpact.ModContentPackReloadContentInt.Strings");
         DeepProfiler.Start("Reload strings");
         try
         {
@@ -39,8 +45,10 @@ internal class ReloadContentIntReplacement
         {
             DeepProfiler.End();
         }
+        _ = info?.Stop("LoadingProgress.StartupImpact.ModContentPackReloadContentInt.Strings");
 
         yield return "asset bundles";
+        info?.Start("LoadingProgress.StartupImpact.ModContentPackReloadContentInt.AssetBundles");
         DeepProfiler.Start("Reload asset bundles");
         try
         {
@@ -52,6 +60,7 @@ internal class ReloadContentIntReplacement
         {
             DeepProfiler.End();
         }
+        _ = info?.Stop("LoadingProgress.StartupImpact.ModContentPackReloadContentInt.AssetBundles");
     }
 }
 
@@ -72,15 +81,7 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
         public static IEnumerable<(MethodInfo method, FieldInfo thisField)> FindMethodCalling()
         {
             // Find all possible candidates, both from the wrapping type and all nested types.
-            var candidates = AccessTools
-                .GetDeclaredMethods(typeof(ModContentPack))
-                .Where(m => !m.IsGenericMethod)
-                .ToHashSet();
-            candidates.AddRange(
-                typeof(ModContentPack)
-                    .GetNestedTypes(AccessTools.all)
-                    .SelectMany(AccessTools.GetDeclaredMethods)
-                    .Where(m => !m.IsGenericMethod));
+            var candidates = Utilities.FindInTypeAndInnerTypeMethods(typeof(ModContentPack), m => !m.IsGenericMethod);
 
             //check all candidates for the target instructions, return those that match.
             foreach (var method in candidates)

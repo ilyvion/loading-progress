@@ -6,7 +6,7 @@
         <!-- TODO: Remove these when ready -->
         <ImplicitUsings>disable</ImplicitUsings>
         <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
-        <NoWarn>CS1591</NoWarn>
+        <NoWarn>CS1591;IDE0008;IDE0160;IDE0022</NoWarn>
     </PropertyGroup>
     <ItemGroup>
         <Publicize Include="Assembly-CSharp:Verse.LongEventHandler.StatusRectSize" />
@@ -28,6 +28,7 @@
         <Publicize Include="Assembly-CSharp:Verse.ModContentPack.assetBundles" />
         <Publicize Include="Assembly-CSharp:Verse.ModContentPack.allAssetNamesInBundleCached" />
         <Publicize Include="Assembly-CSharp:Verse.ModContentPack.allAssetNamesInBundleCachedTrie" />
+        <Publicize Include="Assembly-CSharp:Verse.ModContentPack.patches" />
         <Publicize Include="Assembly-CSharp:Verse.ModAssetBundlesHandler.mod" />
         <Publicize Include="Assembly-CSharp:Verse.ModContentHolder`1.mod" />
         <Publicize Include="Assembly-CSharp:Verse.PatchOperationSequence.operations" />
@@ -36,5 +37,7 @@
         <Publicize Include="Assembly-CSharp:Verse.XmlInheritance+XmlInheritanceNode" />
         <Publicize Include="Assembly-CSharp:Verse.DirectXmlCrossRefLoader+WantedRef" />
         <Publicize Include="Assembly-CSharp:Verse.DirectXmlCrossRefLoader.wantedRefs" />
+        <Publicize Include="Assembly-CSharp:Verse.PlayDataLoader.ResetStaticDataPre" />
+        <Publicize Include="Assembly-CSharp:Verse.PlayDataLoader.ResetStaticDataPost" />
     </ItemGroup>
 </Project>

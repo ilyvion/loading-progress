@@ -1,6 +1,5 @@
-using System.Reflection;
+using System.Collections.ObjectModel;
 using System.Text;
-using UnityEngine;
 
 namespace ilyvion.LoadingProgress;
 
@@ -19,7 +18,7 @@ public static class Utilities
 {
     public static void LongEventHandlerPrependQueue(Action prependAction, string keepPrefix = "LoadingProgress.")
     {
-        LoadingProgressMod.Debug("Event queue before modification:\n- " + string.Join("\n- ", LongEventHandler.eventQueue.Select(e => $"{e.eventTextKey} ({e.eventText})"))); // + "\n" + Environment.StackTrace);
+        //LoadingProgressMod.Debug("Event queue before modification:\n- " + string.Join("\n- ", LongEventHandler.eventQueue.Select(e => $"{e.eventTextKey} ({e.eventText})"))); // + "\n" + Environment.StackTrace);
 
         // Separate events to keep and to temporarily remove
         var keepEvents = LongEventHandler.eventQueue.Where(e => e.eventTextKey != null && e.eventTextKey.StartsWith(keepPrefix)).ToList();
@@ -40,7 +39,7 @@ public static class Utilities
             LongEventHandler.eventQueue.Enqueue(queuedEvent);
         }
 
-        LoadingProgressMod.Debug("Event queue after modification:\n- " + string.Join("\n- ", LongEventHandler.eventQueue.Select(e => $"{e.eventTextKey} ({e.eventText})")));
+        //LoadingProgressMod.Debug("Event queue after modification:\n- " + string.Join("\n- ", LongEventHandler.eventQueue.Select(e => $"{e.eventTextKey} ({e.eventText})")));
     }
 
     public static void WarnAboutPatches(
@@ -163,6 +162,13 @@ public static class Utilities
         return Color.HSVToRGB(h, s, v);
     }
 
+    public static Color Brighten(this Color color, float amount)
+    {
+        Color.RGBToHSV(color, out var h, out var s, out var v);
+        v = Mathf.Min(1, v + amount); // increase lightness
+        return Color.HSVToRGB(h, s, v);
+    }
+
     public static string ClampTextWithEllipsisMarkupAware(Rect rect, string text)
     {
         if (text.Length <= 4)
@@ -226,6 +232,59 @@ public static class Utilities
 
         return output.ToString();
     }
+
+    private static readonly Dictionary<Assembly, ModContentPack?> _modAssemblyCache = [];
+    public static ModContentPack? FindModByAssembly(Assembly assembly)
+    {
+        if (_modAssemblyCache.TryGetValue(assembly, out var modContentPack))
+        {
+            return modContentPack;
+        }
+
+        modContentPack = (from modpack in LoadedModManager.RunningMods
+                          where modpack.assemblies.loadedAssemblies.Contains(assembly)
+                          select modpack).FirstOrDefault();
+
+        _modAssemblyCache[assembly] = modContentPack;
+        return modContentPack;
+    }
+
+    public static HashSet<MethodInfo> FindInTypeAndInnerTypeMethods(Type type, Func<MethodInfo, bool>? predicate = null)
+    {
+        predicate ??= _ => true;
+
+        // Find all possible candidates, both from the wrapping type and all nested types.
+        var candidates = AccessTools.GetDeclaredMethods(type)
+            .Where(predicate)
+            .ToHashSet();
+        candidates.AddRange(type
+            .GetNestedTypes(AccessTools.all)
+            .SelectMany(AccessTools.GetDeclaredMethods)
+            .Where(predicate));
+
+        return candidates;
+    }
+
+    public static IEnumerable<MethodInfo> FindMethodsDoing(Type containingType, CodeMatch[] toMatch)
+    {
+        // Find all possible candidates, both from the wrapping type and all nested types.
+        var candidates = FindInTypeAndInnerTypeMethods(containingType, m => !m.IsGenericMethod);
+
+        //check all candidates for the target instructions, return those that match.
+        foreach (var method in candidates)
+        {
+            var instructions = PatchProcessor.GetCurrentInstructions(method);
+            var matched = instructions.Matches(toMatch);
+            if (matched)
+            {
+                yield return method;
+            }
+        }
+        yield break;
+    }
+
+    public static ReadOnlyDictionary<TKey, TValue> AsReadOnly<TKey, TValue>(
+        this IDictionary<TKey, TValue> dictionary) where TKey : notnull => new(dictionary);
 }
 
 public static class StableListHasher

@@ -1,7 +1,10 @@
 using System.Reflection.Emit;
-using System.Threading;
-using ilyvion.LoadingProgress;
 
+namespace ilyvion.LoadingProgress;
+
+// This patch makes it so that even though we're loaded before Core, the game will use language
+// data from Core. We do this by just skipping this mod when it's looking for the first mod
+// with a language folder for the given language.
 [HarmonyPatch(typeof(LoadedLanguage), nameof(LoadedLanguage.LoadMetadata))]
 internal static class LoadedLanguage_LoadMetadata_Patches
 {

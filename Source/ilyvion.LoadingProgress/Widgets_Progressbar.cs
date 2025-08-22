@@ -1,5 +1,3 @@
-using UnityEngine;
-
 namespace ilyvion.LoadingProgress;
 
 public static class Widgets_Progressbar

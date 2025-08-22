@@ -22,4 +22,10 @@
     <loadBefore>
         <li>ludeon.rimworld</li>
     </loadBefore>
+    <incompatibleWith>
+        <!-- Messes with the startup process in ways that ruin our progress tracking and
+             startup impact tracking. Also, Loading Progress now has its own startup impact
+             tracking, so it's doing double duty. -->
+        <li>assassinsbro.startupimpactcontinued</li>
+    </incompatibleWith>
 </ModMetaData>

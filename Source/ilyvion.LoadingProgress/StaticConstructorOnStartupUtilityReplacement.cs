@@ -1,6 +1,4 @@
-using System.Reflection;
 using System.Reflection.Emit;
-using System.Runtime.CompilerServices;
 
 namespace ilyvion.LoadingProgress;
 
@@ -30,17 +28,22 @@ internal class StaticConstructorOnStartupUtilityReplacement
             LoadingProgressWindow.StageProgress = (i + 1, list.Count);
             yield return null;
 
+            var info = LoadingProgressMod.instance.StartupImpact.Modlist.GetModInfoFor(Utilities.FindModByAssembly(item.Assembly));
+            info?.Start("LoadingProgress.StartupImpact.StaticConstructorOnStartupUtilityCallAll");
+
             try
             {
                 DateTime now = DateTime.Now;
-                LoadingProgressMod.Debug($"About to run static constructor for {item} @ {now:HH:mm:ss.fff}");
+                //LoadingProgressMod.Debug($"About to run static constructor for {item} @ {now:HH:mm:ss.fff}");
                 RuntimeHelpers.RunClassConstructor(item.TypeHandle);
-                LoadingProgressMod.Debug($"Finished running static constructor for {item} @ {DateTime.Now:HH:mm:ss.fff}; took {DateTime.Now - now:mm\\:ss\\.fff}");
+                //LoadingProgressMod.Debug($"Finished running static constructor for {item} @ {DateTime.Now:HH:mm:ss.fff}; took {DateTime.Now - now:mm\\:ss\\.fff}");
             }
             catch (Exception ex)
             {
                 Log.Error("Error in static constructor of " + item?.ToString() + ": " + ex);
             }
+
+            _ = info?.Stop("LoadingProgress.StartupImpact.StaticConstructorOnStartupUtilityCallAll");
         }
         DeepProfiler.End();
         StaticConstructorOnStartupUtility.coreStaticAssetsLoaded = true;
@@ -64,8 +67,7 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
         public static IEnumerable<MethodInfo> FindMethodCalling()
         {
             // Find all possible candidates, both from the wrapping type and all nested types.
-            var candidates = AccessTools.GetDeclaredMethods(typeof(PlayDataLoader)).ToHashSet();
-            candidates.AddRange(typeof(PlayDataLoader).GetNestedTypes(AccessTools.all).SelectMany(AccessTools.GetDeclaredMethods));
+            var candidates = Utilities.FindInTypeAndInnerTypeMethods(typeof(PlayDataLoader));
 
             //check all candidates for the target instructions, return those that match.
             foreach (var method in candidates)

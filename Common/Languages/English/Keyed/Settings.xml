@@ -18,6 +18,8 @@
     <LoadingProgress.LastLoadingTimeInCorner.Tip>When enabled, the mod will show the time it took to load the game in the bottom-right corner of the main menu.</LoadingProgress.LastLoadingTimeInCorner.Tip>
     <LoadingProgress.ShowFasterGameLoadingEarlyModContentLoading>Show Faster Game Loading's early mod content loading progress</LoadingProgress.ShowFasterGameLoadingEarlyModContentLoading>
     <LoadingProgress.ShowFasterGameLoadingEarlyModContentLoading.Tip>When enabled, and Faster Game Loading is active, the mod will show an additional loading indicator for mod content that is loaded early during the game startup process.</LoadingProgress.ShowFasterGameLoadingEarlyModContentLoading.Tip>
+    <LoadingProgress.TrackStartupLoadingImpact>Track startup loading impact</LoadingProgress.TrackStartupLoadingImpact>
+    <LoadingProgress.TrackStartupLoadingImpact.Tip>When enabled, the mod will track the impact of startup loading impact from mods and the base game allowing you to see a detailed breakdown of what is causing the biggest delays during the loading process.</LoadingProgress.TrackStartupLoadingImpact.Tip>
 
     <LoadingProgress.LoadingWindowPlacement>Loading window placement</LoadingProgress.LoadingWindowPlacement>
 

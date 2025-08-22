@@ -207,13 +207,9 @@ internal static partial class DirectXmlCrossRefLoader_ResolveAllWantedCrossRefer
         public static IEnumerable<MethodInfo> FindMethod()
         {
             // Find all possible candidates, both from the wrapping type and all nested types.
-            var candidates = AccessTools.GetDeclaredMethods(typeof(DirectXmlCrossRefLoader))
-                .Where(m => !m.IsGenericMethod && !m.IsAbstract && !m.DeclaringType.IsGenericType)
-                .ToHashSet();
-            candidates.AddRange(typeof(DirectXmlCrossRefLoader)
-                .GetNestedTypes(AccessTools.all)
-                .SelectMany(AccessTools.GetDeclaredMethods)
-                .Where(m => !m.IsGenericMethod && !m.IsAbstract && !m.DeclaringType.IsGenericType));
+            var candidates = Utilities.FindInTypeAndInnerTypeMethods(
+                typeof(DirectXmlCrossRefLoader),
+                m => !m.IsGenericMethod && !m.IsAbstract && !m.DeclaringType.IsGenericType);
 
             //check all candidates for the target instructions, return those that match.
             foreach (var method in candidates)
