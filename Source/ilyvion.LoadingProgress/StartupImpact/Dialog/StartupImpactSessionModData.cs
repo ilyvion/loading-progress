@@ -1,6 +1,6 @@
 namespace ilyvion.LoadingProgress.StartupImpact.Dialog;
 
-internal class StartupImpactSessionModData : IExposable
+internal sealed class StartupImpactSessionModData : IExposable
 {
 #pragma warning disable IDE0032 // Use auto property
     private string modName = "";
@@ -16,17 +16,14 @@ internal class StartupImpactSessionModData : IExposable
     public IReadOnlyDictionary<string, float> OffThreadMetrics => offThreadMetrics;
     public float OffThreadTotalImpact => offThreadTotalImpact;
 
-    public static StartupImpactSessionModData FromModInfo(ModInfo info)
+    public static StartupImpactSessionModData FromModInfo(ModInfo info) => new()
     {
-        return new StartupImpactSessionModData
-        {
-            modName = info.Mod.Name ?? string.Empty,
-            metrics = new Dictionary<string, float>(info.Profiler.Metrics),
-            totalImpact = info.Profiler.TotalImpact,
-            offThreadMetrics = new Dictionary<string, float>(info.Profiler.OffThreadMetrics),
-            offThreadTotalImpact = info.Profiler.OffThreadTotalImpact,
-        };
-    }
+        modName = info.Mod.Name ?? string.Empty,
+        metrics = new Dictionary<string, float>(info.Profiler.Metrics),
+        totalImpact = info.Profiler.TotalImpact,
+        offThreadMetrics = new Dictionary<string, float>(info.Profiler.OffThreadMetrics),
+        offThreadTotalImpact = info.Profiler.OffThreadTotalImpact,
+    };
     public void ExposeData()
     {
         Scribe_Values.Look(ref modName!, "modName");

@@ -9,7 +9,7 @@ internal static class DeepProfiler_Start_Patches
     {
         if (label == null)
         {
-            MethodBase method = new StackTrace().GetFrame(2).GetMethod();
+            var method = new StackTrace().GetFrame(2).GetMethod();
             var mod = Utilities.FindModByAssembly(method.DeclaringType.Assembly);
             LoadingProgressMod.Warning($"Why is {method.DeclaringType.FullName}.{method.Name} from {mod?.Name ?? "{unknown}"} calling DeepProfiler.Start (and by extension our patch) with null?! Stop it.");
         }

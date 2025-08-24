@@ -1,19 +1,17 @@
-using System.Reflection;
 using System.Reflection.Emit;
-using System.Threading;
 using System.Xml;
 
 namespace ilyvion.LoadingProgress;
 
 internal static class LoadingDataTracker
 {
-    public static string? Previous = null;
-    public static string? Current = null;
+    public static string? Previous;
+    public static string? Current;
     public static bool ModChanged => Previous != Current;
 
-    internal static Def? LastDef = null;
-    internal static int WantedRefTryResolveCount = 0;
-    internal static int WantedRefApplyCount = 0;
+    internal static Def? LastDef;
+    internal static int WantedRefTryResolveCount;
+    internal static int WantedRefApplyCount;
 }
 
 [HarmonyPatch(typeof(LoadedModManager))]
@@ -34,7 +32,9 @@ internal static class LoadedModManager_LoadingDataTracker_Patches
 
     [HarmonyPatch(nameof(LoadedModManager.CombineIntoUnifiedXML))]
     [HarmonyTranspiler]
+#pragma warning disable CA1859 // Use concrete types when possible for improved performance
     private static IEnumerable<CodeInstruction> CombineIntoUnifiedXMLTranspiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+#pragma warning restore CA1859 // Use concrete types when possible for improved performance
     {
         var original = instructions.ToList();
 
@@ -114,7 +114,9 @@ internal static class XmlInheritance_LoadingDataTracker_Patches
 
     [HarmonyPatch(nameof(XmlInheritance.ResolveXmlNodes))]
     [HarmonyTranspiler]
+#pragma warning disable CA1859 // Use concrete types when possible for improved performance
     private static IEnumerable<CodeInstruction> ResolveXmlNodesTranspiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+#pragma warning restore CA1859 // Use concrete types when possible for improved performance
     {
         var original = instructions.ToList();
 
@@ -164,7 +166,7 @@ internal static class DirectXmlToObjectNew_LoadingDataTracker_Patches
 [HarmonyPatch]
 internal static partial class DirectXmlCrossRefLoader_ResolveAllWantedCrossReferences_Parallel_LoadingDataTracker_Patches
 {
-    private static bool Prepare()
+    internal static bool Prepare()
     {
         // We can reuse the same method as HarmonyTargetMethods will use afterward.
         var methods = WantedRef_TryResolveFinder.FindMethod();
@@ -182,15 +184,9 @@ internal static partial class DirectXmlCrossRefLoader_ResolveAllWantedCrossRefer
 
     }
 
-    private static IEnumerable<MethodBase> TargetMethods()
-    {
-        return WantedRef_TryResolveFinder.FindMethod();
-    }
+    internal static IEnumerable<MethodBase> TargetMethods() => WantedRef_TryResolveFinder.FindMethod();
 
-    private static void Postfix()
-    {
-        _ = Interlocked.Increment(ref LoadingDataTracker.WantedRefTryResolveCount);
-    }
+    internal static void Postfix() => _ = Interlocked.Increment(ref LoadingDataTracker.WantedRefTryResolveCount);
 
     private static class WantedRef_TryResolveFinder
     {
@@ -241,7 +237,9 @@ internal static partial class DirectXmlCrossRefLoader_ResolveAllWantedCrossRefer
 
     [HarmonyPatch(nameof(DirectXmlCrossRefLoader.ResolveAllWantedCrossReferences))]
     [HarmonyTranspiler]
+#pragma warning disable CA1859 // Use concrete types when possible for improved performance
     private static IEnumerable<CodeInstruction> ResolveXmlNodesTranspiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+#pragma warning restore CA1859 // Use concrete types when possible for improved performance
     {
         var original = instructions.ToList();
 

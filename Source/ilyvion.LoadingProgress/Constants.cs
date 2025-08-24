@@ -1,6 +1,6 @@
 namespace ilyvion.LoadingProgress;
 
-public static class Constants
+internal static class Constants
 {
     public const float HorizontalMargin = 21f;
     public const float VerticalWidgetMargin = 4f;

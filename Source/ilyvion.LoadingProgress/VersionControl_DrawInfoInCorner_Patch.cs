@@ -1,3 +1,5 @@
+using System.Globalization;
+
 using ilyvion.LoadingProgress.StartupImpact.Dialog;
 
 namespace ilyvion.LoadingProgress;
@@ -14,7 +16,7 @@ internal static class VersionControl_DrawInfoInCorner_Patch
         }
 
         _loadingTime ??= TimeSpan.FromSeconds(LoadingProgressMod.Settings.LastLoadingTime);
-        string text = "LoadingProgress.LoadingTime".Translate(_loadingTime.Value.ToString("mm\\:ss"));
+        string text = "LoadingProgress.LoadingTime".Translate(_loadingTime.Value.ToString("mm\\:ss", CultureInfo.InvariantCulture));
         Text.Font = GameFont.Small;
         var vector = Text.CalcSize(text);
 

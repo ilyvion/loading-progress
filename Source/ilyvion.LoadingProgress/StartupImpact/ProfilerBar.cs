@@ -1,20 +1,22 @@
-﻿namespace ilyvion.LoadingProgress.StartupImpact;
+﻿using System.Globalization;
+
+namespace ilyvion.LoadingProgress.StartupImpact;
 
 [HotSwappable]
-public class ProfilerBar
+internal sealed class ProfilerBar
 {
-    public bool UseLogScale { get; set; } = false;
+    public bool UseLogScale
+    {
+        get; set;
+    }
     public float ProgressBarPadding { get; set; } = 4f;
     public Color DefaultColor { get; set; } = Color.gray;
 
-    public static string TimeText(float ms)
-    {
-        return ms > 10000
-            ? "LoadingProgress.StartupImpact.Seconds".Translate((ms * 0.001f).ToString("F1"))
+    public static string TimeText(float ms) => ms > 10000
+            ? "LoadingProgress.StartupImpact.Seconds".Translate((ms * 0.001f).ToString("F1", CultureInfo.InvariantCulture))
             : (ms > 1000
-                ? "LoadingProgress.StartupImpact.Seconds".Translate((ms * 0.001f).ToString("F2"))
+                ? "LoadingProgress.StartupImpact.Seconds".Translate((ms * 0.001f).ToString("F2", CultureInfo.InvariantCulture))
                 : "LoadingProgress.StartupImpact.Milliseconds".Translate(ms));
-    }
 
     public void Draw(
         Rect rect,
@@ -25,16 +27,16 @@ public class ProfilerBar
     )
     {
         // Choose tau in the same units as the metrics: 1000 since we're using ms.
-        float tau = 1000f;
+        var tau = 1000f;
 
-        float innerX = rect.x + ProgressBarPadding;
-        float innerY = rect.y + ProgressBarPadding;
-        float innerW = rect.width - (2f * ProgressBarPadding);
-        float innerH = rect.height - (2f * ProgressBarPadding);
+        var innerX = rect.x + ProgressBarPadding;
+        var innerY = rect.y + ProgressBarPadding;
+        var innerW = rect.width - (2f * ProgressBarPadding);
+        var innerH = rect.height - (2f * ProgressBarPadding);
 
         // Linear total (how "full" the bar should be)
         float sumLinear = 0;
-        for (int i = 0; i < metrics.Count; i++)
+        for (var i = 0; i < metrics.Count; i++)
         {
             sumLinear += Math.Max(0, metrics[i]);
         }
@@ -51,8 +53,8 @@ public class ProfilerBar
         else
         {
             // Overall fill 0..1 in the SAME transform space
-            float denomCap = LogScaleTransform(maxImpact, tau);
-            float barFill = denomCap > 0f ? LogScaleTransform(sumLinear, tau) / denomCap : 0f;
+            var denomCap = LogScaleTransform(maxImpact, tau);
+            var barFill = denomCap > 0f ? LogScaleTransform(sumLinear, tau) / denomCap : 0f;
             barFill = Mathf.Clamp01(barFill);
 
             DrawLogScale(metrics, categories, categoryColors, tau, innerX, innerY, innerW, innerH, barFill);
@@ -68,16 +70,16 @@ public class ProfilerBar
             float innerW,
             float innerH)
         {
-            float x = innerX;
-            for (int i = 0; i < categories.Count; i++)
+            var x = innerX;
+            for (var i = 0; i < categories.Count; i++)
             {
-                float impact = metrics[i];
+                var impact = metrics[i];
                 if (impact <= 0)
                 {
                     continue;
                 }
 
-                float width = innerW * impact / Mathf.Max(1f, maxImpact);
+                var width = innerW * impact / Mathf.Max(1f, maxImpact);
                 var textRect = new Rect(x, innerY, width, innerH);
 
                 var color = categoryColors.TryGetValue(categories[i], out var c) ? c : DefaultColor;
@@ -105,28 +107,32 @@ public class ProfilerBar
             var vals = categories.Select((_, i) => Mathf.Max(0, metrics[i])).ToArray();
             var shares = LogShares(vals, tau);
 
-            float targetTotalWidth = innerW * barFill;
+            var targetTotalWidth = innerW * barFill;
 
             // Snap the last non-zero to avoid rounding gaps
-            int lastIdx = -1;
-            for (int i = categories.Count - 1; i >= 0; i--)
+            var lastIdx = -1;
+            for (var i = categories.Count - 1; i >= 0; i--)
             {
-                if (metrics[i] > 0 && shares[i] > 0f) { lastIdx = i; break; }
+                if (metrics[i] > 0 && shares[i] > 0f)
+                {
+                    lastIdx = i;
+                    break;
+                }
             }
 
-            float xCursor = innerX;
-            float drawn = 0f;
+            var xCursor = innerX;
+            var drawn = 0f;
 
-            for (int i = 0; i < categories.Count; i++)
+            for (var i = 0; i < categories.Count; i++)
             {
-                float impact = metrics[i];
-                float share = shares[i];
+                var impact = metrics[i];
+                var share = shares[i];
                 if (impact <= 0 || share <= 0f)
                 {
                     continue;
                 }
 
-                float width = targetTotalWidth * share;
+                var width = targetTotalWidth * share;
                 if (i == lastIdx)
                 {
                     width = Mathf.Max(0f, targetTotalWidth - drawn); // snap
@@ -148,7 +154,7 @@ public class ProfilerBar
         static void DrawSegment(Rect r, Color color)
         {
             var stored = GUI.color;
-            bool hover = Mouse.IsOver(r);
+            var hover = Mouse.IsOver(r);
 
             if (hover)
             {
@@ -190,7 +196,7 @@ public class ProfilerBar
 #pragma warning restore IDE0051 // Remove unused private members
     {
         // Number of input values
-        int n = values.Length;
+        var n = values.Length;
         if (n == 0)
         {
             // Return empty if no values
@@ -204,23 +210,23 @@ public class ProfilerBar
             .ToArray();
 
         // Total sum of all values (after clamping)
-        float total = items.Sum(t => t.v);
+        var total = items.Sum(t => t.v);
         // Fraction of the bar left to allocate (starts at 1, decreases as we assign shares)
-        float leftover = 1f;
+        var leftover = 1f;
 
         // Will hold the shares in sorted order (largest to smallest)
         var sharesSorted = new float[n];
 
         // Greedily assign shares: at each step, split leftover between current largest and the rest
-        for (int k = 0; k < n; k++)
+        for (var k = 0; k < n; k++)
         {
-            float currentValue = items[k].v; // Current value (already clamped)
-            float rest = Mathf.Max(0f, total - currentValue); // Sum of remaining values
+            var currentValue = items[k].v; // Current value (already clamped)
+            var rest = Mathf.Max(0f, total - currentValue); // Sum of remaining values
 
             // Compute denominator for log split between currentValue and rest
-            float denom = LogScaleTransform(currentValue, tau) + LogScaleTransform(rest, tau);
+            var denom = LogScaleTransform(currentValue, tau) + LogScaleTransform(rest, tau);
             // Fraction of leftover assigned to currentValue (log-proportional)
-            float currentValueFraction = denom > 0f
+            var currentValueFraction = denom > 0f
                 ? LogScaleTransform(currentValue, tau) / denom
                 : (currentValue > 0f ? 1f : 0f);
 
@@ -233,16 +239,16 @@ public class ProfilerBar
         }
 
         // Snap last nonzero so all shares sum exactly to 1 (fixes rounding error)
-        int lastNonZero = Array.FindLastIndex(sharesSorted, s => s > 0f);
+        var lastNonZero = Array.FindLastIndex(sharesSorted, s => s > 0f);
         if (lastNonZero >= 0)
         {
-            float sum = sharesSorted.Sum();
+            var sum = sharesSorted.Sum();
             sharesSorted[lastNonZero] += Mathf.Max(0f, 1f - sum);
         }
 
         // Map shares back to the original input order
         var shares = new float[n];
-        for (int k = 0; k < n; k++)
+        for (var k = 0; k < n; k++)
         {
             shares[items[k].i] = sharesSorted[k];
         }
@@ -254,19 +260,19 @@ public class ProfilerBar
     {
         // Compute log-scaled values
         var shares = values.Select(v => LogScaleTransform(v, tau)).ToArray();
-        float sum = shares.Sum();
+        var sum = shares.Sum();
         if (sum > 0f)
         {
             // Scale so that the sum is exactly 1
-            for (int i = 0; i < shares.Length; i++)
+            for (var i = 0; i < shares.Length; i++)
             {
                 shares[i] /= sum;
             }
             // Snap last nonzero so all shares sum exactly to 1 (fixes rounding error)
-            int lastNonZero = Array.FindLastIndex(shares, s => s > 0f);
+            var lastNonZero = Array.FindLastIndex(shares, s => s > 0f);
             if (lastNonZero >= 0)
             {
-                float actualSum = shares.Sum();
+                var actualSum = shares.Sum();
                 shares[lastNonZero] += Mathf.Max(0f, 1f - actualSum);
             }
         }

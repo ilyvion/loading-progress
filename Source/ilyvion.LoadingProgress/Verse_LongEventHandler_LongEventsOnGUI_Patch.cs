@@ -1,10 +1,11 @@
 using System.Reflection.Emit;
+
 using ilyvion.LoadingProgress.FasterGameLoading;
 
 namespace ilyvion.LoadingProgress;
 
 [HarmonyPatch(typeof(LongEventHandler), nameof(LongEventHandler.DrawLongEventWindowContents))]
-internal class Verse_LongEventHandler_DrawLongEventWindowContents_Patch
+internal sealed class Verse_LongEventHandler_DrawLongEventWindowContents_Patch
 {
     private static void Postfix()
     {
@@ -13,9 +14,9 @@ internal class Verse_LongEventHandler_DrawLongEventWindowContents_Patch
             return;
         }
 
-        Vector2 loadingProgressWindowSize = LoadingProgressWindow.WindowSize;
-        Vector2 fasterGameLoadingProgressWindowSize = FasterGameLoadingProgressWindow.WindowSize;
-        float loadingProgressWindowOffset = 0f;
+        var loadingProgressWindowSize = LoadingProgressWindow.WindowSize;
+        var fasterGameLoadingProgressWindowSize = FasterGameLoadingProgressWindow.WindowSize;
+        var loadingProgressWindowOffset = 0f;
         switch (LoadingProgressMod.Settings.LoadingWindowPlacement)
         {
             case LoadingWindowPlacement.Top:
@@ -37,7 +38,7 @@ internal class Verse_LongEventHandler_DrawLongEventWindowContents_Patch
         Vector2 loadingProgressWindowPosition = new((UI.screenWidth - loadingProgressWindowSize.x) / 2f, loadingProgressWindowOffset);
         Rect rect = new(loadingProgressWindowPosition.x, loadingProgressWindowPosition.y, loadingProgressWindowSize.x, loadingProgressWindowSize.y);
 
-        bool useStandardWindow = LongEventHandler.currentEvent.UseStandardWindow;
+        var useStandardWindow = LongEventHandler.currentEvent.UseStandardWindow;
         if (!useStandardWindow || Find.UIRoot == null || Find.WindowStack == null)
         {
             Widgets.DrawShadowAround(rect);
@@ -65,7 +66,7 @@ internal class Verse_LongEventHandler_DrawLongEventWindowContents_Patch
 }
 
 [HarmonyPatch(typeof(LongEventHandler), nameof(LongEventHandler.LongEventsOnGUI))]
-internal class Verse_LongEventHandler_LongEventsOnGUI_Patch
+internal sealed class Verse_LongEventHandler_LongEventsOnGUI_Patch
 {
     private static readonly MethodInfo _method_GenUI_Rounded = AccessTools.Method(typeof(GenUI), nameof(GenUI.Rounded), [typeof(Rect)]);
     private static readonly MethodInfo _methodAdjustStatusWindowRect = AccessTools.Method(typeof(Verse_LongEventHandler_LongEventsOnGUI_Patch), nameof(AdjustStatusWindowRect));
@@ -77,11 +78,12 @@ internal class Verse_LongEventHandler_LongEventsOnGUI_Patch
             return r;
         }
 
-        Vector2 statusRectSize = LongEventHandler.StatusRectSize;
-        Vector2 loadingProgressWindowSize = LoadingProgressWindow.WindowSize;
-        Vector2 fasterGameLoadingProgressWindowSize = FasterGameLoadingProgressWindow.WindowSize;
+        var statusRectSize = LongEventHandler.StatusRectSize;
+        var loadingProgressWindowSize = LoadingProgressWindow.WindowSize;
+        var fasterGameLoadingProgressWindowSize = FasterGameLoadingProgressWindow.WindowSize;
 
-        float statusRectTop = 0; ;
+        float statusRectTop = 0;
+        ;
         switch (LoadingProgressMod.Settings.LoadingWindowPlacement)
         {
             case LoadingWindowPlacement.Top:
@@ -103,7 +105,9 @@ internal class Verse_LongEventHandler_LongEventsOnGUI_Patch
         return r;
     }
 
+#pragma warning disable CA1859 // Use concrete types when possible for improved performance
     private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+#pragma warning restore CA1859 // Use concrete types when possible for improved performance
     {
         var originalInstructionList = instructions.ToList();
 

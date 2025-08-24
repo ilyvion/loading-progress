@@ -6,7 +6,9 @@ namespace ilyvion.LoadingProgress.StartupImpact.Patches;
 [HarmonyPatchCategory("StartupImpact")]
 internal static class LoadedModManager_ApplyPatches_Patches
 {
+#pragma warning disable CA1859 // Use concrete types when possible for improved performance
     private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+#pragma warning restore CA1859 // Use concrete types when possible for improved performance
     {
         var original = instructions.ToList();
 
@@ -47,7 +49,7 @@ internal static class LoadedModManager_ApplyPatches_Patches
 
         if (!ModContentPack_LoadPatches_Patches.modContentPackTable.TryGetValue(patchOperation, out var modContentPack))
         {
-            LoadingProgressMod.Error("LoadedModManager.BeforeApplyPatches: Could not find mod content pack for " + patchOperation?.ToString());
+            LoadingProgressMod.Error("LoadedModManager.BeforeApplyPatches: Could not find mod content pack for " + patchOperation.ToString());
             return;
         }
         StartupImpactProfilerUtil.StartModProfiler(modContentPack, "LoadingProgress.StartupImpact.ApplyPatches");
@@ -62,7 +64,7 @@ internal static class LoadedModManager_ApplyPatches_Patches
 
         if (!ModContentPack_LoadPatches_Patches.modContentPackTable.TryGetValue(patchOperation, out var modContentPack))
         {
-            LoadingProgressMod.Error("LoadedModManager.AfterApplyPatches: Could not find mod content pack for " + patchOperation?.ToString());
+            LoadingProgressMod.Error("LoadedModManager.AfterApplyPatches: Could not find mod content pack for " + patchOperation.ToString());
             return;
         }
         StartupImpactProfilerUtil.StopModProfiler(modContentPack, "LoadingProgress.StartupImpact.ApplyPatches");

@@ -1,22 +1,11 @@
-using System.Reflection;
-
 namespace ilyvion.LoadingProgress;
 
 [HarmonyPatch]
 internal static class AlienPartGenerator_LoadGraphicsHook_Patches
 {
-    private static bool Prepare()
-    {
-        return ModsConfig.ActiveModsInLoadOrder.Any(mod => mod.PackageId.Equals("erdelf.humanoidalienraces", StringComparison.CurrentCultureIgnoreCase));
-    }
+    internal static bool Prepare() => ModsConfig.ActiveModsInLoadOrder.Any(mod => mod.PackageId.Equals("erdelf.humanoidalienraces", StringComparison.OrdinalIgnoreCase));
 
-    private static MethodInfo TargetMethod()
-    {
-        return AccessTools.Method("AlienRace.AlienPartGenerator:LoadGraphicsHook");
-    }
+    internal static MethodInfo TargetMethod() => AccessTools.Method("AlienRace.AlienPartGenerator:LoadGraphicsHook");
 
-    private static bool Prefix()
-    {
-        return LoadingProgressWindow.CurrentStage == LoadingStage.Finished;
-    }
+    internal static bool Prefix() => LoadingProgressWindow.CurrentStage == LoadingStage.Finished;
 }

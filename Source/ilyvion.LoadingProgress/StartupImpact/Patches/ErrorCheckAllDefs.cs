@@ -2,10 +2,7 @@ namespace ilyvion.LoadingProgress.StartupImpact.Patches;
 
 internal static partial class PlayDataLoader_ResetStaticDataPost_Patches
 {
-    static partial void AfterPostfix()
-    {
-        StartupImpactProfilerUtil.StartBaseGameProfiler("LoadingProgress.StartupImpact.ErrorCheckAllDefs");
-    }
+    static partial void AfterPostfix() => StartupImpactProfilerUtil.StartBaseGameProfiler("LoadingProgress.StartupImpact.ErrorCheckAllDefs");
 }
 
 // We can't profile the "error check all defs" stage very accurately because it involves types with generics,
@@ -14,8 +11,5 @@ internal static partial class PlayDataLoader_ResetStaticDataPost_Patches
 
 internal static partial class KeyPrefs_Init_Patches
 {
-    static partial void BeforePrefix()
-    {
-        StartupImpactProfilerUtil.StopBaseGameProfiler("LoadingProgress.StartupImpact.ErrorCheckAllDefs");
-    }
+    static partial void BeforePrefix() => StartupImpactProfilerUtil.StopBaseGameProfiler("LoadingProgress.StartupImpact.ErrorCheckAllDefs");
 }

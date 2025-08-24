@@ -2,7 +2,7 @@ using System.Reflection.Emit;
 
 namespace ilyvion.LoadingProgress;
 
-internal class ReloadContentIntReplacement
+internal sealed class ReloadContentIntReplacement
 {
     public static IEnumerable ReloadContentInt(ModContentPack modContentPack)
     {
@@ -81,7 +81,8 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
         public static IEnumerable<(MethodInfo method, FieldInfo thisField)> FindMethodCalling()
         {
             // Find all possible candidates, both from the wrapping type and all nested types.
-            var candidates = Utilities.FindInTypeAndInnerTypeMethods(typeof(ModContentPack), m => !m.IsGenericMethod);
+            var candidates = Utilities.FindInTypeAndInnerTypeMethods(
+                typeof(ModContentPack), m => !m.IsGenericMethod);
 
             //check all candidates for the target instructions, return those that match.
             foreach (var method in candidates)
@@ -91,7 +92,7 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
                 if (matched)
                 {
                     var field = AccessTools.GetDeclaredFields(method.DeclaringType)
-                        .Single(f => f.Name.Contains("this"));
+                        .Single(f => f.Name.Contains("this", StringComparison.Ordinal));
                     yield return (method, field);
                 }
             }

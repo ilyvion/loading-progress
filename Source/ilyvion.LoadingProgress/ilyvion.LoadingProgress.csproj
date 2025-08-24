@@ -2,11 +2,6 @@
     <PropertyGroup>
         <RootNamespace>ilyvion.LoadingProgress</RootNamespace>
         <AssemblyName>ilyvion.LoadingProgress</AssemblyName>
-
-        <!-- TODO: Remove these when ready -->
-        <ImplicitUsings>disable</ImplicitUsings>
-        <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
-        <NoWarn>CS1591;IDE0008;IDE0160;IDE0022</NoWarn>
     </PropertyGroup>
     <ItemGroup>
         <Publicize Include="Assembly-CSharp:Verse.LongEventHandler.StatusRectSize" />

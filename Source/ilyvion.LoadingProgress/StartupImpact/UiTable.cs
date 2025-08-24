@@ -1,7 +1,7 @@
 ﻿namespace ilyvion.LoadingProgress.StartupImpact;
 
 [HotSwappable]
-internal class UiTable(int rowCount, float rowHeight, float[] columnWidthsTemplate)
+internal sealed class UiTable(int rowCount, float rowHeight, float[] columnWidthsTemplate)
 {
     private readonly int _rowCount = rowCount;
     private readonly float _rowHeight = rowHeight;
@@ -28,8 +28,8 @@ internal class UiTable(int rowCount, float rowHeight, float[] columnWidthsTempla
             _viewRect.height = _rowCount * _rowHeight;
 
             float totalNeededWidth = 0;
-            float totalAvailableWidth = _viewRect.width;
-            foreach (float cw in _columnWidthsTemplate)
+            var totalAvailableWidth = _viewRect.width;
+            foreach (var cw in _columnWidthsTemplate)
             {
                 if (cw > 0)
                 {
@@ -42,10 +42,10 @@ internal class UiTable(int rowCount, float rowHeight, float[] columnWidthsTempla
             }
 
             float xoff = 0;
-            int n = 0;
-            foreach (float cw in _columnWidthsTemplate)
+            var n = 0;
+            foreach (var cw in _columnWidthsTemplate)
             {
-                float calculatedWidth = cw > 0
+                var calculatedWidth = cw > 0
                     ? cw * totalAvailableWidth / totalNeededWidth
                     : -cw;
                 _columnOffsets[n] = xoff;
@@ -89,12 +89,11 @@ internal class UiTable(int rowCount, float rowHeight, float[] columnWidthsTempla
 
     public void TruncatedLabel(int column, int row, string text)
     {
-        Rect rect = Cell(column, row);
+        var rect = Cell(column, row);
         Widgets.Label(rect, text.Truncate(rect.width, null));
     }
 
-    public void EndTable()
-    {
-        Widgets.EndScrollView();
-    }
+#pragma warning disable CA1822 // Mark members as static
+    public void EndTable() => Widgets.EndScrollView();
+#pragma warning restore CA1822 // Mark members as static
 }

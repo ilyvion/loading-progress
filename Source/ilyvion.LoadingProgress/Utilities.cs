@@ -3,8 +3,8 @@ using System.Text;
 
 namespace ilyvion.LoadingProgress;
 
-[System.Flags]
-public enum PatchKinds
+[Flags]
+internal enum PatchKinds
 {
     None = 0,
     Prefix = 1 << 0,
@@ -14,15 +14,23 @@ public enum PatchKinds
     All = Prefix | Transpiler | Postfix | Finalizer,
 }
 
-public static class Utilities
+internal static class Utilities
 {
-    public static void LongEventHandlerPrependQueue(Action prependAction, string keepPrefix = "LoadingProgress.")
+    public static void LongEventHandlerPrependQueue(
+        Action prependAction,
+        string keepPrefix = "LoadingProgress.")
     {
         //LoadingProgressMod.Debug("Event queue before modification:\n- " + string.Join("\n- ", LongEventHandler.eventQueue.Select(e => $"{e.eventTextKey} ({e.eventText})"))); // + "\n" + Environment.StackTrace);
 
         // Separate events to keep and to temporarily remove
-        var keepEvents = LongEventHandler.eventQueue.Where(e => e.eventTextKey != null && e.eventTextKey.StartsWith(keepPrefix)).ToList();
-        var queue = LongEventHandler.eventQueue.Where(e => e.eventTextKey == null || !e.eventTextKey.StartsWith(keepPrefix)).ToList();
+        var keepEvents = LongEventHandler.eventQueue
+            .Where(e => e.eventTextKey != null
+                && e.eventTextKey.StartsWith(keepPrefix, StringComparison.Ordinal))
+            .ToList();
+        var queue = LongEventHandler.eventQueue
+            .Where(e => e.eventTextKey == null
+                || !e.eventTextKey.StartsWith(keepPrefix, StringComparison.Ordinal))
+            .ToList();
         LongEventHandler.eventQueue.Clear();
 
         // Re-add kept events first (preserving their order)
@@ -49,68 +57,45 @@ public static class Utilities
         MethodBase[]? ignoredMethods = null,
         PatchKinds warnKinds = PatchKinds.All)
     {
-        HashSet<Assembly> ignoredAssemblySet = [Assembly.GetExecutingAssembly(), .. ignoredAssemblies ?? []];
+        HashSet<Assembly> ignoredAssemblySet =
+        [
+            Assembly.GetExecutingAssembly(),
+            .. ignoredAssemblies ?? []
+        ];
         HashSet<MethodBase> ignoredMethodsSet = [.. ignoredMethods ?? []];
 
         var patches = Harmony.GetPatchInfo(method);
         if (patches != null)
         {
-            List<MethodInfo>? potentiallyProblematicPrefixes = null;
-            if ((warnKinds & PatchKinds.Prefix) != 0)
-            {
-                potentiallyProblematicPrefixes ??= [];
-                foreach (var patch in patches.Prefixes)
-                {
-                    if (ignoredAssemblySet.Contains(patch.PatchMethod.DeclaringType.Assembly) || ignoredMethodsSet.Contains(patch.PatchMethod))
-                    {
-                        continue; // Skip ignored assemblies and methods
-                    }
-                    potentiallyProblematicPrefixes.Add(patch.PatchMethod);
-                }
-            }
+            var potentiallyProblematicPrefixes = CollectPotentiallyProblematicPatches(
+                warnKinds,
+                PatchKinds.Prefix,
+                patches.Prefixes,
+                ignoredAssemblySet,
+                ignoredMethodsSet);
 
-            List<MethodInfo>? potentiallyProblematicTranspilers = null;
-            if ((warnKinds & PatchKinds.Transpiler) != 0)
-            {
-                potentiallyProblematicTranspilers ??= [];
-                foreach (var patch in patches.Transpilers)
-                {
-                    if (ignoredAssemblySet.Contains(patch.PatchMethod.DeclaringType.Assembly) || ignoredMethodsSet.Contains(patch.PatchMethod))
-                    {
-                        continue; // Skip ignored assemblies and methods
-                    }
-                    potentiallyProblematicTranspilers.Add(patch.PatchMethod);
-                }
-            }
+            var potentiallyProblematicTranspilers = CollectPotentiallyProblematicPatches(
+                warnKinds,
+                PatchKinds.Transpiler,
+                patches.Transpilers,
+                ignoredAssemblySet,
+                ignoredMethodsSet);
 
-            List<MethodInfo>? potentiallyProblematicPostfixes = null;
-            if ((warnKinds & PatchKinds.Postfix) != 0)
-            {
-                potentiallyProblematicPostfixes ??= [];
-                foreach (var patch in patches.Postfixes)
-                {
-                    if (ignoredAssemblySet.Contains(patch.PatchMethod.DeclaringType.Assembly) || ignoredMethodsSet.Contains(patch.PatchMethod))
-                    {
-                        continue; // Skip ignored assemblies and methods
-                    }
-                    potentiallyProblematicPostfixes.Add(patch.PatchMethod);
-                }
-            }
+            var potentiallyProblematicPostfixes = CollectPotentiallyProblematicPatches(
+                warnKinds,
+                PatchKinds.Postfix,
+                patches.Postfixes,
+                ignoredAssemblySet,
+                ignoredMethodsSet);
 
-            List<MethodInfo>? potentiallyProblematicFinalizers = null;
-            if ((warnKinds & PatchKinds.Finalizer) != 0)
-            {
-                potentiallyProblematicFinalizers ??= [];
-                foreach (var patch in patches.Finalizers)
-                {
-                    if (ignoredAssemblySet.Contains(patch.PatchMethod.DeclaringType.Assembly) || ignoredMethodsSet.Contains(patch.PatchMethod))
-                    {
-                        continue; // Skip ignored assemblies and methods
-                    }
-                    potentiallyProblematicFinalizers.Add(patch.PatchMethod);
-                }
-            }
-            int totalCount = (potentiallyProblematicPrefixes?.Count ?? 0)
+            var potentiallyProblematicFinalizers = CollectPotentiallyProblematicPatches(
+                warnKinds,
+                PatchKinds.Finalizer,
+                patches.Finalizers,
+                ignoredAssemblySet,
+                ignoredMethodsSet);
+
+            var totalCount = (potentiallyProblematicPrefixes?.Count ?? 0)
                               + (potentiallyProblematicTranspilers?.Count ?? 0)
                               + (potentiallyProblematicPostfixes?.Count ?? 0)
                               + (potentiallyProblematicFinalizers?.Count ?? 0);
@@ -122,37 +107,53 @@ public static class Utilities
 
                 if (stillCallsOriginal)
                 {
-                    _ = sb.Append("Note: The original method is still called; unless patches are extremely timing-sensitive, they should still work.\n");
+                    _ = sb.Append("Note: The original method is still called; unless patches are ");
+                    _ = sb.Append("extremely timing-sensitive, they should still work.\n");
                 }
 
-                if ((warnKinds & PatchKinds.Prefix) != 0 && potentiallyProblematicPrefixes != null && potentiallyProblematicPrefixes.Count > 0)
-                {
-                    _ = sb.Append($"Potentially problematic prefixes ({potentiallyProblematicPrefixes.Count}):\n  - ")
-                         .Append(string.Join("\n  - ", potentiallyProblematicPrefixes.Select(m => $"{m.DeclaringType}:{m}")))
-                         .Append('\n');
-                }
-                if ((warnKinds & PatchKinds.Transpiler) != 0 && potentiallyProblematicTranspilers != null && potentiallyProblematicTranspilers.Count > 0)
-                {
-                    _ = sb.Append($"Potentially problematic transpilers ({potentiallyProblematicTranspilers.Count}):\n  - ")
-                         .Append(string.Join("\n  - ", potentiallyProblematicTranspilers.Select(m => $"{m.DeclaringType}:{m}")))
-                         .Append('\n');
-                }
-                if ((warnKinds & PatchKinds.Postfix) != 0 && potentiallyProblematicPostfixes != null && potentiallyProblematicPostfixes.Count > 0)
-                {
-                    _ = sb.Append($"Potentially problematic postfixes ({potentiallyProblematicPostfixes.Count}):\n  - ")
-                         .Append(string.Join("\n  - ", potentiallyProblematicPostfixes.Select(m => $"{m.DeclaringType}:{m}")))
-                         .Append('\n');
-                }
-                if ((warnKinds & PatchKinds.Finalizer) != 0 && potentiallyProblematicFinalizers != null && potentiallyProblematicFinalizers.Count > 0)
-                {
-                    _ = sb.Append($"Potentially problematic finalizers ({potentiallyProblematicFinalizers.Count}):\n  - ")
-                         .Append(string.Join("\n  - ", potentiallyProblematicFinalizers.Select(m => $"{m.DeclaringType}:{m}")))
-                         .Append('\n');
-                }
+                AppendPatchWarning(sb, warnKinds, PatchKinds.Prefix, potentiallyProblematicPrefixes, "prefixes");
+                AppendPatchWarning(sb, warnKinds, PatchKinds.Transpiler, potentiallyProblematicTranspilers, "transpilers");
+                AppendPatchWarning(sb, warnKinds, PatchKinds.Postfix, potentiallyProblematicPostfixes, "postfixes");
+                AppendPatchWarning(sb, warnKinds, PatchKinds.Finalizer, potentiallyProblematicFinalizers, "finalizers");
+
 
                 LoadingProgressMod.Warning(sb.ToString().TrimEnd());
             }
         }
+    }
+
+    private static void AppendPatchWarning(StringBuilder sb, PatchKinds warnFlags, PatchKinds warnCheckedFlag, List<MethodInfo>? methods, string label)
+    {
+        if ((warnFlags & warnCheckedFlag) != 0 && methods != null && methods.Count > 0)
+        {
+            _ = sb.Append($"Potentially problematic {label} ");
+            _ = sb.Append($"({methods.Count}):\n  - ").Append(string.Join("\n  - ", methods.Select(m => $"{m.DeclaringType}:{m}"))).Append('\n');
+        }
+    }
+
+    private static List<MethodInfo>? CollectPotentiallyProblematicPatches(
+        PatchKinds warnFlags,
+        PatchKinds warnCheckedFlag,
+        IEnumerable<Patch> patchesEnumerable,
+        HashSet<Assembly> ignoredAssemblySet,
+        HashSet<MethodBase> ignoredMethodsSet)
+    {
+        List<MethodInfo>? potentiallyProblematicPatches = null;
+        if ((warnFlags & warnCheckedFlag) != 0)
+        {
+            potentiallyProblematicPatches = [];
+            foreach (var patch in patchesEnumerable)
+            {
+                if (ignoredAssemblySet.Contains(patch.PatchMethod.DeclaringType.Assembly)
+                    || ignoredMethodsSet.Contains(patch.PatchMethod))
+                {
+                    continue; // Skip ignored assemblies and methods
+                }
+                potentiallyProblematicPatches.Add(patch.PatchMethod);
+            }
+        }
+
+        return potentiallyProblematicPatches;
     }
 
     public static Color Darken(this Color color, float amount)
@@ -183,26 +184,26 @@ public static class Utilities
 
         var output = new StringBuilder();
         var stack = new Stack<string>();
-        int visibleChars = 0;
+        var visibleChars = 0;
 
         // forward pass to capture tag info
-        for (int i = 0; i < text.Length; i++)
+        for (var i = 0; i < text.Length; i++)
         {
             if (text[i] == '<')
             {
-                int closing = text.IndexOf('>', i);
+                var closing = text.IndexOf('>', i);
                 if (closing == -1)
                 {
                     break;
                 }
 
-                string tag = text.Substring(i, closing - i + 1);
+                var tag = text.Substring(i, closing - i + 1);
                 _ = output.Append(tag);
 
-                if (!tag.StartsWith("</"))
+                if (!tag.StartsWith("</", StringComparison.Ordinal))
                 {
-                    int spaceIdx = tag.IndexOf(' ');
-                    int tagNameEnd = spaceIdx != -1 ? spaceIdx : tag.Length - 1;
+                    var spaceIdx = tag.IndexOf(' ', StringComparison.Ordinal);
+                    var tagNameEnd = spaceIdx != -1 ? spaceIdx : tag.Length - 1;
                     stack.Push(tag[1..tagNameEnd]);
                 }
                 else if (stack.Count > 0)
@@ -249,7 +250,9 @@ public static class Utilities
         return modContentPack;
     }
 
-    public static HashSet<MethodInfo> FindInTypeAndInnerTypeMethods(Type type, Func<MethodInfo, bool>? predicate = null)
+    public static HashSet<MethodInfo> FindInTypeAndInnerTypeMethods(
+        Type type,
+        Func<MethodInfo, bool>? predicate = null)
     {
         predicate ??= _ => true;
 
@@ -287,7 +290,7 @@ public static class Utilities
         this IDictionary<TKey, TValue> dictionary) where TKey : notnull => new(dictionary);
 }
 
-public static class StableListHasher
+internal static class StableListHasher
 {
     public static int ComputeListHash(IEnumerable<string> items)
     {
@@ -307,16 +310,16 @@ public static class StableListHasher
         const uint m = 5;
         const uint n = 0xe6546b64;
 
-        uint hash = seed;
-        int length = data.Length;
-        int remainder = length & 3;
-        int blocks = length / 4;
+        var hash = seed;
+        var length = data.Length;
+        var remainder = length & 3;
+        var blocks = length / 4;
 
         // Body
-        for (int i = 0; i < blocks; i++)
+        for (var i = 0; i < blocks; i++)
         {
-            int index = i * 4;
-            uint k = BitConverter.ToUInt32(data, index);
+            var index = i * 4;
+            var k = BitConverter.ToUInt32(data, index);
 
             k *= c1;
             k = RotateLeft(k, r1);
@@ -333,8 +336,12 @@ public static class StableListHasher
         {
             switch (remainder)
             {
-                case 3: k1 ^= (uint)data[length - 3] << 16; goto case 2;
-                case 2: k1 ^= (uint)data[length - 2] << 8; goto case 1;
+                case 3:
+                    k1 ^= (uint)data[length - 3] << 16;
+                    goto case 2;
+                case 2:
+                    k1 ^= (uint)data[length - 2] << 8;
+                    goto case 1;
                 case 1:
                     k1 ^= data[length - 1];
                     k1 *= c1;

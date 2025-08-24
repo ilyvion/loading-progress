@@ -6,7 +6,9 @@ namespace ilyvion.LoadingProgress.StartupImpact.Patches;
 [HarmonyPatchCategory("StartupImpact")]
 internal static class LoadedModManager_ErrorCheckPatches_Patches
 {
+#pragma warning disable CA1859 // Use concrete types when possible for improved performance
     private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+#pragma warning restore CA1859 // Use concrete types when possible for improved performance
     {
         var original = instructions.ToList();
 

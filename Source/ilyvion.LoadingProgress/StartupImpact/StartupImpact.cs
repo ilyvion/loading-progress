@@ -1,6 +1,6 @@
 ﻿namespace ilyvion.LoadingProgress.StartupImpact;
 
-internal class StartupImpact
+internal sealed class StartupImpact
 {
     private int _activeThreadId;
     private readonly ProfilerStopwatch _loadingProfiler;
@@ -9,8 +9,14 @@ internal class StartupImpact
     /// <summary>
     /// The total loading time, set only after FinishLoading() is called.
     /// </summary>
-    public float TotalLoadingTime { get; private set; } = 0;
-    public Profiler BaseGameProfiler { get; }
+    public float TotalLoadingTime
+    {
+        get; private set;
+    }
+    public Profiler BaseGameProfiler
+    {
+        get;
+    }
 
     public StartupImpact()
     {
@@ -25,7 +31,7 @@ internal class StartupImpact
         }
     }
 
-    private bool _loadingTimeMeasured = false;
+    private bool _loadingTimeMeasured;
     public void FinishLoading()
     {
         if (!_loadingTimeMeasured)
@@ -38,13 +44,7 @@ internal class StartupImpact
         }
     }
 
-    public void UpdateActiveThreadId()
-    {
-        _activeThreadId = Environment.CurrentManagedThreadId;
-    }
+    public void UpdateActiveThreadId() => _activeThreadId = Environment.CurrentManagedThreadId;
 
-    public bool IsActiveThread()
-    {
-        return Environment.CurrentManagedThreadId == _activeThreadId;
-    }
+    public bool IsActiveThread() => Environment.CurrentManagedThreadId == _activeThreadId;
 }

@@ -1,9 +1,8 @@
-using UnityEngine;
 using static ilyvion.LoadingProgress.Constants;
 
 namespace ilyvion.LoadingProgress.FasterGameLoading;
 
-public class FasterGameLoadingProgressWindow
+internal static class FasterGameLoadingProgressWindow
 {
     private static readonly Vector2 BaseWindowSize = new(776f, 110f);
 
@@ -21,7 +20,10 @@ public class FasterGameLoadingProgressWindow
         }
     }
 
-    internal static ModContentPack? LoadingMod { get; set; }
+    internal static ModContentPack? LoadingMod
+    {
+        get; set;
+    }
 
     internal static void DrawWindow(Rect statusRect)
     {
@@ -46,7 +48,7 @@ public class FasterGameLoadingProgressWindow
         Text.Font = GameFont.Medium;
         Text.Anchor = TextAnchor.UpperLeft;
 
-        Rect loadingProgressRect = rect;
+        var loadingProgressRect = rect;
         loadingProgressRect.x += HorizontalMargin;
         loadingProgressRect.y += 10f;
         loadingProgressRect.width -= 2 * HorizontalMargin;
@@ -54,12 +56,12 @@ public class FasterGameLoadingProgressWindow
 
         Widgets.Label(loadingProgressRect, Translations.GetTranslation($"LoadingProgress.FasterGameLoadingEarlyModContentLoading"));
 
-        Rect loadingActivityRect = loadingProgressRect;
+        var loadingActivityRect = loadingProgressRect;
         loadingProgressRect.y += loadingProgressRect.height + VerticalWidgetMargin;
         Text.Font = GameFont.Small;
         loadingActivityRect.height = Text.LineHeight;
 
-        string? label = string.Empty;
+        var label = string.Empty;
         if (LoadingMod != null)
         {
             label = Translations.GetTranslation($"LoadingProgress.FasterGameLoadingEarlyModContentLoading.ForMod", LoadingMod.Name);
@@ -72,7 +74,7 @@ public class FasterGameLoadingProgressWindow
             Widgets.Label(loadingProgressRect, Utilities.ClampTextWithEllipsisMarkupAware(ellipsisRect, label));
         }
 
-        Rect progressRect = loadingProgressRect;
+        var progressRect = loadingProgressRect;
         progressRect.y += loadingActivityRect.height + VerticalWidgetMargin;
         progressRect.height = ProgressBarHeight;
 

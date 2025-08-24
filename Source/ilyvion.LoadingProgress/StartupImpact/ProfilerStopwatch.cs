@@ -2,19 +2,16 @@
 
 namespace ilyvion.LoadingProgress.StartupImpact;
 
-internal class ProfilerStopwatch(string what) : SingleThreadedProfiler(what)
+internal sealed class ProfilerStopwatch(string what) : SingleThreadedProfiler(what)
 {
     private readonly Stopwatch _stopwatch = new();
 
-    public override void Start()
-    {
-        _stopwatch.Start();
-    }
+    public override void Start() => _stopwatch.Start();
 
     public override float Stop()
     {
         _stopwatch.Stop();
-        float ms = (float)_stopwatch.Elapsed.TotalMilliseconds;
+        var ms = (float)_stopwatch.Elapsed.TotalMilliseconds;
         _stopwatch.Reset();
         return ms;
     }

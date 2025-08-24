@@ -6,13 +6,16 @@ internal abstract class SingleThreadedProfiler(string measurementTarget)
     private readonly string _measurementTarget = measurementTarget;
     private readonly List<string> _categories = [];
 
-    public float Total { get; private set; } = 0;
+    public float Total
+    {
+        get; private set;
+    }
 
     public abstract void Start();
     public abstract float Stop();
     public virtual float StopAndStart()
     {
-        float res = Stop();
+        var res = Stop();
         Start();
         return res;
     }
@@ -30,7 +33,7 @@ internal abstract class SingleThreadedProfiler(string measurementTarget)
         {
             if (_categories.Count > 0)
             {
-                float ms = StopAndStart();
+                var ms = StopAndStart();
                 Total += ms;
             }
             else
@@ -42,10 +45,7 @@ internal abstract class SingleThreadedProfiler(string measurementTarget)
         }
     }
 
-    public float Stop(string category)
-    {
-        return Stop(category, out var _);
-    }
+    public float Stop(string category) => Stop(category, out var _);
 
     public float Stop(string category, out string actualCategory)
     {
@@ -70,7 +70,7 @@ internal abstract class SingleThreadedProfiler(string measurementTarget)
             actualCategory = _categories[0];
             _categories.RemoveAt(0);
 
-            float ms = _categories.Count > 0 ? StopAndStart() : Stop();
+            var ms = _categories.Count > 0 ? StopAndStart() : Stop();
             Total += ms;
             return ms;
         }

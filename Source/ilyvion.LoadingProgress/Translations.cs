@@ -1,13 +1,13 @@
-using System.IO;
+using System.Globalization;
 
 namespace ilyvion.LoadingProgress;
 
 internal static class Translations
 {
-    private static Dictionary<string, string>? EnglishTranslationValues = null;
-    private static bool _englishTranslationsLoaded = false;
-    private static Dictionary<string, string>? ActiveLanguageTranslationValues = null;
-    private static bool _activeLanguageTranslationsLoaded = false;
+    private static Dictionary<string, string>? EnglishTranslationValues;
+    private static bool _englishTranslationsLoaded;
+    private static Dictionary<string, string>? ActiveLanguageTranslationValues;
+    private static bool _activeLanguageTranslationsLoaded;
 
     public static void Clear()
     {
@@ -59,13 +59,13 @@ internal static class Translations
         {
             if (ActiveLanguageTranslationValues.TryGetValue(translationKey, out var activeLanguageTranslation))
             {
-                return string.Format(activeLanguageTranslation, args);
+                return string.Format(CultureInfo.CurrentCulture, activeLanguageTranslation, args);
             }
         }
 
         if (EnglishTranslationValues!.TryGetValue(translationKey, out var englishTranslation))
         {
-            return string.Format(englishTranslation, args);
+            return string.Format(CultureInfo.CurrentCulture, englishTranslation, args);
         }
         else
         {
@@ -79,7 +79,7 @@ internal static class Translations
         foreach (var file in Directory.GetFiles(languageDirectory, "*.xml"))
         {
             var translationContent = File.ReadAllText(file);
-            if (!translationContent.Contains("LoadingProgress."))
+            if (!translationContent.Contains("LoadingProgress.", StringComparison.Ordinal))
             {
                 continue;
             }

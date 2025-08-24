@@ -1,6 +1,6 @@
 namespace ilyvion.LoadingProgress;
 
-public class Settings : ModSettings
+internal sealed class Settings : ModSettings
 {
     private bool _patchInitialization = true;
     public bool PatchInitialization
@@ -44,7 +44,7 @@ public class Settings : ModSettings
         set => _showLastLoadingTime = value;
     }
 
-    private bool _showLoadingTimeAsCountDown = false;
+    private bool _showLoadingTimeAsCountDown;
     public bool ShowLoadingTimeAsCountDown
     {
         get => _showLoadingTimeAsCountDown;
@@ -72,7 +72,7 @@ public class Settings : ModSettings
         set => _showFasterGameLoadingEarlyModContentLoading = value;
     }
 
-    private bool _trackStartupLoadingImpact = false;
+    private bool _trackStartupLoadingImpact;
     public bool TrackStartupLoadingImpact
     {
         get => _trackStartupLoadingImpact;
@@ -169,7 +169,7 @@ public class Settings : ModSettings
     }
 }
 
-public enum LoadingWindowPlacement
+internal enum LoadingWindowPlacement
 {
     Top,
     Middle,

@@ -1,6 +1,6 @@
 ﻿namespace ilyvion.LoadingProgress.StartupImpact;
 
-public class ModInfo
+internal sealed class ModInfo
 {
     public ModInfo(ModContentPack m)
     {
@@ -8,17 +8,17 @@ public class ModInfo
         Profiler = new Profiler(Mod.Name);
     }
 
-    public ModContentPack Mod { get; }
-
-    public Profiler Profiler { get; }
-
-    public void Start(string cat)
+    public ModContentPack Mod
     {
-        Profiler.Start(cat);
+        get;
     }
 
-    public float Stop(string cat)
+    public Profiler Profiler
     {
-        return Profiler.Stop(cat);
+        get;
     }
+
+    public void Start(string cat) => Profiler.Start(cat);
+
+    public float Stop(string cat) => Profiler.Stop(cat);
 }

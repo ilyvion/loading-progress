@@ -3,7 +3,7 @@
 namespace ilyvion.LoadingProgress;
 
 
-internal class LoadingProgressMod : Mod
+internal sealed class LoadingProgressMod : Mod
 {
 #pragma warning disable CS8618 // Set by constructor
     internal static LoadingProgressMod instance;
@@ -29,20 +29,11 @@ internal class LoadingProgressMod : Mod
 
     public static Settings Settings => instance.GetSettings<Settings>();
 
-    public override void DoSettingsWindowContents(Rect inRect)
-    {
-        Settings.DoSettingsWindowContents(inRect);
-    }
+    public override void DoSettingsWindowContents(Rect inRect) => Settings.DoSettingsWindowContents(inRect);
 
-    public override string SettingsCategory()
-    {
-        return Content.Name;
-    }
+    public override string SettingsCategory() => Content.Name;
 
-    public static void Message(string msg)
-    {
-        Log.Message("[Loading Progress] " + msg);
-    }
+    public static void Message(string msg) => Log.Message("[Loading Progress] " + msg);
 
     public static void DevMessage(string msg)
     {
@@ -59,15 +50,9 @@ internal class LoadingProgressMod : Mod
         DevMessage(message);
     }
 
-    public static void Warning(string msg)
-    {
-        Log.Warning("[Loading Progress] " + msg);
-    }
+    public static void Warning(string msg) => Log.Warning("[Loading Progress] " + msg);
 
-    public static void Error(string msg)
-    {
-        Log.Error("[Loading Progress] " + msg);
-    }
+    public static void Error(string msg) => Log.Error("[Loading Progress] " + msg);
 
     public static void Exception(string msg, Exception? e = null)
     {

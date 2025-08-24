@@ -1,6 +1,6 @@
 namespace ilyvion.LoadingProgress;
 
-public static class Widgets_Progressbar
+internal static class Widgets_Progressbar
 {
     public static void DrawHorizontalProgressBar(
         Rect progressRect,
@@ -31,7 +31,7 @@ public static class Widgets_Progressbar
             var smallUnit = smallBarRect.width / smallMaxValue.Value;
             smallBarRect.width = smallCurrentValue.Value * smallUnit;
 
-            float clampedSmallCurrentValue = Mathf.Clamp(smallCurrentValue.Value, 0f, smallMaxValue.Value);
+            var clampedSmallCurrentValue = Mathf.Clamp(smallCurrentValue.Value, 0f, smallMaxValue.Value);
             if (smallCurrentValue.Value > smallMaxValue.Value)
             {
                 // Once we're past max, start drawing the bar with a gap on the left side equal to the overflow.

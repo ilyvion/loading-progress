@@ -6,7 +6,9 @@ namespace ilyvion.LoadingProgress.StartupImpact.Patches;
 [HarmonyPatchCategory("StartupImpact")]
 internal static class LanguageDatabase_InitAllMetadata_Patches
 {
+#pragma warning disable CA1859 // Use concrete types when possible for improved performance
     private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+#pragma warning restore CA1859 // Use concrete types when possible for improved performance
     {
         var mcpLocal = generator.DeclareLocal(typeof(ModContentPack));
 

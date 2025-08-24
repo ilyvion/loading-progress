@@ -18,15 +18,12 @@ internal static class DefDatabase_AddAllInMods_Patches
             new(OpCodes.Call, _method_GenGeneric_InvokeStaticMethodOnGenericType),
         ];
 
-    internal static bool Prepare()
-    {
-        return TargetMethods().Count() == 1;
-    }
+    internal static bool Prepare() => TargetMethods().Count() == 1;
 
     internal static IEnumerable<MethodBase> TargetMethods()
     {
-        var methods = Utilities.FindMethodsDoing(typeof(PlayDataLoader), toMatch);
-        if (methods.Count() != 1)
+        var methods = Utilities.FindMethodsDoing(typeof(PlayDataLoader), toMatch).ToList();
+        if (methods.Count != 1)
         {
             LoadingProgressMod.Error("Could not find call to GenGeneric.InvokeStaticMethodOnGenericType in PlayDataLoader");
         }

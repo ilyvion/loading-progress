@@ -2,10 +2,7 @@ namespace ilyvion.LoadingProgress.StartupImpact.Patches;
 
 internal static partial class PlayDataLoader_ResetStaticDataPre_Patches
 {
-    static partial void AfterPostfix()
-    {
-        StartupImpactProfilerUtil.StartBaseGameProfiler("LoadingProgress.StartupImpact.ResolveReferences");
-    }
+    static partial void AfterPostfix() => StartupImpactProfilerUtil.StartBaseGameProfiler("LoadingProgress.StartupImpact.ResolveReferences");
 }
 
 // We can't profile the "resolve references" stage very accurately because it involves types with generics,
@@ -14,8 +11,5 @@ internal static partial class PlayDataLoader_ResetStaticDataPre_Patches
 
 internal static partial class DefGenerator_GenerateImpliedDefs_PostResolve_Patches
 {
-    static partial void BeforePrefix()
-    {
-        StartupImpactProfilerUtil.StopBaseGameProfiler("LoadingProgress.StartupImpact.ResolveReferences");
-    }
+    static partial void BeforePrefix() => StartupImpactProfilerUtil.StopBaseGameProfiler("LoadingProgress.StartupImpact.ResolveReferences");
 }

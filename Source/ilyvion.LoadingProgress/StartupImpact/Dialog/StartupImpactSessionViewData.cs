@@ -1,6 +1,6 @@
 namespace ilyvion.LoadingProgress.StartupImpact.Dialog;
 
-internal class StartupImpactSessionViewData
+internal sealed class StartupImpactSessionViewData
 {
     public static readonly string[] CategoriesTotal = [
         "LoadingProgress.StartupImpact.Total.Mods",
@@ -21,9 +21,18 @@ internal class StartupImpactSessionViewData
 
     internal IReadOnlyList<StartupImpactSessionModViewData> ModViewData => modViewData.AsReadOnly();
 
-    public float BasegameLoadingTime { get; private set; }
-    public float ModsLoadingTime { get; private set; }
-    public float MaxImpact { get; private set; }
+    public float BasegameLoadingTime
+    {
+        get; private set;
+    }
+    public float ModsLoadingTime
+    {
+        get; private set;
+    }
+    public float MaxImpact
+    {
+        get; private set;
+    }
 
     public IReadOnlyList<string> Categories => categories.AsReadOnly();
     public IReadOnlyList<string> CategoriesNonMods => categoriesNonMods.AsReadOnly();
@@ -68,12 +77,12 @@ internal class StartupImpactSessionViewData
                 ModsLoadingTime += modView.ModData.TotalImpact;
             }
 
-            foreach (KeyValuePair<string, float> entry in modView.ModData.Metrics)
+            foreach (var entry in modView.ModData.Metrics)
             {
                 _ = categorySet.Add(entry.Key);
             }
 
-            foreach (KeyValuePair<string, float> entry in modView.ModData.OffThreadMetrics)
+            foreach (var entry in modView.ModData.OffThreadMetrics)
             {
                 _ = categorySet.Add(entry.Key);
             }
@@ -108,9 +117,9 @@ internal class StartupImpactSessionViewData
 
         foreach (var entry in sessionData.Metrics)
         {
-            string cat = entry.Key;
+            var cat = entry.Key;
 
-            int hash = cat.GetHashCode();
+            var hash = cat.GetHashCode(StringComparison.Ordinal);
 
             categoryColorsNonMods[cat] = new Color((hash & 0xff) / 255f, ((hash >> 8) & 0xff) / 255f, ((hash >> 16) & 0xff) / 255f);
             categoriesNonMods.Add(cat);

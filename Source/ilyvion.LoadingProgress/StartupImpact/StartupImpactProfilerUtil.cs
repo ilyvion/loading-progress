@@ -24,17 +24,13 @@ internal static class StartupImpactProfilerUtil
         _ = info?.Stop(key);
     }
 
-    public static void StartBaseGameProfiler(string key)
-    {
+    public static void StartBaseGameProfiler(string key) =>
         // LoadingProgressMod.DevMessage($"Starting base game profiler for {key}");
         LoadingProgressMod.instance.StartupImpact.BaseGameProfiler.Start(key);
-    }
 
-    public static void StopBaseGameProfiler(string key)
-    {
+    public static void StopBaseGameProfiler(string key) =>
         // LoadingProgressMod.DevMessage($"Stopping base game profiler for {key}");
         _ = LoadingProgressMod.instance.StartupImpact.BaseGameProfiler.Stop(key);
-    }
 
     /// <summary>
     /// Translates a category string, supporting optional parameter after '|'.
@@ -47,13 +43,13 @@ internal static class StartupImpactProfilerUtil
             return string.Empty;
         }
 
-        int pipeIdx = category.IndexOf('|');
+        var pipeIdx = category.IndexOf('|', StringComparison.Ordinal);
         if (pipeIdx < 0)
         {
             return category.Translate();
         }
-        string key = category[..pipeIdx];
-        string param = category[(pipeIdx + 1)..];
+        var key = category[..pipeIdx];
+        var param = category[(pipeIdx + 1)..];
         return key.Translate(param);
     }
 }

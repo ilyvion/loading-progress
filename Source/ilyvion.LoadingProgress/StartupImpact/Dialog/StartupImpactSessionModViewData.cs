@@ -1,13 +1,16 @@
 namespace ilyvion.LoadingProgress.StartupImpact.Dialog;
 
-internal class StartupImpactSessionModViewData(StartupImpactSessionModData modData)
+internal sealed class StartupImpactSessionModViewData(StartupImpactSessionModData modData)
 {
     private readonly List<float> metrics = [];
     private readonly List<float> offThreadMetrics = [];
 
     public StartupImpactSessionModData ModData { get; } = modData;
 
-    public bool HideInUi { get; set; }
+    public bool HideInUi
+    {
+        get; set;
+    }
 
     public IReadOnlyList<float> Metrics => metrics.AsReadOnly();
     public IReadOnlyList<float> OffThreadMetrics => offThreadMetrics.AsReadOnly();

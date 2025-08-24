@@ -81,7 +81,7 @@ internal static class Harmony_Patches
 
         if (Mod_Constructor_Patches._currentModAssembly != assembly)
         {
-            if (Mod_Constructor_Patches._currentModAssembly.FullName.StartsWith("HugsLib"))
+            if (Mod_Constructor_Patches._currentModAssembly.FullName.StartsWith("HugsLib", StringComparison.Ordinal))
             {
                 // HugsLib runs patches on behalf of other mods; we can ignore this warning for it.
             }

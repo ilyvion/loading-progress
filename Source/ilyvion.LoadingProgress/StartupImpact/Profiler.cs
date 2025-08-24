@@ -1,17 +1,23 @@
 ﻿using System.Collections.Concurrent;
-using System.Threading;
 
 namespace ilyvion.LoadingProgress.StartupImpact;
 
-public class Profiler(string measurementTarget)
+internal sealed class Profiler(string measurementTarget) : IDisposable
 {
-    private readonly ThreadLocal<SingleThreadedProfiler> _threadLocalProfiler = new(() => new ProfilerStopwatch(measurementTarget));
+    private readonly ThreadLocal<SingleThreadedProfiler> _threadLocalProfiler = new(
+        () => new ProfilerStopwatch(measurementTarget));
 
     public ConcurrentDictionary<string, float> Metrics { get; } = [];
-    public float TotalImpact { get; private set; } = 0;
+    public float TotalImpact
+    {
+        get; private set;
+    }
 
     public ConcurrentDictionary<string, float> OffThreadMetrics { get; } = [];
-    public float OffThreadTotalImpact { get; private set; } = 0;
+    public float OffThreadTotalImpact
+    {
+        get; private set;
+    }
 
     public void Start(string category)
     {
@@ -30,13 +36,13 @@ public class Profiler(string measurementTarget)
             return 0f;
         }
 
-        float ms = _threadLocalProfiler.Value.Stop(category, out string actualCategory);
+        var ms = _threadLocalProfiler.Value.Stop(category, out var actualCategory);
 
         if (LoadingProgressMod.instance.StartupImpact.IsActiveThread())
         {
             TotalImpact += ms;
 
-            _ = Metrics.TryGetValue(actualCategory, out float total);
+            _ = Metrics.TryGetValue(actualCategory, out var total);
             total += ms;
             Metrics[actualCategory] = total;
         }
@@ -44,11 +50,17 @@ public class Profiler(string measurementTarget)
         {
             OffThreadTotalImpact += ms;
 
-            _ = OffThreadMetrics.TryGetValue(actualCategory, out float total);
+            _ = OffThreadMetrics.TryGetValue(actualCategory, out var total);
             total += ms;
             OffThreadMetrics[actualCategory] = total;
         }
 
         return ms;
+    }
+
+    public void Dispose()
+    {
+        _threadLocalProfiler.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

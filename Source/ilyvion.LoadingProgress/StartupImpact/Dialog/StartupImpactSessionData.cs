@@ -1,12 +1,12 @@
 namespace ilyvion.LoadingProgress.StartupImpact.Dialog;
 
-internal class StartupImpactSessionData : IExposable
+internal sealed class StartupImpactSessionData : IExposable
 {
     private float loadingTime;
     private Dictionary<string, float> metrics = [];
-    private float totalImpact = 0;
+    private float totalImpact;
     private Dictionary<string, float> offThreadMetrics = [];
-    private float offThreadTotalImpact = 0;
+    private float offThreadTotalImpact;
 
     private List<StartupImpactSessionModData> mods = [];
 

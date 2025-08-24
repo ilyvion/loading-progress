@@ -1,10 +1,10 @@
 ﻿namespace ilyvion.LoadingProgress.StartupImpact;
 
-internal class ModInfoList
+internal sealed class ModInfoList
 {
     private readonly List<ModInfo> _modInfos = [];
     private readonly Dictionary<ModContentPack, ModInfo> _contentPackModInfoMap = [];
-    private ModContentPack? _coreMod = null;
+    private ModContentPack? _coreMod;
 
     public ModInfo? GetModInfoFor(ModContentPack? mod)
     {
@@ -19,7 +19,7 @@ internal class ModInfoList
             return null;
         }
 
-        if (_contentPackModInfoMap.TryGetValue(mod, out ModInfo res))
+        if (_contentPackModInfoMap.TryGetValue(mod, out var res))
         {
             return res;
         }

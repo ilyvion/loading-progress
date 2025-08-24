@@ -1,11 +1,10 @@
 ﻿
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 
 namespace ilyvion.LoadingProgress.StartupImpact.Dialog;
 
 [HotSwappable]
-internal class DialogStartupImpact : Window
+internal sealed class DialogStartupImpact : Window
 {
     private const float ButtonWidth = 80f;
     private const float ButtonHeight = 32f;
@@ -66,7 +65,7 @@ internal class DialogStartupImpact : Window
     };
     private static readonly Color DefaultColor = new(128f / 255f, 128f / 255f, 128f / 255f);
 
-    private bool _useLogScale = false;
+    private bool _useLogScale;
     private UiTable _table;
     private StartupImpactSessionData _sessionData;
     private StartupImpactSessionViewData _sessionViewData;
@@ -75,7 +74,7 @@ internal class DialogStartupImpact : Window
     public override Vector2 InitialSize => new(800f, Math.Min(800f, UI.screenHeight * 0.75f));
 
     private string _statusText = "";
-    private double? _statusTextSetTime = null;
+    private double? _statusTextSetTime;
     private const float StatusTextDisplayTimeSeconds = 5f;
     private string StatusText
     {
@@ -115,8 +114,8 @@ internal class DialogStartupImpact : Window
 
         // Log scale checkbox (top right)
         Text.Anchor = TextAnchor.MiddleRight;
-        TaggedString label = "LoadingProgress.StartupImpact.LogarithmicScale".Translate();
-        float checkboxWidth = Text.CalcSize(label).x + 24f + OuterSpacing;
+        var label = "LoadingProgress.StartupImpact.LogarithmicScale".Translate();
+        var checkboxWidth = Text.CalcSize(label).x + 24f + OuterSpacing;
         var checkboxRect = new Rect(area.width - checkboxWidth, y, checkboxWidth, CheckboxHeight);
         Widgets.CheckboxLabeled(checkboxRect, label, ref _useLogScale);
         TooltipHandler.TipRegion(checkboxRect, "LoadingProgress.StartupImpact.LogarithmicScale.Tip".Translate());
@@ -152,10 +151,10 @@ internal class DialogStartupImpact : Window
         y += modsTitleRect.height + OuterSpacing;
         Text.Font = GameFont.Small;
 
-        float bottomOffset = ButtonHeight + OuterSpacing + InnerSpacing; // Button height + spacing + padding
+        var bottomOffset = ButtonHeight + OuterSpacing + InnerSpacing; // Button height + spacing + padding
         _table.StartTable(0, y, area.width, area.height - y - bottomOffset);
 
-        int row = 0;
+        var row = 0;
         foreach (var info in _sessionViewData.ModViewData)
         {
             if (_table.IsRowVisible(row))
@@ -173,8 +172,8 @@ internal class DialogStartupImpact : Window
 
                 _table.TruncatedLabel(2, row, ProfilerBar.TimeText(info.ModData.TotalImpact));
 
-                Rect rect = _table.Cell(3, row);
-                Rect rect2 = rect;
+                var rect = _table.Cell(3, row);
+                var rect2 = rect;
                 if (info.ModData.OffThreadTotalImpact > 1f)
                 {
                     rect2.yMin += rect.height / 2;
@@ -189,8 +188,8 @@ internal class DialogStartupImpact : Window
         _table.EndTable();
 
         GUI.color = Color.white;
-        float x = area.width - ((ButtonWidth + OuterSpacing) * 3);
-        float yBtn = area.height - ButtonHeight - 3f;
+        var x = area.width - ((ButtonWidth + OuterSpacing) * 3);
+        var yBtn = area.height - ButtonHeight - 3f;
 
         HandleStatus(area, yBtn);
         if (Widgets.ButtonText(new Rect(x, yBtn, ButtonWidth, ButtonHeight), "Save".Translate()))
@@ -241,7 +240,7 @@ internal class DialogStartupImpact : Window
             {
                 StatusText = "";
             }
-            else if (StatusText != "")
+            else if (!string.IsNullOrEmpty(StatusText))
             {
                 Text.Anchor = TextAnchor.MiddleRight;
                 Widgets.Label(new Rect(0, yBtn, area.width - ((ButtonWidth + OuterSpacing) * 3) - OuterSpacing, ButtonHeight), (TaggedString)StatusText);

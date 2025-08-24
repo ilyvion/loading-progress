@@ -1,18 +1,18 @@
 namespace ilyvion.LoadingProgress.FasterGameLoading;
 
-public static class FasterGameLoadingUtils
+internal static class FasterGameLoadingUtils
 {
-    private static bool? _hasFasterGameLoading = null;
+    private static bool? _hasFasterGameLoading;
     public static bool HasFasterGameLoading
     {
         get
         {
-            _hasFasterGameLoading ??= ModsConfig.ActiveModsInLoadOrder.Any(mod => mod.PackageId.Equals("taranchuk.fastergameloading", StringComparison.CurrentCultureIgnoreCase));
+            _hasFasterGameLoading ??= ModsConfig.ActiveModsInLoadOrder.Any(mod => mod.PackageId.Equals("taranchuk.fastergameloading", StringComparison.OrdinalIgnoreCase));
             return _hasFasterGameLoading.Value;
         }
     }
 
-    private static HashSet<ModContentPack>? _loadedMods = null;
+    private static HashSet<ModContentPack>? _loadedMods;
     public static HashSet<ModContentPack>? LoadedMods
     {
         get
@@ -24,13 +24,10 @@ public static class FasterGameLoadingUtils
 
     public static bool FasterGameLoadingEarlyModContentLoadingIsFinished => FasterGameLoading_DelayedActions_LateUpdate_Patches._pauseFasterGameLoading_DelayedActions_LateUpdate || LoadingProgressWindow.CurrentStage >= LoadingStage.ExecuteToExecuteWhenFinished2;
 
-    public static T? GetFasterGameLoadingSetting<T>(string settingName)
-    {
-        return AccessTools.Field("FasterGameLoading.FasterGameLoadingSettings:" + settingName)
+    public static T? GetFasterGameLoadingSetting<T>(string settingName) => AccessTools.Field("FasterGameLoading.FasterGameLoadingSettings:" + settingName)
             ?.GetValue(null) is T value ? value : default;
-    }
 
-    private static bool? _earlyModContentLoading = null;
+    private static bool? _earlyModContentLoading;
     public static bool EarlyModContentLoading
     {
         get
