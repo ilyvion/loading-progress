@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Missed a finalizer case. Luckily, it's the least likely one to be used.
+
 ## [0.9.4] - 2025-08-26
 
 ### Fixed

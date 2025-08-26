@@ -222,6 +222,15 @@ internal static class Harmony_Patches
     }
 
     [HarmonyPatch(typeof(Harmony), nameof(Harmony.UnpatchCategory))]
+    [HarmonyPatch([typeof(string)])]
+    [HarmonyFinalizer]
+    internal static void UnpatchCategoryFinalizer()
+    {
+        Mod_Constructor_Patches._currentModAssembly = _lastAssembly;
+        _lastAssembly = null;
+    }
+
+    [HarmonyPatch(typeof(Harmony), nameof(Harmony.UnpatchCategory))]
     [HarmonyPatch([typeof(Assembly), typeof(string)])]
     [HarmonyPrefix]
     internal static void UnpatchCategoryPrefix(Assembly assembly)
