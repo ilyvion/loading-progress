@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Found and fixed edge case in mod constructor Harmony patching that caused certain mods to stop working as expected.
+
 ## [0.9.3] - 2025-08-22
 
 ### Fixed

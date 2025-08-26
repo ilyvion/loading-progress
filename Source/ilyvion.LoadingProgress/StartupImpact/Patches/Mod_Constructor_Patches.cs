@@ -51,6 +51,8 @@ internal static class Mod_Constructor_Patches
 [HarmonyPatchCategory("StartupImpact")]
 internal static class Harmony_Patches
 {
+    private static Assembly? _lastAssembly;
+
     [HarmonyPatch(typeof(Harmony), nameof(Harmony.PatchAll))]
     [HarmonyPatch([])]
     [HarmonyPrefix]
@@ -63,20 +65,31 @@ internal static class Harmony_Patches
 
         if (Mod_Constructor_Patches._currentModAssembly != null)
         {
-            __instance.PatchAll(Mod_Constructor_Patches._currentModAssembly);
+            _lastAssembly = Mod_Constructor_Patches._currentModAssembly;
+            Mod_Constructor_Patches._currentModAssembly = null;
+            __instance.PatchAll(_lastAssembly);
             return false;
         }
         return true;
     }
 
     [HarmonyPatch(typeof(Harmony), nameof(Harmony.PatchAll))]
+    [HarmonyPatch([])]
+    [HarmonyFinalizer]
+    internal static void PatchAllFinalizer()
+    {
+        Mod_Constructor_Patches._currentModAssembly = _lastAssembly;
+        _lastAssembly = null;
+    }
+
+    [HarmonyPatch(typeof(Harmony), nameof(Harmony.PatchAll))]
     [HarmonyPatch([typeof(Assembly)])]
     [HarmonyPrefix]
-    internal static bool PatchAllPrefix(Assembly assembly)
+    internal static void PatchAllPrefix(Assembly assembly)
     {
         if (LoadingProgressWindow.CurrentStage != LoadingStage.LoadingModClasses || Mod_Constructor_Patches._currentModAssembly == null)
         {
-            return true;
+            return;
         }
 
         if (Mod_Constructor_Patches._currentModAssembly != assembly)
@@ -91,7 +104,7 @@ internal static class Harmony_Patches
             }
         }
 
-        return true;
+        return;
     }
 
     [HarmonyPatch(typeof(Harmony), nameof(Harmony.PatchAllUncategorized))]
@@ -106,20 +119,31 @@ internal static class Harmony_Patches
 
         if (Mod_Constructor_Patches._currentModAssembly != null)
         {
-            __instance.PatchAllUncategorized(Mod_Constructor_Patches._currentModAssembly);
+            _lastAssembly = Mod_Constructor_Patches._currentModAssembly;
+            Mod_Constructor_Patches._currentModAssembly = null;
+            __instance.PatchAllUncategorized(_lastAssembly);
             return false;
         }
         return true;
     }
 
     [HarmonyPatch(typeof(Harmony), nameof(Harmony.PatchAllUncategorized))]
+    [HarmonyPatch([])]
+    [HarmonyFinalizer]
+    internal static void PatchAllUncategorizedFinalizer()
+    {
+        Mod_Constructor_Patches._currentModAssembly = _lastAssembly;
+        _lastAssembly = null;
+    }
+
+    [HarmonyPatch(typeof(Harmony), nameof(Harmony.PatchAllUncategorized))]
     [HarmonyPatch([typeof(Assembly)])]
     [HarmonyPrefix]
-    internal static bool PatchAllUncategorizedPrefix(Assembly assembly)
+    internal static void PatchAllUncategorizedPrefix(Assembly assembly)
     {
         if (LoadingProgressWindow.CurrentStage != LoadingStage.LoadingModClasses || Mod_Constructor_Patches._currentModAssembly == null)
         {
-            return true;
+            return;
         }
 
         if (Mod_Constructor_Patches._currentModAssembly != assembly)
@@ -127,7 +151,7 @@ internal static class Harmony_Patches
             LoadingProgressMod.Warning($"Mod called PatchAllUncategorized with a different assembly than itself: {Mod_Constructor_Patches._currentModAssembly!.FullName} != {assembly.FullName}. This may cause issues.");
         }
 
-        return true;
+        return;
     }
 
     [HarmonyPatch(typeof(Harmony), nameof(Harmony.PatchCategory))]
@@ -142,20 +166,31 @@ internal static class Harmony_Patches
 
         if (Mod_Constructor_Patches._currentModAssembly != null)
         {
-            __instance.PatchCategory(Mod_Constructor_Patches._currentModAssembly, category);
+            _lastAssembly = Mod_Constructor_Patches._currentModAssembly;
+            Mod_Constructor_Patches._currentModAssembly = null;
+            __instance.PatchCategory(_lastAssembly, category);
             return false;
         }
         return true;
     }
 
     [HarmonyPatch(typeof(Harmony), nameof(Harmony.PatchCategory))]
+    [HarmonyPatch([typeof(string)])]
+    [HarmonyFinalizer]
+    internal static void PatchCategoryFinalizer()
+    {
+        Mod_Constructor_Patches._currentModAssembly = _lastAssembly;
+        _lastAssembly = null;
+    }
+
+    [HarmonyPatch(typeof(Harmony), nameof(Harmony.PatchCategory))]
     [HarmonyPatch([typeof(Assembly), typeof(string)])]
     [HarmonyPrefix]
-    internal static bool PatchCategoryPrefix(Assembly assembly)
+    internal static void PatchCategoryPrefix(Assembly assembly)
     {
         if (LoadingProgressWindow.CurrentStage != LoadingStage.LoadingModClasses || Mod_Constructor_Patches._currentModAssembly == null)
         {
-            return true;
+            return;
         }
 
         if (Mod_Constructor_Patches._currentModAssembly != assembly)
@@ -163,7 +198,7 @@ internal static class Harmony_Patches
             LoadingProgressMod.Warning($"Mod called PatchCategory with a different assembly than itself: {Mod_Constructor_Patches._currentModAssembly!.FullName} != {assembly.FullName}. This may cause issues.");
         }
 
-        return true;
+        return;
     }
 
     [HarmonyPatch(typeof(Harmony), nameof(Harmony.UnpatchCategory))]
@@ -178,7 +213,9 @@ internal static class Harmony_Patches
 
         if (Mod_Constructor_Patches._currentModAssembly != null)
         {
-            __instance.UnpatchCategory(Mod_Constructor_Patches._currentModAssembly, category);
+            _lastAssembly = Mod_Constructor_Patches._currentModAssembly;
+            Mod_Constructor_Patches._currentModAssembly = null;
+            __instance.UnpatchCategory(_lastAssembly, category);
             return false;
         }
         return true;
@@ -187,11 +224,11 @@ internal static class Harmony_Patches
     [HarmonyPatch(typeof(Harmony), nameof(Harmony.UnpatchCategory))]
     [HarmonyPatch([typeof(Assembly), typeof(string)])]
     [HarmonyPrefix]
-    internal static bool UnpatchCategoryPrefix(Assembly assembly)
+    internal static void UnpatchCategoryPrefix(Assembly assembly)
     {
         if (LoadingProgressWindow.CurrentStage != LoadingStage.LoadingModClasses || Mod_Constructor_Patches._currentModAssembly == null)
         {
-            return true;
+            return;
         }
 
         if (Mod_Constructor_Patches._currentModAssembly != assembly)
@@ -199,6 +236,6 @@ internal static class Harmony_Patches
             LoadingProgressMod.Warning($"Mod called UnpatchCategory with a different assembly than itself: {Mod_Constructor_Patches._currentModAssembly!.FullName} != {assembly.FullName}. This may cause issues.");
         }
 
-        return true;
+        return;
     }
 }
