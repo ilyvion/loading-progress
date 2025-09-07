@@ -1,5 +1,4 @@
 using System.Diagnostics;
-
 using static ilyvion.LoadingProgress.Constants;
 
 namespace ilyvion.LoadingProgress;
@@ -24,29 +23,32 @@ internal sealed partial class LoadingProgressWindow
         }
     }
 
-    private static bool HasLastLoadAndHashChanged()
-        => _lastLoadingTime.HasValue
-            && _currentModHash != LoadingProgressMod.Settings.LastLoadingModHash;
+    private static bool HasLastLoadAndHashChanged() =>
+        _lastLoadingTime.HasValue
+        && _currentModHash != LoadingProgressMod.Settings.LastLoadingModHash;
 
-    internal static void DrawWindow(Rect statusRect)
-        => Find.WindowStack.ImmediateWindow(
+    internal static void DrawWindow(Rect statusRect) =>
+        Find.WindowStack.ImmediateWindow(
             62893994,
             statusRect,
             WindowLayer.Super,
-            () => DrawContents(statusRect.AtZero()));
+            () => DrawContents(statusRect.AtZero())
+        );
 
     internal static Stopwatch? _loadingStopwatch;
     internal static TimeSpan? _lastLoadingTime;
     internal static int _currentModHash;
+
     internal static void DrawContents(Rect rect)
     {
         _loadingStopwatch ??= Stopwatch.StartNew();
-        _lastLoadingTime = LoadingProgressMod.Settings.LastLoadingTime > 0
-            ? TimeSpan.FromSeconds(LoadingProgressMod.Settings.LastLoadingTime)
-            : null;
+        _lastLoadingTime =
+            LoadingProgressMod.Settings.LastLoadingTime > 0
+                ? TimeSpan.FromSeconds(LoadingProgressMod.Settings.LastLoadingTime)
+                : null;
         _currentModHash = StableListHasher.ComputeListHash(
-            LoadedModManager.RunningModsListForReading
-                .Select(mod => mod.PackageId));
+            LoadedModManager.RunningModsListForReading.Select(mod => mod.PackageId)
+        );
 
         Text.Font = GameFont.Medium;
         Text.Anchor = TextAnchor.UpperLeft;
@@ -78,7 +80,8 @@ internal sealed partial class LoadingProgressWindow
             ellipsisRect.width -= 10f;
             Widgets.Label(
                 loadingProgressRect,
-                Utilities.ClampTextWithEllipsisMarkupAware(ellipsisRect, label));
+                Utilities.ClampTextWithEllipsisMarkupAware(ellipsisRect, label)
+            );
         }
 
         var progressRect = loadingProgressRect;
@@ -91,14 +94,16 @@ internal sealed partial class LoadingProgressWindow
                 (int)CurrentStage,
                 (int)LoadingStage.Finished,
                 currentValue,
-                maxValue);
+                maxValue
+            );
         }
         else
         {
             Widgets_Progressbar.DrawHorizontalProgressBar(
                 progressRect,
                 (int)CurrentStage,
-                (int)LoadingStage.Finished);
+                (int)LoadingStage.Finished
+            );
         }
 
         if (LoadingProgressMod.Settings.ShowLastLoadingTime)
@@ -123,7 +128,8 @@ internal sealed partial class LoadingProgressWindow
                         : null,
                     (float)elapsed.TotalSeconds > totalSeconds ? 10f : null,
                     TimeBarColor,
-                    TimerSmallBarColor);
+                    TimerSmallBarColor
+                );
             }
 
             var lastLoadingTimeText = _lastLoadingTime.HasValue
@@ -135,13 +141,18 @@ internal sealed partial class LoadingProgressWindow
                 var remainingTime = _lastLoadingTime.HasValue
                     ? _lastLoadingTime.Value - elapsed
                     : TimeSpan.Zero;
-                loadingTimeText = remainingTime > TimeSpan.Zero
-                    ? Translations.GetTranslation(
-                        "LoadingProgress.TimeRemaining",
-                        $"{remainingTime:mm\\:ss}", lastLoadingTimeText)
-                    : Translations.GetTranslation(
-                        "LoadingProgress.TimeOverEstimate",
-                        $"{remainingTime:mm\\:ss}", lastLoadingTimeText);
+                loadingTimeText =
+                    remainingTime > TimeSpan.Zero
+                        ? Translations.GetTranslation(
+                            "LoadingProgress.TimeRemaining",
+                            $"{remainingTime:mm\\:ss}",
+                            lastLoadingTimeText
+                        )
+                        : Translations.GetTranslation(
+                            "LoadingProgress.TimeOverEstimate",
+                            $"{remainingTime:mm\\:ss}",
+                            lastLoadingTimeText
+                        );
             }
             else
             {
@@ -158,7 +169,8 @@ internal sealed partial class LoadingProgressWindow
                 modHashRect.height = Text.LineHeight;
                 Widgets.Label(
                     modHashRect,
-                    Translations.GetTranslation("LoadingProgress.ModHashChanged"));
+                    Translations.GetTranslation("LoadingProgress.ModHashChanged")
+                );
             }
         }
 
@@ -166,6 +178,7 @@ internal sealed partial class LoadingProgressWindow
     }
 
     private static readonly Color TimeBarColor = Widgets_Progressbar.BarColor.Darken(0.2f);
-    private static readonly Color TimerSmallBarColor
-        = Color.white.Darken(0.2f).ToTransparent(0.75f);
+    private static readonly Color TimerSmallBarColor = Color
+        .white.Darken(0.2f)
+        .ToTransparent(0.75f);
 }

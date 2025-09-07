@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Text;
 
 using LudeonTK;
@@ -60,59 +59,60 @@ internal sealed partial class LoadingProgressWindow
         StageDisplayLabel? CustomLabel = null
     );
 
-
-    private static string GetStageTranslation(LoadingStage stage, params object[] args)
-        => Translations.GetTranslation($"LoadingProgress.Stage.{stage}", args);
+    private static string GetStageTranslation(LoadingStage stage, params object[] args) =>
+        Translations.GetTranslation($"LoadingProgress.Stage.{stage}", args);
 
     private static string GetStageTranslationWithSecondary(
         LoadingStage stage,
         string secondary,
-        params object[] args)
-        => Translations.GetTranslation($"LoadingProgress.Stage.{stage}.{secondary}", args);
+        params object[] args
+    ) => Translations.GetTranslation($"LoadingProgress.Stage.{stage}.{secondary}", args);
 
     private static readonly List<StageRule> StageRules =
     [
+        new(value => false, value => { }, LoadingStage.Initializing),
         new(
-            value => false,
-            value => {},
-            LoadingStage.Initializing
-        ),
-        new(
-            value => CurrentStage <= LoadingStage.LoadingModClasses
+            value =>
+                CurrentStage <= LoadingStage.LoadingModClasses
                 && value.StartsWith("Loading ", StringComparison.Ordinal)
                 && value.EndsWith(" mod class", StringComparison.Ordinal),
-            value => {
+            value =>
+            {
                 CurrentStage = LoadingStage.LoadingModClasses;
-                #pragma warning disable IDE0045
+#pragma warning disable IDE0045
                 if (StageProgress is (float current, float max))
                 {
                     StageProgress = ((int)current + 1, max);
                 }
                 else
                 {
-                    StageProgress = (1,  typeof(Mod).InstantiableDescendantsAndSelf().Count());
+                    StageProgress = (1, typeof(Mod).InstantiableDescendantsAndSelf().Count());
                 }
-                #pragma warning restore IDE0045
+#pragma warning restore IDE0045
                 _currentLoadingActivity = value.Substring(
                     "Loading ".Length,
-                    value.Length - "Loading ".Length - " mod class".Length);
+                    value.Length - "Loading ".Length - " mod class".Length
+                );
             },
             LoadingStage.LoadingModClasses
         ),
         new(
             value => CurrentStage <= LoadingStage.LoadingModClasses && value == "LoadModXML()",
-            value => {
+            value =>
+            {
                 CurrentStage = LoadingStage.LoadModXml;
                 _currentLoadingActivity = string.Empty;
             },
             LoadingStage.LoadModXml
         ),
         new(
-            value => CurrentStage <= LoadingStage.LoadModXml
+            value =>
+                CurrentStage <= LoadingStage.LoadModXml
                 && value.StartsWith("Loading ", StringComparison.Ordinal)
                 && !value.StartsWith("Loading asset", StringComparison.Ordinal),
-            value => {
-                #pragma warning disable IDE0045
+            value =>
+            {
+#pragma warning disable IDE0045
                 if (StageProgress is (float current, float max))
                 {
                     StageProgress = ((int)current + 1, max);
@@ -121,7 +121,7 @@ internal sealed partial class LoadingProgressWindow
                 {
                     StageProgress = (1, LoadedModManager.RunningModsListForReading.Count);
                 }
-                #pragma warning restore IDE0045
+#pragma warning restore IDE0045
                 _currentLoadingActivity = value["Loading ".Length..];
             },
             LoadingStage.LoadModXml
@@ -135,8 +135,8 @@ internal sealed partial class LoadingProgressWindow
             LoadingStage.CombineIntoUnifiedXml
         ),
         new(
-            value => CurrentStage <= LoadingStage.CombineIntoUnifiedXml
-                && value == "TKeySystem.Parse()",
+            value =>
+                CurrentStage <= LoadingStage.CombineIntoUnifiedXml && value == "TKeySystem.Parse()",
             value =>
             {
                 CurrentStage = LoadingStage.TKeySystemParse;
@@ -152,9 +152,11 @@ internal sealed partial class LoadingProgressWindow
             LoadingStage.ErrorCheckPatches
         ),
         new(
-            value => CurrentStage == LoadingStage.ErrorCheckPatches
+            value =>
+                CurrentStage == LoadingStage.ErrorCheckPatches
                 && value.StartsWith("Loading all patches", StringComparison.Ordinal),
-            value => {
+            value =>
+            {
                 if (StageProgress is (float current, float max))
                 {
                     if (LoadingDataTracker.ModChanged)
@@ -168,10 +170,12 @@ internal sealed partial class LoadingProgressWindow
                 }
             },
             LoadingStage.ErrorCheckPatches,
-            activity => GetStageTranslationWithSecondary(
-                LoadingStage.ErrorCheckPatches,
-                $"ForMod",
-                LoadingDataTracker.Current ?? "")
+            activity =>
+                GetStageTranslationWithSecondary(
+                    LoadingStage.ErrorCheckPatches,
+                    $"ForMod",
+                    LoadingDataTracker.Current ?? ""
+                )
         ),
         new(
             value => CurrentStage <= LoadingStage.ErrorCheckPatches && value == "ApplyPatches()",
@@ -183,11 +187,12 @@ internal sealed partial class LoadingProgressWindow
             LoadingStage.ApplyPatches
         ),
         new(
-            value => CurrentStage <= LoadingStage.ApplyPatches
+            value =>
+                CurrentStage <= LoadingStage.ApplyPatches
                 && value.EndsWith(" Worker", StringComparison.Ordinal),
             value =>
             {
-                #pragma warning disable IDE0045
+#pragma warning disable IDE0045
                 if (StageProgress is (float current, float max))
                 {
                     StageProgress = ((int)current + 1, max);
@@ -196,7 +201,7 @@ internal sealed partial class LoadingProgressWindow
                 {
                     StageProgress = (1, GetApproximatePatchOperationCount());
                 }
-                #pragma warning restore IDE0045
+#pragma warning restore IDE0045
                 _currentLoadingActivity = value[..^" Worker".Length];
             },
             LoadingStage.ApplyPatches
@@ -210,7 +215,8 @@ internal sealed partial class LoadingProgressWindow
             LoadingStage.ParseAndProcessXml
         ),
         new(
-            value => CurrentStage == LoadingStage.ParseAndProcessXml
+            value =>
+                CurrentStage == LoadingStage.ParseAndProcessXml
                 && value.StartsWith("Loading asset nodes", StringComparison.Ordinal),
             value =>
             {
@@ -223,7 +229,8 @@ internal sealed partial class LoadingProgressWindow
             LoadingStage.ParseAndProcessXml
         ),
         new(
-            value => CurrentStage == LoadingStage.ParseAndProcessXml
+            value =>
+                CurrentStage == LoadingStage.ParseAndProcessXml
                 && value == "XmlInheritance.TryRegister",
             value =>
             {
@@ -233,13 +240,16 @@ internal sealed partial class LoadingProgressWindow
                 }
             },
             LoadingStage.ParseAndProcessXml,
-            activity => GetStageTranslationWithSecondary(
-                LoadingStage.ParseAndProcessXml,
-                $"ForMod",
-                LoadingDataTracker.Current ?? "")
+            activity =>
+                GetStageTranslationWithSecondary(
+                    LoadingStage.ParseAndProcessXml,
+                    $"ForMod",
+                    LoadingDataTracker.Current ?? ""
+                )
         ),
         new(
-            value => CurrentStage <= LoadingStage.ParseAndProcessXml
+            value =>
+                CurrentStage <= LoadingStage.ParseAndProcessXml
                 && value == "XmlInheritance.Resolve()",
             value =>
             {
@@ -248,7 +258,8 @@ internal sealed partial class LoadingProgressWindow
             LoadingStage.XmlInheritanceResolve
         ),
         new(
-            value => CurrentStage <= LoadingStage.XmlInheritanceResolve
+            value =>
+                CurrentStage <= LoadingStage.XmlInheritanceResolve
                 && value.StartsWith("Loading defs for ", StringComparison.Ordinal),
             value =>
             {
@@ -265,7 +276,8 @@ internal sealed partial class LoadingProgressWindow
             LoadingStage.LoadingDefs
         ),
         new(
-            value => CurrentStage <= LoadingStage.LoadingDefs
+            value =>
+                CurrentStage <= LoadingStage.LoadingDefs
                 && value.StartsWith("ParseValueAndReturnDef ", StringComparison.Ordinal),
             value =>
             {
@@ -276,14 +288,16 @@ internal sealed partial class LoadingProgressWindow
                 _currentLoadingActivity = value["ParseValueAndReturnDef (for ".Length..][..^1];
             },
             LoadingStage.LoadingDefs,
-            _ => LoadingDataTracker.LastDef is Def def
-                ? GetStageTranslationWithSecondary(
-                    LoadingStage.LoadingDefs,
-                    $"WithDef",
-                    def.modContentPack?.Name ?? "[unknown mod]",
-                    def.GetType().FullName,
-                    def.defName)
-                : null
+            _ =>
+                LoadingDataTracker.LastDef is Def def
+                    ? GetStageTranslationWithSecondary(
+                        LoadingStage.LoadingDefs,
+                        $"WithDef",
+                        def.modContentPack?.Name ?? "[unknown mod]",
+                        def.GetType().FullName,
+                        def.defName
+                    )
+                    : null
         ),
         new(
             value => CurrentStage <= LoadingStage.LoadingDefs && value == "ClearCachedPatches()",
@@ -294,7 +308,8 @@ internal sealed partial class LoadingProgressWindow
             LoadingStage.ClearCachedPatches
         ),
         new(
-            value => CurrentStage <= LoadingStage.ClearCachedPatches
+            value =>
+                CurrentStage <= LoadingStage.ClearCachedPatches
                 && value == "XmlInheritance.Clear()",
             value =>
             {
@@ -303,7 +318,8 @@ internal sealed partial class LoadingProgressWindow
             LoadingStage.XmlInheritanceClear
         ),
         new(
-            value => CurrentStage <= LoadingStage.XmlInheritanceClear
+            value =>
+                CurrentStage <= LoadingStage.XmlInheritanceClear
                 && value == "Load language metadata.",
             value =>
             {
@@ -312,7 +328,8 @@ internal sealed partial class LoadingProgressWindow
             LoadingStage.LoadLanguageMetadata
         ),
         new(
-            value => CurrentStage <= LoadingStage.LoadLanguageMetadata
+            value =>
+                CurrentStage <= LoadingStage.LoadLanguageMetadata
                 && value.StartsWith("Loading language data:", StringComparison.Ordinal),
             value =>
             {
@@ -322,7 +339,8 @@ internal sealed partial class LoadingProgressWindow
             LoadingStage.LoadLanguage
         ),
         new(
-            value => CurrentStage <= LoadingStage.LoadLanguage
+            value =>
+                CurrentStage <= LoadingStage.LoadLanguage
                 && value == "Copy all Defs from mods to global databases.",
             value =>
             {
@@ -331,7 +349,8 @@ internal sealed partial class LoadingProgressWindow
             LoadingStage.CopyAllDefsToGlobalDatabases
         ),
         new(
-            value => CurrentStage <= LoadingStage.CopyAllDefsToGlobalDatabases
+            value =>
+                CurrentStage <= LoadingStage.CopyAllDefsToGlobalDatabases
                 && value == "Resolve cross-references between non-implied Defs.",
             value =>
             {
@@ -345,7 +364,8 @@ internal sealed partial class LoadingProgressWindow
             LoadingStage.ResolveCrossReferencesBetweenNonImpliedDefsStage2
         ),
         new(
-            value => CurrentStage <= LoadingStage.ResolveCrossReferencesBetweenNonImpliedDefsStage2
+            value =>
+                CurrentStage <= LoadingStage.ResolveCrossReferencesBetweenNonImpliedDefsStage2
                 && value == "Rebind DefOfs (early).",
             value =>
             {
@@ -354,7 +374,8 @@ internal sealed partial class LoadingProgressWindow
             LoadingStage.RebindDefOfsEarly
         ),
         new(
-            value => CurrentStage <= LoadingStage.RebindDefOfsEarly
+            value =>
+                CurrentStage <= LoadingStage.RebindDefOfsEarly
                 && value == "TKeySystem.BuildMappings()",
             value =>
             {
@@ -363,7 +384,8 @@ internal sealed partial class LoadingProgressWindow
             LoadingStage.TKeySystemBuildMappings
         ),
         new(
-            value => CurrentStage <= LoadingStage.TKeySystemBuildMappings
+            value =>
+                CurrentStage <= LoadingStage.TKeySystemBuildMappings
                 && value == "Legacy backstory translations.",
             value =>
             {
@@ -372,7 +394,8 @@ internal sealed partial class LoadingProgressWindow
             LoadingStage.LegacyBackstoryTranslations
         ),
         new(
-            value => CurrentStage <= LoadingStage.LegacyBackstoryTranslations
+            value =>
+                CurrentStage <= LoadingStage.LegacyBackstoryTranslations
                 && value == "Inject selected language data into game data (early pass).",
             value =>
             {
@@ -381,7 +404,8 @@ internal sealed partial class LoadingProgressWindow
             LoadingStage.InjectSelectedLanguageDataEarly
         ),
         new(
-            value => CurrentStage <= LoadingStage.InjectSelectedLanguageDataEarly
+            value =>
+                CurrentStage <= LoadingStage.InjectSelectedLanguageDataEarly
                 && value == "Global operations (early pass).",
             value =>
             {
@@ -390,7 +414,8 @@ internal sealed partial class LoadingProgressWindow
             LoadingStage.GlobalOperationsEarly
         ),
         new(
-            value => CurrentStage <= LoadingStage.GlobalOperationsEarly
+            value =>
+                CurrentStage <= LoadingStage.GlobalOperationsEarly
                 && value == "Generate implied Defs (pre-resolve).",
             value =>
             {
@@ -399,7 +424,8 @@ internal sealed partial class LoadingProgressWindow
             LoadingStage.GenerateImpliedDefs
         ),
         new(
-            value => CurrentStage <= LoadingStage.GenerateImpliedDefs
+            value =>
+                CurrentStage <= LoadingStage.GenerateImpliedDefs
                 && value == "Resolve cross-references between Defs made by the implied defs.",
             value =>
             {
@@ -408,7 +434,8 @@ internal sealed partial class LoadingProgressWindow
             LoadingStage.ResolveCrossReferencesBetweenImpliedDefs
         ),
         new(
-            value => CurrentStage <= LoadingStage.ResolveCrossReferencesBetweenImpliedDefs
+            value =>
+                CurrentStage <= LoadingStage.ResolveCrossReferencesBetweenImpliedDefs
                 && value == "Rebind DefOfs (final).",
             value =>
             {
@@ -417,7 +444,8 @@ internal sealed partial class LoadingProgressWindow
             LoadingStage.RebindDefOfsFinal
         ),
         new(
-            value => CurrentStage <= LoadingStage.RebindDefOfsFinal
+            value =>
+                CurrentStage <= LoadingStage.RebindDefOfsFinal
                 && value == "Other def binding, resetting and global operations (pre-resolve).",
             value =>
             {
@@ -426,7 +454,8 @@ internal sealed partial class LoadingProgressWindow
             LoadingStage.OtherOperationsPreResolve
         ),
         new(
-            value => CurrentStage <= LoadingStage.OtherOperationsPreResolve
+            value =>
+                CurrentStage <= LoadingStage.OtherOperationsPreResolve
                 && value == "Resolve references.",
             value =>
             {
@@ -436,7 +465,8 @@ internal sealed partial class LoadingProgressWindow
             LoadingStage.ResolveReferences
         ),
         new(
-            value => CurrentStage <= LoadingStage.ResolveReferences
+            value =>
+                CurrentStage <= LoadingStage.ResolveReferences
                 && value.StartsWith("ResolveAllReferences ", StringComparison.Ordinal),
             value =>
             {
@@ -445,7 +475,8 @@ internal sealed partial class LoadingProgressWindow
             LoadingStage.ResolveReferences
         ),
         new(
-            value => CurrentStage <= LoadingStage.ResolveReferences
+            value =>
+                CurrentStage <= LoadingStage.ResolveReferences
                 && value == "Other def binding, resetting and global operations (post-resolve).",
             value =>
             {
@@ -454,7 +485,8 @@ internal sealed partial class LoadingProgressWindow
             LoadingStage.OtherOperationsPostResolve
         ),
         new(
-            value => CurrentStage <= LoadingStage.OtherOperationsPostResolve
+            value =>
+                CurrentStage <= LoadingStage.OtherOperationsPostResolve
                 && value == "Error check all defs.",
             value =>
             {
@@ -463,8 +495,8 @@ internal sealed partial class LoadingProgressWindow
             LoadingStage.ErrorCheckAllDefs
         ),
         new(
-            value => CurrentStage <= LoadingStage.ErrorCheckAllDefs
-                && value == "Short hash giving.",
+            value =>
+                CurrentStage <= LoadingStage.ErrorCheckAllDefs && value == "Short hash giving.",
             value =>
             {
                 CurrentStage = LoadingStage.ShortHashGiving;
@@ -472,7 +504,8 @@ internal sealed partial class LoadingProgressWindow
             LoadingStage.ShortHashGiving
         ),
         new(
-            value => CurrentStage <= LoadingStage.ShortHashGiving
+            value =>
+                CurrentStage <= LoadingStage.ShortHashGiving
                 && (value == "ExecuteToExecuteWhenFinished()"),
             value =>
             {
@@ -481,19 +514,24 @@ internal sealed partial class LoadingProgressWindow
             LoadingStage.ExecuteToExecuteWhenFinished
         ),
         new(
-            value => CurrentStage == LoadingStage.ExecuteToExecuteWhenFinished
+            value =>
+                CurrentStage == LoadingStage.ExecuteToExecuteWhenFinished
                 && value.StartsWith("LP.Reload ", StringComparison.Ordinal),
             value =>
             {
                 _currentLoadingActivity = value["LP.Reload ".Length..];
             },
             LoadingStage.ExecuteToExecuteWhenFinished,
-            activity => GetStageTranslationWithSecondary(
-                LoadingStage.ExecuteToExecuteWhenFinished,
-                $"Reloading.{activity.Replace(" ", "_", StringComparison.Ordinal)}",
-                LoadingDataTracker.Current ?? "")!),
+            activity =>
+                GetStageTranslationWithSecondary(
+                    LoadingStage.ExecuteToExecuteWhenFinished,
+                    $"Reloading.{activity.Replace(" ", "_", StringComparison.Ordinal)}",
+                    LoadingDataTracker.Current ?? ""
+                )!
+        ),
         new(
-            value => CurrentStage == LoadingStage.ExecuteToExecuteWhenFinished
+            value =>
+                CurrentStage == LoadingStage.ExecuteToExecuteWhenFinished
                 && value.Contains(" -> ", StringComparison.Ordinal),
             value =>
             {
@@ -502,7 +540,8 @@ internal sealed partial class LoadingProgressWindow
             LoadingStage.ExecuteToExecuteWhenFinished
         ),
         new(
-            value => CurrentStage <= LoadingStage.ExecuteToExecuteWhenFinished
+            value =>
+                CurrentStage <= LoadingStage.ExecuteToExecuteWhenFinished
                 && value == "Load all bios",
             value =>
             {
@@ -511,7 +550,8 @@ internal sealed partial class LoadingProgressWindow
             LoadingStage.LoadingAllBios
         ),
         new(
-            value => CurrentStage <= LoadingStage.LoadingAllBios
+            value =>
+                CurrentStage <= LoadingStage.LoadingAllBios
                 && value == "Inject selected language data into game data.",
             value =>
             {
@@ -520,7 +560,8 @@ internal sealed partial class LoadingProgressWindow
             LoadingStage.InjectSelectedLanguageDataIntoGameData
         ),
         new(
-            value => CurrentStage <= LoadingStage.InjectSelectedLanguageDataIntoGameData
+            value =>
+                CurrentStage <= LoadingStage.InjectSelectedLanguageDataIntoGameData
                 && value == "StaticConstructorOnStartupUtilityReplacement.CallAll()",
             value =>
             {
@@ -530,7 +571,8 @@ internal sealed partial class LoadingProgressWindow
             LoadingStage.StaticConstructorOnStartupCallAll
         ),
         new(
-            value => CurrentStage <= LoadingStage.StaticConstructorOnStartupCallAll
+            value =>
+                CurrentStage <= LoadingStage.StaticConstructorOnStartupCallAll
                 && value == "ExecuteToExecuteWhenFinished()",
             value =>
             {
@@ -540,7 +582,8 @@ internal sealed partial class LoadingProgressWindow
             activity => GetStageTranslation(LoadingStage.ExecuteToExecuteWhenFinished, activity)!
         ),
         new(
-            value => CurrentStage <= LoadingStage.ExecuteToExecuteWhenFinished2
+            value =>
+                CurrentStage <= LoadingStage.ExecuteToExecuteWhenFinished2
                 && value == "Atlas baking.",
             value =>
             {
@@ -557,15 +600,16 @@ internal sealed partial class LoadingProgressWindow
             LoadingStage.GarbageCollection
         ),
         new(
-            value => CurrentStage <= LoadingStage.GarbageCollection
+            value =>
+                CurrentStage <= LoadingStage.GarbageCollection
                 && value == "Misc Init (InitializingInterface)",
             value =>
             {
                 CurrentStage = LoadingStage.Finished;
                 if (_loadingStopwatch is { } loadingStopwatch)
                 {
-                    LoadingProgressMod.Settings.LastLoadingTime
-                        = (float)loadingStopwatch.Elapsed.TotalSeconds;
+                    LoadingProgressMod.Settings.LastLoadingTime = (float)
+                        loadingStopwatch.Elapsed.TotalSeconds;
                     LoadingProgressMod.Settings.LastLoadingModHash = _currentModHash;
                     LoadingProgressMod.Settings.Write();
                     loadingStopwatch.Stop();
@@ -573,7 +617,7 @@ internal sealed partial class LoadingProgressWindow
                 }
             },
             LoadingStage.Finished
-        )
+        ),
     ];
 
     private static int GetApproximatePatchOperationCount()
@@ -616,8 +660,9 @@ internal sealed partial class LoadingProgressWindow
     }
 
     private static string _currentLoadingActivity = string.Empty;
-    internal static void SetCurrentLoadingActivityRaw(string value)
-        => _currentLoadingActivity = value;
+
+    internal static void SetCurrentLoadingActivityRaw(string value) =>
+        _currentLoadingActivity = value;
 
     private static StageRule CurrentStageRule = StageRules[0];
     internal static string CurrentLoadingActivity
@@ -632,22 +677,27 @@ internal sealed partial class LoadingProgressWindow
             switch (currentStage)
             {
                 case LoadingStage.ParseAndProcessXml:
-                    if (value is "assetlookup.TryGetValue"
-                        or "XmlInheritance.TryRegister")
+                    if (value is "assetlookup.TryGetValue" or "XmlInheritance.TryRegister")
                     {
                         return;
                     }
                     break;
                 case LoadingStage.XmlInheritanceResolve:
-                    if (value.StartsWith("RecursiveNodeCopyOverwriteElements",
-                        StringComparison.Ordinal))
+                    if (
+                        value.StartsWith(
+                            "RecursiveNodeCopyOverwriteElements",
+                            StringComparison.Ordinal
+                        )
+                    )
                     {
                         return;
                     }
                     break;
                 case LoadingStage.LoadingDefs:
-                    if (value.StartsWith("RegisterObjectWantsCrossRef", StringComparison.Ordinal)
-                        || value == "RegisterListWantsCrossRef")
+                    if (
+                        value.StartsWith("RegisterObjectWantsCrossRef", StringComparison.Ordinal)
+                        || value == "RegisterListWantsCrossRef"
+                    )
                     {
                         return;
                     }
@@ -684,7 +734,7 @@ internal sealed partial class LoadingProgressWindow
                 var rule = StageRules[i];
                 if (rule.Predicate(value))
                 {
-                    // Remove all prior rules that do NOT share the same LoadingStage as 
+                    // Remove all prior rules that do NOT share the same LoadingStage as
                     // the matched rule
                     if (i > 0)
                     {
@@ -727,14 +777,13 @@ internal sealed partial class LoadingProgressWindow
         }
     }
 
-    internal static (float currentValue, float maxValue)? StageProgress
-    {
-        get; set;
-    }
+    internal static (float currentValue, float maxValue)? StageProgress { get; set; }
 
     private static readonly object _unmatchedStageActivitiesLock = new();
-    private static readonly Dictionary<string, (int, HashSet<LoadingStage>)>
-        _unmatchedStageActivities = [];
+    private static readonly Dictionary<
+        string,
+        (int, HashSet<LoadingStage>)
+    > _unmatchedStageActivities = [];
 
     [DebugOutput("Loading Progress", false)]
     public static void ShowUnmatchedStageActivities()
@@ -743,15 +792,18 @@ internal sealed partial class LoadingProgressWindow
         {
             LoadingProgressMod.Warning(
                 "Unmatched stage activities are only recorded when the game is launched with "
-                    + "development mode enabled.");
+                    + "development mode enabled."
+            );
             return;
         }
 
         var stringBuilder = new StringBuilder();
         foreach (var kvp in _unmatchedStageActivities.OrderByDescending(kvp => kvp.Value.Item1))
         {
-            _ = stringBuilder.AppendLine($"{kvp.Key}: {kvp.Value.Item1} times, in stages: "
-                + string.Join(", ", kvp.Value.Item2.Select(s => s.ToString())));
+            _ = stringBuilder.AppendLine(
+                $"{kvp.Key}: {kvp.Value.Item1} times, in stages: "
+                    + string.Join(", ", kvp.Value.Item2.Select(s => s.ToString()))
+            );
         }
         LoadingProgressMod.DevMessage(stringBuilder.ToString());
     }

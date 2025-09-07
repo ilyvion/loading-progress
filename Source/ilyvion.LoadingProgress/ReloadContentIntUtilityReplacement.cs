@@ -68,10 +68,8 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
 {
     private static class ReloadContentIntFinder
     {
-        private static readonly MethodInfo _method_ModContentPack_ReloadContentInt
-            = AccessTools.Method(
-                typeof(ModContentPack),
-                nameof(ModContentPack.ReloadContentInt));
+        private static readonly MethodInfo _method_ModContentPack_ReloadContentInt =
+            AccessTools.Method(typeof(ModContentPack), nameof(ModContentPack.ReloadContentInt));
 
         private static readonly CodeMatch[] toMatch =
         [
@@ -82,7 +80,9 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
         {
             // Find all possible candidates, both from the wrapping type and all nested types.
             var candidates = Utilities.FindInTypeAndInnerTypeMethods(
-                typeof(ModContentPack), m => !m.IsGenericMethod);
+                typeof(ModContentPack),
+                m => !m.IsGenericMethod
+            );
 
             //check all candidates for the target instructions, return those that match.
             foreach (var method in candidates)
@@ -91,7 +91,8 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
                 var matched = instructions.Matches(toMatch);
                 if (matched)
                 {
-                    var field = AccessTools.GetDeclaredFields(method.DeclaringType)
+                    var field = AccessTools
+                        .GetDeclaredFields(method.DeclaringType)
                         .Single(f => f.Name.Contains("this", StringComparison.Ordinal));
                     yield return (method, field);
                 }

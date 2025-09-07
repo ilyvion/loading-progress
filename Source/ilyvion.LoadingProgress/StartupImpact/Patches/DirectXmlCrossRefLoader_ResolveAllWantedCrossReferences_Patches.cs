@@ -1,6 +1,9 @@
 namespace ilyvion.LoadingProgress.StartupImpact.Patches;
 
-[HarmonyPatch(typeof(DirectXmlCrossRefLoader), nameof(DirectXmlCrossRefLoader.ResolveAllWantedCrossReferences))]
+[HarmonyPatch(
+    typeof(DirectXmlCrossRefLoader),
+    nameof(DirectXmlCrossRefLoader.ResolveAllWantedCrossReferences)
+)]
 [HarmonyPatchCategory("StartupImpact")]
 internal static class DirectXmlCrossRefLoader_ResolveAllWantedCrossReferences_Patches
 {
@@ -11,14 +14,20 @@ internal static class DirectXmlCrossRefLoader_ResolveAllWantedCrossReferences_Pa
             switch (failReportMode)
             {
                 case FailMode.Silent:
-                    StartupImpactProfilerUtil.StartBaseGameProfiler("LoadingProgress.StartupImpact.ResolveAllWantedCrossReferences.NonImplied");
+                    StartupImpactProfilerUtil.StartBaseGameProfiler(
+                        "LoadingProgress.StartupImpact.ResolveAllWantedCrossReferences.NonImplied"
+                    );
                     break;
 
                 case FailMode.LogErrors:
-                    StartupImpactProfilerUtil.StartBaseGameProfiler("LoadingProgress.StartupImpact.ResolveAllWantedCrossReferences.Implied");
+                    StartupImpactProfilerUtil.StartBaseGameProfiler(
+                        "LoadingProgress.StartupImpact.ResolveAllWantedCrossReferences.Implied"
+                    );
                     break;
                 default:
-                    LoadingProgressMod.Warning($"Unknown fail report mode used with DirectXmlCrossRefLoader.ResolveAllWantedCrossReferences: {failReportMode}");
+                    LoadingProgressMod.Warning(
+                        $"Unknown fail report mode used with DirectXmlCrossRefLoader.ResolveAllWantedCrossReferences: {failReportMode}"
+                    );
                     break;
             }
         }
@@ -31,14 +40,20 @@ internal static class DirectXmlCrossRefLoader_ResolveAllWantedCrossReferences_Pa
             switch (failReportMode)
             {
                 case FailMode.Silent:
-                    StartupImpactProfilerUtil.StopBaseGameProfiler("LoadingProgress.StartupImpact.ResolveAllWantedCrossReferences.NonImplied");
+                    StartupImpactProfilerUtil.StopBaseGameProfiler(
+                        "LoadingProgress.StartupImpact.ResolveAllWantedCrossReferences.NonImplied"
+                    );
                     break;
 
                 case FailMode.LogErrors:
-                    StartupImpactProfilerUtil.StopBaseGameProfiler("LoadingProgress.StartupImpact.ResolveAllWantedCrossReferences.Implied");
+                    StartupImpactProfilerUtil.StopBaseGameProfiler(
+                        "LoadingProgress.StartupImpact.ResolveAllWantedCrossReferences.Implied"
+                    );
                     break;
                 default:
-                    LoadingProgressMod.Warning($"Unknown fail report mode used with DirectXmlCrossRefLoader.ResolveAllWantedCrossReferences: {failReportMode}");
+                    LoadingProgressMod.Warning(
+                        $"Unknown fail report mode used with DirectXmlCrossRefLoader.ResolveAllWantedCrossReferences: {failReportMode}"
+                    );
                     break;
             }
         }

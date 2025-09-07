@@ -8,15 +8,9 @@ internal sealed class ModInfo
         Profiler = new Profiler(Mod.Name);
     }
 
-    public ModContentPack Mod
-    {
-        get;
-    }
+    public ModContentPack Mod { get; }
 
-    public Profiler Profiler
-    {
-        get;
-    }
+    public Profiler Profiler { get; }
 
     public void Start(string cat) => Profiler.Start(cat);
 

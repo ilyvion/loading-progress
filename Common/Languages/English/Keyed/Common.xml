@@ -1,17 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <LanguageData>
     <LoadingProgress.ExecuteToExecuteWhenFinished>Loading progress: Executing delayed initialization tasks</LoadingProgress.ExecuteToExecuteWhenFinished>
     <LoadingProgress.CallAll>Loading progress: Calling all static constructors</LoadingProgress.CallAll>
-
     <LoadingProgress.ModHashChanged>(Mod list has changed since last game start; estimate may be inaccurate.)</LoadingProgress.ModHashChanged>
-
     <LoadingProgress.LoadingTime>Game took {0} to load</LoadingProgress.LoadingTime>
     <LoadingProgress.LoadingTime.Tip>Click to see loading time broken down in detail.</LoadingProgress.LoadingTime.Tip>
-
     <LoadingProgress.TimeRemaining>{0} left of {1}</LoadingProgress.TimeRemaining>
     <LoadingProgress.TimeOverEstimate>{0} over {1}</LoadingProgress.TimeOverEstimate>
-
     <LoadingProgress.FasterGameLoadingEarlyModContentLoading>Loading progress — Faster Game Loading Early Mod Content Loading</LoadingProgress.FasterGameLoadingEarlyModContentLoading>
     <LoadingProgress.FasterGameLoadingEarlyModContentLoading.ForMod>Faster Game Loading is early loading content for &lt;i&gt;{0}&lt;/i&gt;...</LoadingProgress.FasterGameLoadingEarlyModContentLoading.ForMod>
 </LanguageData>

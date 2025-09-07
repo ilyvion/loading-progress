@@ -1,13 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <LanguageData>
     <LoadingProgress.PatchInitialization>Patch late-loading initialization code to show loading progress</LoadingProgress.PatchInitialization>
     <LoadingProgress.PatchInitialization.Tip>When enabled, the mod will patch the part during RimWorld's startup process where the game typically hangs to make it more responsive. This allows the mod to track and display loading progress for each static constructor. This should not cause any problems unless you are running mods that very specifically have targeted this code and is very timing sensitive.\n\nIf you experience any issues with Loading Progress, try disabling this setting to see if it resolves the issue.</LoadingProgress.PatchInitialization.Tip>
-
-
     <LoadingProgress.PatchReloadContent>Patch content loading code to show loading progress</LoadingProgress.PatchReloadContent>
     <LoadingProgress.PatchReloadContent.Tip>When enabled, the mod will replace the method that loads mod content to track and display loading progress for each content pack being reloaded. This should not cause any problems unless you are running mods that very specifically have targeted this code. The mod will log a warning if it detects any other mods patching this code.\n\nIf you experience any issues with Loading Progress, try disabling this setting to see if it resolves the issue. Feel free to report any problems you encounter with mods that triggered the warning message.</LoadingProgress.PatchReloadContent.Tip>
-
     <LoadingProgress.LastLoadingTime>Show loading time</LoadingProgress.LastLoadingTime>
     <LoadingProgress.LastLoadingTime.Tip>When enabled, the mod will display the time elapsed so far. Once the game has loaded at least once, it will store it for next time, and use it as the estimated loading time for the next loading session.</LoadingProgress.LastLoadingTime.Tip>
     <LoadingProgress.LoadingTimeAsCountDown>Show loading time as countdown</LoadingProgress.LoadingTimeAsCountDown>
@@ -20,9 +16,7 @@
     <LoadingProgress.ShowFasterGameLoadingEarlyModContentLoading.Tip>When enabled, and Faster Game Loading is active, the mod will show an additional loading indicator for mod content that is loaded early during the game startup process.</LoadingProgress.ShowFasterGameLoadingEarlyModContentLoading.Tip>
     <LoadingProgress.TrackStartupLoadingImpact>Track startup loading impact</LoadingProgress.TrackStartupLoadingImpact>
     <LoadingProgress.TrackStartupLoadingImpact.Tip>When enabled, the mod will track the impact of startup loading impact from mods and the base game allowing you to see a detailed breakdown of what is causing the biggest delays during the loading process.</LoadingProgress.TrackStartupLoadingImpact.Tip>
-
     <LoadingProgress.LoadingWindowPlacement>Loading window placement</LoadingProgress.LoadingWindowPlacement>
-
     <LoadingProgress.Top>Top</LoadingProgress.Top>
     <LoadingProgress.Middle>Middle</LoadingProgress.Middle>
     <LoadingProgress.Bottom>Bottom</LoadingProgress.Bottom>

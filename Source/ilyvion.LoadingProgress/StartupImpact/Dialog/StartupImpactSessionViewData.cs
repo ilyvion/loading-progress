@@ -2,11 +2,12 @@ namespace ilyvion.LoadingProgress.StartupImpact.Dialog;
 
 internal sealed class StartupImpactSessionViewData
 {
-    public static readonly string[] CategoriesTotal = [
+    public static readonly string[] CategoriesTotal =
+    [
         "LoadingProgress.StartupImpact.Total.Mods",
         "LoadingProgress.StartupImpact.Total.ModsHidden",
         "LoadingProgress.StartupImpact.Total.BaseGame",
-        "LoadingProgress.StartupImpact.Total.Others"
+        "LoadingProgress.StartupImpact.Total.Others",
     ];
 
     private readonly StartupImpactSessionData sessionData;
@@ -21,24 +22,16 @@ internal sealed class StartupImpactSessionViewData
 
     internal IReadOnlyList<StartupImpactSessionModViewData> ModViewData => modViewData.AsReadOnly();
 
-    public float BasegameLoadingTime
-    {
-        get; private set;
-    }
-    public float ModsLoadingTime
-    {
-        get; private set;
-    }
-    public float MaxImpact
-    {
-        get; private set;
-    }
+    public float BasegameLoadingTime { get; private set; }
+    public float ModsLoadingTime { get; private set; }
+    public float MaxImpact { get; private set; }
 
     public IReadOnlyList<string> Categories => categories.AsReadOnly();
     public IReadOnlyList<string> CategoriesNonMods => categoriesNonMods.AsReadOnly();
     public IReadOnlyList<float> MetricsNonMods => metricsNonMods.AsReadOnly();
     public IReadOnlyList<float> MetricsTotal => metricsTotal.AsReadOnly();
-    public IReadOnlyDictionary<string, Color> CategoryColorsNonMods => categoryColorsNonMods.AsReadOnly();
+    public IReadOnlyDictionary<string, Color> CategoryColorsNonMods =>
+        categoryColorsNonMods.AsReadOnly();
 
     public StartupImpactSessionViewData(StartupImpactSessionData sessionData)
     {
@@ -102,12 +95,14 @@ internal sealed class StartupImpactSessionViewData
         }
 
         metricsTotal.Clear();
-        metricsTotal.AddRange([
-            ModsLoadingTime,
-            hiddenModsLoadingTime,
-            BasegameLoadingTime,
-            Math.Max(0, sessionData.LoadingTime - totalLoadingTime),
-        ]);
+        metricsTotal.AddRange(
+            [
+                ModsLoadingTime,
+                hiddenModsLoadingTime,
+                BasegameLoadingTime,
+                Math.Max(0, sessionData.LoadingTime - totalLoadingTime),
+            ]
+        );
     }
 
     public void CalculateBaseGameStats()
@@ -121,7 +116,11 @@ internal sealed class StartupImpactSessionViewData
 
             var hash = cat.GetHashCode(StringComparison.Ordinal);
 
-            categoryColorsNonMods[cat] = new Color((hash & 0xff) / 255f, ((hash >> 8) & 0xff) / 255f, ((hash >> 16) & 0xff) / 255f);
+            categoryColorsNonMods[cat] = new Color(
+                (hash & 0xff) / 255f,
+                ((hash >> 8) & 0xff) / 255f,
+                ((hash >> 16) & 0xff) / 255f
+            );
             categoriesNonMods.Add(cat);
             metricsNonMods.Add(entry.Value);
             BasegameLoadingTime += entry.Value;

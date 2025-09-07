@@ -4,14 +4,19 @@ namespace ilyvion.LoadingProgress;
 
 internal sealed class StaticConstructorOnStartupUtilityReplacement
 {
-    internal static void Interject() => Utilities.LongEventHandlerPrependQueue(() =>
-                                             {
-                                                 LongEventHandler.QueueLongEvent(CallAll(), "LoadingProgress.CallAll");
-                                                 // When we're done, resume the original ExecuteToExecuteWhenFinished method.
-                                                 LongEventHandler.QueueLongEvent(LongEventHandler_ExecuteToExecuteWhenFinished_Patches.ExecuteToExecuteWhenFinished(), "LoadingProgress.ExecuteToExecuteWhenFinished");
-                                             });
+    internal static void Interject() =>
+        Utilities.LongEventHandlerPrependQueue(() =>
+        {
+            LongEventHandler.QueueLongEvent(CallAll(), "LoadingProgress.CallAll");
+            // When we're done, resume the original ExecuteToExecuteWhenFinished method.
+            LongEventHandler.QueueLongEvent(
+                LongEventHandler_ExecuteToExecuteWhenFinished_Patches.ExecuteToExecuteWhenFinished(),
+                "LoadingProgress.ExecuteToExecuteWhenFinished"
+            );
+        });
 
     internal static bool _callAllCalled;
+
     private static IEnumerable CallAll()
     {
         _callAllCalled = true;
@@ -25,7 +30,9 @@ internal sealed class StaticConstructorOnStartupUtilityReplacement
             LoadingProgressWindow.StageProgress = (i + 1, list.Count);
             yield return null;
 
-            var info = LoadingProgressMod.instance.StartupImpact.Modlist.GetModInfoFor(Utilities.FindModByAssembly(item.Assembly));
+            var info = LoadingProgressMod.instance.StartupImpact.Modlist.GetModInfoFor(
+                Utilities.FindModByAssembly(item.Assembly)
+            );
             info?.Start("LoadingProgress.StartupImpact.StaticConstructorOnStartupUtilityCallAll");
 
             try
@@ -40,7 +47,9 @@ internal sealed class StaticConstructorOnStartupUtilityReplacement
                 Log.Error("Error in static constructor of " + item?.ToString() + ": " + ex);
             }
 
-            _ = info?.Stop("LoadingProgress.StartupImpact.StaticConstructorOnStartupUtilityCallAll");
+            _ = info?.Stop(
+                "LoadingProgress.StartupImpact.StaticConstructorOnStartupUtilityCallAll"
+            );
         }
         DeepProfiler.End();
         StaticConstructorOnStartupUtility.coreStaticAssetsLoaded = true;
@@ -51,10 +60,11 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
 {
     private static class StaticConstructorOnStartupCallAllFinder
     {
-        private static readonly MethodInfo _method_StaticConstructorOnStartupUtility_CallAll
-            = AccessTools.Method(
+        private static readonly MethodInfo _method_StaticConstructorOnStartupUtility_CallAll =
+            AccessTools.Method(
                 typeof(StaticConstructorOnStartupUtility),
-                nameof(StaticConstructorOnStartupUtility.CallAll));
+                nameof(StaticConstructorOnStartupUtility.CallAll)
+            );
 
         private static readonly CodeMatch[] toMatch =
         [

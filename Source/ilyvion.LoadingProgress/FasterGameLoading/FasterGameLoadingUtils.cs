@@ -7,7 +7,12 @@ internal static class FasterGameLoadingUtils
     {
         get
         {
-            _hasFasterGameLoading ??= ModsConfig.ActiveModsInLoadOrder.Any(mod => mod.PackageId.Equals("taranchuk.fastergameloading", StringComparison.OrdinalIgnoreCase));
+            _hasFasterGameLoading ??= ModsConfig.ActiveModsInLoadOrder.Any(mod =>
+                mod.PackageId.Equals(
+                    "taranchuk.fastergameloading",
+                    StringComparison.OrdinalIgnoreCase
+                )
+            );
             return _hasFasterGameLoading.Value;
         }
     }
@@ -17,15 +22,25 @@ internal static class FasterGameLoadingUtils
     {
         get
         {
-            _loadedMods ??= AccessTools.Field("FasterGameLoading.ModContentPack_ReloadContentInt_Patch:loadedMods").GetValue(null) as HashSet<ModContentPack>;
+            _loadedMods ??=
+                AccessTools
+                    .Field("FasterGameLoading.ModContentPack_ReloadContentInt_Patch:loadedMods")
+                    .GetValue(null) as HashSet<ModContentPack>;
             return _loadedMods;
         }
     }
 
-    public static bool FasterGameLoadingEarlyModContentLoadingIsFinished => FasterGameLoading_DelayedActions_LateUpdate_Patches._pauseFasterGameLoading_DelayedActions_LateUpdate || LoadingProgressWindow.CurrentStage >= LoadingStage.ExecuteToExecuteWhenFinished2;
+    public static bool FasterGameLoadingEarlyModContentLoadingIsFinished =>
+        FasterGameLoading_DelayedActions_LateUpdate_Patches._pauseFasterGameLoading_DelayedActions_LateUpdate
+        || LoadingProgressWindow.CurrentStage >= LoadingStage.ExecuteToExecuteWhenFinished2;
 
-    public static T? GetFasterGameLoadingSetting<T>(string settingName) => AccessTools.Field("FasterGameLoading.FasterGameLoadingSettings:" + settingName)
-            ?.GetValue(null) is T value ? value : default;
+    public static T? GetFasterGameLoadingSetting<T>(string settingName) =>
+        AccessTools
+            .Field("FasterGameLoading.FasterGameLoadingSettings:" + settingName)
+            ?.GetValue(null)
+            is T value
+            ? value
+            : default;
 
     private static bool? _earlyModContentLoading;
     public static bool EarlyModContentLoading

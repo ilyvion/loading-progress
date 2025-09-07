@@ -2,7 +2,6 @@
 
 namespace ilyvion.LoadingProgress;
 
-
 internal sealed class LoadingProgressMod : Mod
 {
 #pragma warning disable CS8618 // Set by constructor
@@ -11,7 +10,8 @@ internal sealed class LoadingProgressMod : Mod
     internal Harmony harmony;
 #pragma warning restore CS8618
 
-    public LoadingProgressMod(ModContentPack content) : base(content)
+    public LoadingProgressMod(ModContentPack content)
+        : base(content)
     {
         instance = this;
         StartupImpact = new StartupImpact.StartupImpact();
@@ -29,7 +29,8 @@ internal sealed class LoadingProgressMod : Mod
 
     public static Settings Settings => instance.GetSettings<Settings>();
 
-    public override void DoSettingsWindowContents(Rect inRect) => Settings.DoSettingsWindowContents(inRect);
+    public override void DoSettingsWindowContents(Rect inRect) =>
+        Settings.DoSettingsWindowContents(inRect);
 
     public override string SettingsCategory() => Content.Name;
 

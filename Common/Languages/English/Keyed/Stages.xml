@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <LanguageData>
     <LoadingProgress.Stage.Initializing>Initializing...</LoadingProgress.Stage.Initializing>
     <LoadingProgress.Stage.LoadingModClasses>Loading mod classes... (&lt;i&gt;{0}&lt;/i&gt;)</LoadingProgress.Stage.LoadingModClasses>

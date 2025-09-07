@@ -8,11 +8,15 @@ internal static class DefOfHelper_RebindAllDefOfs_Patches
     {
         if (earlyTryMode)
         {
-            StartupImpactProfilerUtil.StartBaseGameProfiler("LoadingProgress.StartupImpact.DefOfHelperRebindAllDefOfs.Early");
+            StartupImpactProfilerUtil.StartBaseGameProfiler(
+                "LoadingProgress.StartupImpact.DefOfHelperRebindAllDefOfs.Early"
+            );
         }
         else
         {
-            StartupImpactProfilerUtil.StartBaseGameProfiler("LoadingProgress.StartupImpact.DefOfHelperRebindAllDefOfs.Final");
+            StartupImpactProfilerUtil.StartBaseGameProfiler(
+                "LoadingProgress.StartupImpact.DefOfHelperRebindAllDefOfs.Final"
+            );
         }
     }
 
@@ -20,11 +24,15 @@ internal static class DefOfHelper_RebindAllDefOfs_Patches
     {
         if (earlyTryMode)
         {
-            StartupImpactProfilerUtil.StopBaseGameProfiler("LoadingProgress.StartupImpact.DefOfHelperRebindAllDefOfs.Early");
+            StartupImpactProfilerUtil.StopBaseGameProfiler(
+                "LoadingProgress.StartupImpact.DefOfHelperRebindAllDefOfs.Early"
+            );
         }
         else
         {
-            StartupImpactProfilerUtil.StopBaseGameProfiler("LoadingProgress.StartupImpact.DefOfHelperRebindAllDefOfs.Final");
+            StartupImpactProfilerUtil.StopBaseGameProfiler(
+                "LoadingProgress.StartupImpact.DefOfHelperRebindAllDefOfs.Final"
+            );
         }
     }
 }

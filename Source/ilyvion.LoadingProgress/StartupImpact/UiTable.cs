@@ -45,16 +45,13 @@ internal sealed class UiTable(int rowCount, float rowHeight, float[] columnWidth
             var n = 0;
             foreach (var cw in _columnWidthsTemplate)
             {
-                var calculatedWidth = cw > 0
-                    ? cw * totalAvailableWidth / totalNeededWidth
-                    : -cw;
+                var calculatedWidth = cw > 0 ? cw * totalAvailableWidth / totalNeededWidth : -cw;
                 _columnOffsets[n] = xoff;
                 _columnWidths[n] = calculatedWidth;
 
                 xoff += calculatedWidth;
                 n++;
             }
-
         }
 
         Widgets.BeginScrollView(_uiRect, ref _scrollPosition, _viewRect);
@@ -72,7 +69,10 @@ internal sealed class UiTable(int rowCount, float rowHeight, float[] columnWidth
     {
         if (column < 0 || column >= _columnWidths.Length)
         {
-            throw new ArgumentOutOfRangeException(nameof(column), $"Bad column coordinate: {column}");
+            throw new ArgumentOutOfRangeException(
+                nameof(column),
+                $"Bad column coordinate: {column}"
+            );
         }
         if (row < 0 || row >= _rowCount)
         {

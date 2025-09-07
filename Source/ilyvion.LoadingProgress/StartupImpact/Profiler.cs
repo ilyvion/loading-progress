@@ -4,20 +4,15 @@ namespace ilyvion.LoadingProgress.StartupImpact;
 
 internal sealed class Profiler(string measurementTarget) : IDisposable
 {
-    private readonly ThreadLocal<SingleThreadedProfiler> _threadLocalProfiler = new(
-        () => new ProfilerStopwatch(measurementTarget));
+    private readonly ThreadLocal<SingleThreadedProfiler> _threadLocalProfiler = new(() =>
+        new ProfilerStopwatch(measurementTarget)
+    );
 
     public ConcurrentDictionary<string, float> Metrics { get; } = [];
-    public float TotalImpact
-    {
-        get; private set;
-    }
+    public float TotalImpact { get; private set; }
 
     public ConcurrentDictionary<string, float> OffThreadMetrics { get; } = [];
-    public float OffThreadTotalImpact
-    {
-        get; private set;
-    }
+    public float OffThreadTotalImpact { get; private set; }
 
     public void Start(string category)
     {

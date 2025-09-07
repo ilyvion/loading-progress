@@ -9,17 +9,29 @@ namespace ilyvion.LoadingProgress;
 internal static class LoadedLanguage_LoadMetadata_Patches
 {
 #pragma warning disable CA1859 // Use concrete types when possible for improved performance
-    private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+    private static IEnumerable<CodeInstruction> Transpiler(
+        IEnumerable<CodeInstruction> instructions,
+        ILGenerator generator
+    )
 #pragma warning restore CA1859 // Use concrete types when possible for improved performance
     {
         var original = instructions.ToList();
 
         var codeMatcher = new CodeMatcher(original, generator);
 
-        _ = codeMatcher.SearchForward(i => i.Calls(AccessTools.PropertyGetter(typeof(IEnumerator<ModContentPack>), nameof(IEnumerator.Current))));
+        _ = codeMatcher.SearchForward(i =>
+            i.Calls(
+                AccessTools.PropertyGetter(
+                    typeof(IEnumerator<ModContentPack>),
+                    nameof(IEnumerator.Current)
+                )
+            )
+        );
         if (codeMatcher.IsInvalid)
         {
-            LoadingProgressMod.Error("LoadedLanguage.LoadMetadata: Could not find a call to IEnumerator.Current.");
+            LoadingProgressMod.Error(
+                "LoadedLanguage.LoadMetadata: Could not find a call to IEnumerator.Current."
+            );
             return original;
         }
 
@@ -27,20 +39,32 @@ internal static class LoadedLanguage_LoadMetadata_Patches
         _ = codeMatcher.SearchBackwards(i => i.opcode == OpCodes.Br);
         if (codeMatcher.IsInvalid)
         {
-            LoadingProgressMod.Error("LoadedLanguage.LoadMetadata: Could not find expected opcode [br].");
+            LoadingProgressMod.Error(
+                "LoadedLanguage.LoadMetadata: Could not find expected opcode [br]."
+            );
             return original;
         }
         var continueTarget = codeMatcher.Operand;
 
         _ = codeMatcher.Start().Advance(remember).Advance(1);
 
-        _ = codeMatcher.CreateLabel(out var proceedTarget).Insert([
-                new(OpCodes.Dup),
-                new(OpCodes.Call, AccessTools.Method(typeof(LoadedLanguage_LoadMetadata_Patches), nameof(IsThisMod))),
-                new(OpCodes.Brfalse, proceedTarget),
-                new(OpCodes.Pop),
-                new(OpCodes.Br, continueTarget)
-            ]);
+        _ = codeMatcher
+            .CreateLabel(out var proceedTarget)
+            .Insert(
+                [
+                    new(OpCodes.Dup),
+                    new(
+                        OpCodes.Call,
+                        AccessTools.Method(
+                            typeof(LoadedLanguage_LoadMetadata_Patches),
+                            nameof(IsThisMod)
+                        )
+                    ),
+                    new(OpCodes.Brfalse, proceedTarget),
+                    new(OpCodes.Pop),
+                    new(OpCodes.Br, continueTarget),
+                ]
+            );
 
         return codeMatcher.Instructions();
     }

@@ -1,5 +1,3 @@
-using System.Globalization;
-
 using ilyvion.LoadingProgress.StartupImpact.Dialog;
 
 namespace ilyvion.LoadingProgress;
@@ -8,6 +6,7 @@ namespace ilyvion.LoadingProgress;
 internal static class VersionControl_DrawInfoInCorner_Patch
 {
     private static TimeSpan? _loadingTime;
+
     internal static void Postfix()
     {
         if (!LoadingProgressMod.Settings.ShowLastLoadingTimeInCorner)
@@ -16,11 +15,18 @@ internal static class VersionControl_DrawInfoInCorner_Patch
         }
 
         _loadingTime ??= TimeSpan.FromSeconds(LoadingProgressMod.Settings.LastLoadingTime);
-        string text = "LoadingProgress.LoadingTime".Translate(_loadingTime.Value.ToString("mm\\:ss", CultureInfo.InvariantCulture));
+        string text = "LoadingProgress.LoadingTime".Translate(
+            _loadingTime.Value.ToString("mm\\:ss", CultureInfo.InvariantCulture)
+        );
         Text.Font = GameFont.Small;
         var vector = Text.CalcSize(text);
 
-        var rect = new Rect(UI.screenWidth - vector.x - 10f, UI.screenHeight - vector.y - 10f, vector.x, vector.y);
+        var rect = new Rect(
+            UI.screenWidth - vector.x - 10f,
+            UI.screenHeight - vector.y - 10f,
+            vector.x,
+            vector.y
+        );
         LabelOutline(rect, text, Color.white, Color.black.ToTransparent(0.5f));
         if (Mouse.IsOver(rect))
         {

@@ -18,18 +18,23 @@ internal static class Utilities
 {
     public static void LongEventHandlerPrependQueue(
         Action prependAction,
-        string keepPrefix = "LoadingProgress.")
+        string keepPrefix = "LoadingProgress."
+    )
     {
         //LoadingProgressMod.Debug("Event queue before modification:\n- " + string.Join("\n- ", LongEventHandler.eventQueue.Select(e => $"{e.eventTextKey} ({e.eventText})"))); // + "\n" + Environment.StackTrace);
 
         // Separate events to keep and to temporarily remove
-        var keepEvents = LongEventHandler.eventQueue
-            .Where(e => e.eventTextKey != null
-                && e.eventTextKey.StartsWith(keepPrefix, StringComparison.Ordinal))
+        var keepEvents = LongEventHandler
+            .eventQueue.Where(e =>
+                e.eventTextKey != null
+                && e.eventTextKey.StartsWith(keepPrefix, StringComparison.Ordinal)
+            )
             .ToList();
-        var queue = LongEventHandler.eventQueue
-            .Where(e => e.eventTextKey == null
-                || !e.eventTextKey.StartsWith(keepPrefix, StringComparison.Ordinal))
+        var queue = LongEventHandler
+            .eventQueue.Where(e =>
+                e.eventTextKey == null
+                || !e.eventTextKey.StartsWith(keepPrefix, StringComparison.Ordinal)
+            )
             .ToList();
         LongEventHandler.eventQueue.Clear();
 
@@ -55,12 +60,13 @@ internal static class Utilities
         bool stillCallsOriginal,
         Assembly[]? ignoredAssemblies = null,
         MethodBase[]? ignoredMethods = null,
-        PatchKinds warnKinds = PatchKinds.All)
+        PatchKinds warnKinds = PatchKinds.All
+    )
     {
         HashSet<Assembly> ignoredAssemblySet =
         [
             Assembly.GetExecutingAssembly(),
-            .. ignoredAssemblies ?? []
+            .. ignoredAssemblies ?? [],
         ];
         HashSet<MethodBase> ignoredMethodsSet = [.. ignoredMethods ?? []];
 
@@ -72,38 +78,43 @@ internal static class Utilities
                 PatchKinds.Prefix,
                 patches.Prefixes,
                 ignoredAssemblySet,
-                ignoredMethodsSet);
+                ignoredMethodsSet
+            );
 
             var potentiallyProblematicTranspilers = CollectPotentiallyProblematicPatches(
                 warnKinds,
                 PatchKinds.Transpiler,
                 patches.Transpilers,
                 ignoredAssemblySet,
-                ignoredMethodsSet);
+                ignoredMethodsSet
+            );
 
             var potentiallyProblematicPostfixes = CollectPotentiallyProblematicPatches(
                 warnKinds,
                 PatchKinds.Postfix,
                 patches.Postfixes,
                 ignoredAssemblySet,
-                ignoredMethodsSet);
+                ignoredMethodsSet
+            );
 
             var potentiallyProblematicFinalizers = CollectPotentiallyProblematicPatches(
                 warnKinds,
                 PatchKinds.Finalizer,
                 patches.Finalizers,
                 ignoredAssemblySet,
-                ignoredMethodsSet);
+                ignoredMethodsSet
+            );
 
-            var totalCount = (potentiallyProblematicPrefixes?.Count ?? 0)
-                              + (potentiallyProblematicTranspilers?.Count ?? 0)
-                              + (potentiallyProblematicPostfixes?.Count ?? 0)
-                              + (potentiallyProblematicFinalizers?.Count ?? 0);
+            var totalCount =
+                (potentiallyProblematicPrefixes?.Count ?? 0)
+                + (potentiallyProblematicTranspilers?.Count ?? 0)
+                + (potentiallyProblematicPostfixes?.Count ?? 0)
+                + (potentiallyProblematicFinalizers?.Count ?? 0);
             if (totalCount > 0)
             {
                 var sb = new StringBuilder();
                 _ = sb.Append("These patches may not work as expected because ")
-                      .Append($"Loading Progress replaces {method.DeclaringType}:{method}.\n");
+                    .Append($"Loading Progress replaces {method.DeclaringType}:{method}.\n");
 
                 if (stillCallsOriginal)
                 {
@@ -111,23 +122,54 @@ internal static class Utilities
                     _ = sb.Append("extremely timing-sensitive, they should still work.\n");
                 }
 
-                AppendPatchWarning(sb, warnKinds, PatchKinds.Prefix, potentiallyProblematicPrefixes, "prefixes");
-                AppendPatchWarning(sb, warnKinds, PatchKinds.Transpiler, potentiallyProblematicTranspilers, "transpilers");
-                AppendPatchWarning(sb, warnKinds, PatchKinds.Postfix, potentiallyProblematicPostfixes, "postfixes");
-                AppendPatchWarning(sb, warnKinds, PatchKinds.Finalizer, potentiallyProblematicFinalizers, "finalizers");
-
+                AppendPatchWarning(
+                    sb,
+                    warnKinds,
+                    PatchKinds.Prefix,
+                    potentiallyProblematicPrefixes,
+                    "prefixes"
+                );
+                AppendPatchWarning(
+                    sb,
+                    warnKinds,
+                    PatchKinds.Transpiler,
+                    potentiallyProblematicTranspilers,
+                    "transpilers"
+                );
+                AppendPatchWarning(
+                    sb,
+                    warnKinds,
+                    PatchKinds.Postfix,
+                    potentiallyProblematicPostfixes,
+                    "postfixes"
+                );
+                AppendPatchWarning(
+                    sb,
+                    warnKinds,
+                    PatchKinds.Finalizer,
+                    potentiallyProblematicFinalizers,
+                    "finalizers"
+                );
 
                 LoadingProgressMod.Warning(sb.ToString().TrimEnd());
             }
         }
     }
 
-    private static void AppendPatchWarning(StringBuilder sb, PatchKinds warnFlags, PatchKinds warnCheckedFlag, List<MethodInfo>? methods, string label)
+    private static void AppendPatchWarning(
+        StringBuilder sb,
+        PatchKinds warnFlags,
+        PatchKinds warnCheckedFlag,
+        List<MethodInfo>? methods,
+        string label
+    )
     {
         if ((warnFlags & warnCheckedFlag) != 0 && methods != null && methods.Count > 0)
         {
             _ = sb.Append($"Potentially problematic {label} ");
-            _ = sb.Append($"({methods.Count}):\n  - ").Append(string.Join("\n  - ", methods.Select(m => $"{m.DeclaringType}:{m}"))).Append('\n');
+            _ = sb.Append($"({methods.Count}):\n  - ")
+                .Append(string.Join("\n  - ", methods.Select(m => $"{m.DeclaringType}:{m}")))
+                .Append('\n');
         }
     }
 
@@ -136,7 +178,8 @@ internal static class Utilities
         PatchKinds warnCheckedFlag,
         IEnumerable<Patch> patchesEnumerable,
         HashSet<Assembly> ignoredAssemblySet,
-        HashSet<MethodBase> ignoredMethodsSet)
+        HashSet<MethodBase> ignoredMethodsSet
+    )
     {
         List<MethodInfo>? potentiallyProblematicPatches = null;
         if ((warnFlags & warnCheckedFlag) != 0)
@@ -144,8 +187,10 @@ internal static class Utilities
             potentiallyProblematicPatches = [];
             foreach (var patch in patchesEnumerable)
             {
-                if (ignoredAssemblySet.Contains(patch.PatchMethod.DeclaringType.Assembly)
-                    || ignoredMethodsSet.Contains(patch.PatchMethod))
+                if (
+                    ignoredAssemblySet.Contains(patch.PatchMethod.DeclaringType.Assembly)
+                    || ignoredMethodsSet.Contains(patch.PatchMethod)
+                )
                 {
                     continue; // Skip ignored assemblies and methods
                 }
@@ -235,6 +280,7 @@ internal static class Utilities
     }
 
     private static readonly Dictionary<Assembly, ModContentPack?> _modAssemblyCache = [];
+
     public static ModContentPack? FindModByAssembly(Assembly assembly)
     {
         if (_modAssemblyCache.TryGetValue(assembly, out var modContentPack))
@@ -242,9 +288,11 @@ internal static class Utilities
             return modContentPack;
         }
 
-        modContentPack = (from modpack in LoadedModManager.RunningMods
-                          where modpack.assemblies.loadedAssemblies.Contains(assembly)
-                          select modpack).FirstOrDefault();
+        modContentPack = (
+            from modpack in LoadedModManager.RunningMods
+            where modpack.assemblies.loadedAssemblies.Contains(assembly)
+            select modpack
+        ).FirstOrDefault();
 
         _modAssemblyCache[assembly] = modContentPack;
         return modContentPack;
@@ -252,18 +300,18 @@ internal static class Utilities
 
     public static HashSet<MethodInfo> FindInTypeAndInnerTypeMethods(
         Type type,
-        Func<MethodInfo, bool>? predicate = null)
+        Func<MethodInfo, bool>? predicate = null
+    )
     {
         predicate ??= _ => true;
 
         // Find all possible candidates, both from the wrapping type and all nested types.
-        var candidates = AccessTools.GetDeclaredMethods(type)
-            .Where(predicate)
-            .ToHashSet();
-        candidates.AddRange(type
-            .GetNestedTypes(AccessTools.all)
-            .SelectMany(AccessTools.GetDeclaredMethods)
-            .Where(predicate));
+        var candidates = AccessTools.GetDeclaredMethods(type).Where(predicate).ToHashSet();
+        candidates.AddRange(
+            type.GetNestedTypes(AccessTools.all)
+                .SelectMany(AccessTools.GetDeclaredMethods)
+                .Where(predicate)
+        );
 
         return candidates;
     }
@@ -287,7 +335,9 @@ internal static class Utilities
     }
 
     public static ReadOnlyDictionary<TKey, TValue> AsReadOnly<TKey, TValue>(
-        this IDictionary<TKey, TValue> dictionary) where TKey : notnull => new(dictionary);
+        this IDictionary<TKey, TValue> dictionary
+    )
+        where TKey : notnull => new(dictionary);
 }
 
 internal static class StableListHasher
@@ -362,8 +412,7 @@ internal static class StableListHasher
         return unchecked((int)hash);
     }
 
-    private static uint RotateLeft(uint x, int r) =>
-        (x << r) | (x >> (32 - r));
+    private static uint RotateLeft(uint x, int r) => (x << r) | (x >> (32 - r));
 
     private static uint FMix(uint h)
     {

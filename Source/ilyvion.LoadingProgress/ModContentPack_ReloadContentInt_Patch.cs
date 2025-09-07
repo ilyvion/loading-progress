@@ -9,7 +9,8 @@ internal static class ModContentPack_ReloadContentInt_Patch
 
     [HarmonyPrefix]
     [HarmonyPriority(Priority.VeryHigh)]
-    internal static void ProgressPrefix(ModContentPack __instance) => FasterGameLoadingProgressWindow.LoadingMod = __instance;
+    internal static void ProgressPrefix(ModContentPack __instance) =>
+        FasterGameLoadingProgressWindow.LoadingMod = __instance;
 
     [HarmonyPriority(Priority.VeryLow)]
     internal static bool Prefix(ModContentPack __instance)

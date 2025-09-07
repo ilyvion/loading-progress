@@ -16,20 +16,36 @@ internal sealed class StartupImpactSessionModData : IExposable
     public IReadOnlyDictionary<string, float> OffThreadMetrics => offThreadMetrics;
     public float OffThreadTotalImpact => offThreadTotalImpact;
 
-    public static StartupImpactSessionModData FromModInfo(ModInfo info) => new()
-    {
-        modName = info.Mod.Name ?? string.Empty,
-        metrics = new Dictionary<string, float>(info.Profiler.Metrics),
-        totalImpact = info.Profiler.TotalImpact,
-        offThreadMetrics = new Dictionary<string, float>(info.Profiler.OffThreadMetrics),
-        offThreadTotalImpact = info.Profiler.OffThreadTotalImpact,
-    };
+    public static StartupImpactSessionModData FromModInfo(ModInfo info) =>
+        new()
+        {
+            modName = info.Mod.Name ?? string.Empty,
+            metrics = new Dictionary<string, float>(info.Profiler.Metrics),
+            totalImpact = info.Profiler.TotalImpact,
+            offThreadMetrics = new Dictionary<string, float>(info.Profiler.OffThreadMetrics),
+            offThreadTotalImpact = info.Profiler.OffThreadTotalImpact,
+        };
+
     public void ExposeData()
     {
         Scribe_Values.Look(ref modName!, "modName");
-        Scribe_Collections.Look(ref metrics, "metrics", LookMode.Value, LookMode.Value, ref metricsKeysWorkingList, ref metricsValuesWorkingList);
+        Scribe_Collections.Look(
+            ref metrics,
+            "metrics",
+            LookMode.Value,
+            LookMode.Value,
+            ref metricsKeysWorkingList,
+            ref metricsValuesWorkingList
+        );
         Scribe_Values.Look(ref totalImpact, "totalImpact");
-        Scribe_Collections.Look(ref offThreadMetrics, "offThreadMetrics", LookMode.Value, LookMode.Value, ref offThreadKeysWorkingList, ref offThreadValuesWorkingList);
+        Scribe_Collections.Look(
+            ref offThreadMetrics,
+            "offThreadMetrics",
+            LookMode.Value,
+            LookMode.Value,
+            ref offThreadKeysWorkingList,
+            ref offThreadValuesWorkingList
+        );
         Scribe_Values.Look(ref offThreadTotalImpact, "offThreadTotalImpact");
     }
 

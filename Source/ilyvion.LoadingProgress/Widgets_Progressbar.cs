@@ -9,7 +9,8 @@ internal static class Widgets_Progressbar
         float? smallCurrentValue = null,
         float? smallMaxValue = null,
         Color? customBarColor = null,
-        Color? customSmallBarColor = null)
+        Color? customSmallBarColor = null
+    )
     {
         // draw a box for the bar
         GUI.color = Color.gray;
@@ -31,7 +32,11 @@ internal static class Widgets_Progressbar
             var smallUnit = smallBarRect.width / smallMaxValue.Value;
             smallBarRect.width = smallCurrentValue.Value * smallUnit;
 
-            var clampedSmallCurrentValue = Mathf.Clamp(smallCurrentValue.Value, 0f, smallMaxValue.Value);
+            var clampedSmallCurrentValue = Mathf.Clamp(
+                smallCurrentValue.Value,
+                0f,
+                smallMaxValue.Value
+            );
             if (smallCurrentValue.Value > smallMaxValue.Value)
             {
                 // Once we're past max, start drawing the bar with a gap on the left side equal to the overflow.

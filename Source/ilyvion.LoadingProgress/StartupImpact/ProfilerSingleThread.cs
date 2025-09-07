@@ -6,13 +6,11 @@ internal abstract class SingleThreadedProfiler(string measurementTarget)
     private readonly string _measurementTarget = measurementTarget;
     private readonly List<string> _categories = [];
 
-    public float Total
-    {
-        get; private set;
-    }
+    public float Total { get; private set; }
 
     public abstract void Start();
     public abstract float Stop();
+
     public virtual float StopAndStart()
     {
         var res = Stop();
@@ -20,7 +18,8 @@ internal abstract class SingleThreadedProfiler(string measurementTarget)
         return res;
     }
 
-    private string ProfilerName => _measurementTarget == null ? "" : $"{_measurementTarget} profiler";
+    private string ProfilerName =>
+        _measurementTarget == null ? "" : $"{_measurementTarget} profiler";
 
     public void Start(string category)
     {
@@ -55,7 +54,15 @@ internal abstract class SingleThreadedProfiler(string measurementTarget)
             {
                 if (category != null)
                 {
-                    Log.Error("Stopping " + ProfilerName + " for [" + category + "] while it's already inactive. Current categories: [" + string.Join(", ", _categories) + "]");
+                    Log.Error(
+                        "Stopping "
+                            + ProfilerName
+                            + " for ["
+                            + category
+                            + "] while it's already inactive. Current categories: ["
+                            + string.Join(", ", _categories)
+                            + "]"
+                    );
                 }
 
                 actualCategory = "none";
@@ -64,7 +71,9 @@ internal abstract class SingleThreadedProfiler(string measurementTarget)
 
             if (category != null && category != _categories[0])
             {
-                Log.Error($"Stopping {ProfilerName} for [expected: {category}] but currently timing [actual: {_categories[0]}]");
+                Log.Error(
+                    $"Stopping {ProfilerName} for [expected: {category}] but currently timing [actual: {_categories[0]}]"
+                );
             }
 
             actualCategory = _categories[0];

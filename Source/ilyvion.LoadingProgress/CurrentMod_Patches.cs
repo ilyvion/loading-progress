@@ -26,37 +26,58 @@ internal static class LoadedModManager_LoadingDataTracker_Patches
             return;
         }
 
-        var total = xmls.SelectMany(x => x.xmlDoc.DocumentElement.ChildNodes.Cast<XmlNode>()).Count();
+        var total = xmls.SelectMany(x => x.xmlDoc.DocumentElement.ChildNodes.Cast<XmlNode>())
+            .Count();
         LoadingProgressWindow.StageProgress = (0, total);
     }
 
     [HarmonyPatch(nameof(LoadedModManager.CombineIntoUnifiedXML))]
     [HarmonyTranspiler]
 #pragma warning disable CA1859 // Use concrete types when possible for improved performance
-    private static IEnumerable<CodeInstruction> CombineIntoUnifiedXMLTranspiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+    private static IEnumerable<CodeInstruction> CombineIntoUnifiedXMLTranspiler(
+        IEnumerable<CodeInstruction> instructions,
+        ILGenerator generator
+    )
 #pragma warning restore CA1859 // Use concrete types when possible for improved performance
     {
         var original = instructions.ToList();
 
         var codeMatcher = new CodeMatcher(original, generator);
 
-        _ = codeMatcher.SearchForward(i => i.opcode == OpCodes.Castclass && i.operand is Type type && type == typeof(XmlNode));
+        _ = codeMatcher.SearchForward(i =>
+            i.opcode == OpCodes.Castclass && i.operand is Type type && type == typeof(XmlNode)
+        );
         if (codeMatcher.IsInvalid)
         {
-            LoadingProgressMod.Error("LoadedModManager.CombineIntoUnifiedXML: Could not find a cast to XmlNode.");
+            LoadingProgressMod.Error(
+                "LoadedModManager.CombineIntoUnifiedXML: Could not find a cast to XmlNode."
+            );
             return original;
         }
 
-        _ = codeMatcher.Advance(2).Insert([
-                new(OpCodes.Call, AccessTools.Method(typeof(LoadedModManager_LoadingDataTracker_Patches), nameof(CombineIntoUnifiedXMLProgress))),
-            ]);
+        _ = codeMatcher
+            .Advance(2)
+            .Insert(
+                [
+                    new(
+                        OpCodes.Call,
+                        AccessTools.Method(
+                            typeof(LoadedModManager_LoadingDataTracker_Patches),
+                            nameof(CombineIntoUnifiedXMLProgress)
+                        )
+                    ),
+                ]
+            );
 
         return codeMatcher.Instructions();
     }
 
     private static void CombineIntoUnifiedXMLProgress()
     {
-        if (LoadingProgressWindow.CurrentStage == LoadingStage.CombineIntoUnifiedXml && LoadingProgressWindow.StageProgress is (float index, float total))
+        if (
+            LoadingProgressWindow.CurrentStage == LoadingStage.CombineIntoUnifiedXml
+            && LoadingProgressWindow.StageProgress is (float index, float total)
+        )
         {
             LoadingProgressWindow.StageProgress = ((int)index + 1, total);
         }
@@ -115,32 +136,57 @@ internal static class XmlInheritance_LoadingDataTracker_Patches
     [HarmonyPatch(nameof(XmlInheritance.ResolveXmlNodes))]
     [HarmonyTranspiler]
 #pragma warning disable CA1859 // Use concrete types when possible for improved performance
-    private static IEnumerable<CodeInstruction> ResolveXmlNodesTranspiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+    private static IEnumerable<CodeInstruction> ResolveXmlNodesTranspiler(
+        IEnumerable<CodeInstruction> instructions,
+        ILGenerator generator
+    )
 #pragma warning restore CA1859 // Use concrete types when possible for improved performance
     {
         var original = instructions.ToList();
 
         var codeMatcher = new CodeMatcher(original, generator);
 
-        _ = codeMatcher.SearchForward(i => i.Calls(AccessTools.Indexer(typeof(List<XmlInheritance.XmlInheritanceNode>), [typeof(int)]).GetGetMethod()));
+        _ = codeMatcher.SearchForward(i =>
+            i.Calls(
+                AccessTools
+                    .Indexer(typeof(List<XmlInheritance.XmlInheritanceNode>), [typeof(int)])
+                    .GetGetMethod()
+            )
+        );
         if (codeMatcher.IsInvalid)
         {
-            LoadingProgressMod.Error("XmlInheritance.ResolveXmlNodes: Could not find a call to List<>.get_Item.");
+            LoadingProgressMod.Error(
+                "XmlInheritance.ResolveXmlNodes: Could not find a call to List<>.get_Item."
+            );
             return original;
         }
 
-        _ = codeMatcher.Insert([
-                new(OpCodes.Call, AccessTools.Method(typeof(XmlInheritance_LoadingDataTracker_Patches), nameof(XmlInheritanceProgress))),
+        _ = codeMatcher.Insert(
+            [
+                new(
+                    OpCodes.Call,
+                    AccessTools.Method(
+                        typeof(XmlInheritance_LoadingDataTracker_Patches),
+                        nameof(XmlInheritanceProgress)
+                    )
+                ),
                 new(OpCodes.Ldloc_0),
                 new(OpCodes.Ldloc_1),
-            ]);
+            ]
+        );
 
         return codeMatcher.Instructions();
     }
 
-    private static void XmlInheritanceProgress(List<XmlInheritance.XmlInheritanceNode> unresolvedNodes, int index)
+    private static void XmlInheritanceProgress(
+        List<XmlInheritance.XmlInheritanceNode> unresolvedNodes,
+        int index
+    )
     {
-        if (LoadingProgressWindow.CurrentStage == LoadingStage.XmlInheritanceResolve && unresolvedNodes.Count > 0)
+        if (
+            LoadingProgressWindow.CurrentStage == LoadingStage.XmlInheritanceResolve
+            && unresolvedNodes.Count > 0
+        )
         {
             LoadingProgressWindow.StageProgress = (index + 1, unresolvedNodes.Count);
         }
@@ -178,22 +224,25 @@ internal static partial class DirectXmlCrossRefLoader_ResolveAllWantedCrossRefer
         }
         else
         {
-            LoadingProgressMod.Error("Could not patch DirectXmlCrossRefLoader.ResolveAllWantedCrossReferences, could not locate call to DirectXmlCrossRefLoader+WantedRef.TryResolve.");
+            LoadingProgressMod.Error(
+                "Could not patch DirectXmlCrossRefLoader.ResolveAllWantedCrossReferences, could not locate call to DirectXmlCrossRefLoader+WantedRef.TryResolve."
+            );
             return false;
         }
-
     }
 
-    internal static IEnumerable<MethodBase> TargetMethods() => WantedRef_TryResolveFinder.FindMethod();
+    internal static IEnumerable<MethodBase> TargetMethods() =>
+        WantedRef_TryResolveFinder.FindMethod();
 
-    internal static void Postfix() => _ = Interlocked.Increment(ref LoadingDataTracker.WantedRefTryResolveCount);
+    internal static void Postfix() =>
+        _ = Interlocked.Increment(ref LoadingDataTracker.WantedRefTryResolveCount);
 
     private static class WantedRef_TryResolveFinder
     {
-        private static readonly MethodInfo _method_WantedRef_TryResolve
-            = AccessTools.Method(
-                typeof(DirectXmlCrossRefLoader.WantedRef),
-                nameof(DirectXmlCrossRefLoader.WantedRef.TryResolve));
+        private static readonly MethodInfo _method_WantedRef_TryResolve = AccessTools.Method(
+            typeof(DirectXmlCrossRefLoader.WantedRef),
+            nameof(DirectXmlCrossRefLoader.WantedRef.TryResolve)
+        );
 
         private static readonly CodeMatch[] toMatch =
         [
@@ -205,7 +254,8 @@ internal static partial class DirectXmlCrossRefLoader_ResolveAllWantedCrossRefer
             // Find all possible candidates, both from the wrapping type and all nested types.
             var candidates = Utilities.FindInTypeAndInnerTypeMethods(
                 typeof(DirectXmlCrossRefLoader),
-                m => !m.IsGenericMethod && !m.IsAbstract && !m.DeclaringType.IsGenericType);
+                m => !m.IsGenericMethod && !m.IsAbstract && !m.DeclaringType.IsGenericType
+            );
 
             //check all candidates for the target instructions, return those that match.
             foreach (var method in candidates)
@@ -217,7 +267,9 @@ internal static partial class DirectXmlCrossRefLoader_ResolveAllWantedCrossRefer
                 }
                 catch (Exception ex)
                 {
-                    LoadingProgressMod.Error($"Error while processing method {method}({method.FullDescription()}): {ex}");
+                    LoadingProgressMod.Error(
+                        $"Error while processing method {method}({method.FullDescription()}): {ex}"
+                    );
                     continue;
                 }
                 var matched = instructions.Matches(toMatch);
@@ -234,37 +286,65 @@ internal static partial class DirectXmlCrossRefLoader_ResolveAllWantedCrossRefer
 [HarmonyPatch(typeof(DirectXmlCrossRefLoader))]
 internal static partial class DirectXmlCrossRefLoader_ResolveAllWantedCrossReferences_LoadingDataTracker_Patches
 {
-
     [HarmonyPatch(nameof(DirectXmlCrossRefLoader.ResolveAllWantedCrossReferences))]
     [HarmonyTranspiler]
 #pragma warning disable CA1859 // Use concrete types when possible for improved performance
-    private static IEnumerable<CodeInstruction> ResolveXmlNodesTranspiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+    private static IEnumerable<CodeInstruction> ResolveXmlNodesTranspiler(
+        IEnumerable<CodeInstruction> instructions,
+        ILGenerator generator
+    )
 #pragma warning restore CA1859 // Use concrete types when possible for improved performance
     {
         var original = instructions.ToList();
 
         var codeMatcher = new CodeMatcher(original, generator);
 
-        _ = codeMatcher.SearchForward(i => i.Calls(AccessTools.Method(typeof(DirectXmlCrossRefLoader.WantedRef), nameof(DirectXmlCrossRefLoader.WantedRef.Apply))));
+        _ = codeMatcher.SearchForward(i =>
+            i.Calls(
+                AccessTools.Method(
+                    typeof(DirectXmlCrossRefLoader.WantedRef),
+                    nameof(DirectXmlCrossRefLoader.WantedRef.Apply)
+                )
+            )
+        );
         if (codeMatcher.IsInvalid)
         {
-            LoadingProgressMod.Error("XmlInheritance.ResolveXmlNodes: Could not find a call to List<>.get_Item.");
+            LoadingProgressMod.Error(
+                "XmlInheritance.ResolveXmlNodes: Could not find a call to List<>.get_Item."
+            );
             return original;
         }
 
-        _ = codeMatcher.Advance(1).Insert([
-                new(OpCodes.Call, AccessTools.Method(typeof(DirectXmlCrossRefLoader_ResolveAllWantedCrossReferences_LoadingDataTracker_Patches), nameof(Stage2Progress))),
-            ]);
+        _ = codeMatcher
+            .Advance(1)
+            .Insert(
+                [
+                    new(
+                        OpCodes.Call,
+                        AccessTools.Method(
+                            typeof(DirectXmlCrossRefLoader_ResolveAllWantedCrossReferences_LoadingDataTracker_Patches),
+                            nameof(Stage2Progress)
+                        )
+                    ),
+                ]
+            );
 
         return codeMatcher.Instructions();
     }
 
     private static void Stage2Progress()
     {
-        if (LoadingProgressWindow.CurrentStage <= LoadingStage.ResolveCrossReferencesBetweenNonImpliedDefsStage2)
+        if (
+            LoadingProgressWindow.CurrentStage
+            <= LoadingStage.ResolveCrossReferencesBetweenNonImpliedDefsStage2
+        )
         {
-            LoadingProgressWindow.CurrentStage = LoadingStage.ResolveCrossReferencesBetweenNonImpliedDefsStage2;
+            LoadingProgressWindow.CurrentStage =
+                LoadingStage.ResolveCrossReferencesBetweenNonImpliedDefsStage2;
         }
-        LoadingProgressWindow.StageProgress = (LoadingDataTracker.WantedRefApplyCount++, DirectXmlCrossRefLoader.wantedRefs.Count);
+        LoadingProgressWindow.StageProgress = (
+            LoadingDataTracker.WantedRefApplyCount++,
+            DirectXmlCrossRefLoader.wantedRefs.Count
+        );
     }
 }

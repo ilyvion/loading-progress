@@ -6,17 +6,18 @@ namespace ilyvion.LoadingProgress.StartupImpact.Patches;
 [HarmonyPatchCategory("StartupImpact")]
 internal static class DefDatabase_AddAllInMods_Patches
 {
-    private static readonly MethodInfo _method_GenGeneric_InvokeStaticMethodOnGenericType
-        = AccessTools.Method(
+    private static readonly MethodInfo _method_GenGeneric_InvokeStaticMethodOnGenericType =
+        AccessTools.Method(
             typeof(GenGeneric),
             nameof(GenGeneric.InvokeStaticMethodOnGenericType),
-            [typeof(Type), typeof(string), typeof(string)]);
+            [typeof(Type), typeof(string), typeof(string)]
+        );
 
     private static readonly CodeMatch[] toMatch =
     [
         new(OpCodes.Ldstr, "AddAllInMods"),
-            new(OpCodes.Call, _method_GenGeneric_InvokeStaticMethodOnGenericType),
-        ];
+        new(OpCodes.Call, _method_GenGeneric_InvokeStaticMethodOnGenericType),
+    ];
 
     internal static bool Prepare() => TargetMethods().Count() == 1;
 
@@ -25,7 +26,9 @@ internal static class DefDatabase_AddAllInMods_Patches
         var methods = Utilities.FindMethodsDoing(typeof(PlayDataLoader), toMatch).ToList();
         if (methods.Count != 1)
         {
-            LoadingProgressMod.Error("Could not find call to GenGeneric.InvokeStaticMethodOnGenericType in PlayDataLoader");
+            LoadingProgressMod.Error(
+                "Could not find call to GenGeneric.InvokeStaticMethodOnGenericType in PlayDataLoader"
+            );
         }
         else
         {
@@ -33,9 +36,13 @@ internal static class DefDatabase_AddAllInMods_Patches
         }
     }
 
-    internal static void Prefix()
-            => StartupImpactProfilerUtil.StartBaseGameProfiler("LoadingProgress.StartupImpact.DefDatabaseAddAllInMods");
+    internal static void Prefix() =>
+        StartupImpactProfilerUtil.StartBaseGameProfiler(
+            "LoadingProgress.StartupImpact.DefDatabaseAddAllInMods"
+        );
 
-    internal static void Postfix()
-        => StartupImpactProfilerUtil.StopBaseGameProfiler("LoadingProgress.StartupImpact.DefDatabaseAddAllInMods");
+    internal static void Postfix() =>
+        StartupImpactProfilerUtil.StopBaseGameProfiler(
+            "LoadingProgress.StartupImpact.DefDatabaseAddAllInMods"
+        );
 }

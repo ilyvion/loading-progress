@@ -10,7 +10,11 @@ internal static class FasterGameLoadingProgressWindow
     {
         get
         {
-            if (!FasterGameLoadingUtils.HasFasterGameLoading || !FasterGameLoadingUtils.EarlyModContentLoading || FasterGameLoadingUtils.FasterGameLoadingEarlyModContentLoadingIsFinished)
+            if (
+                !FasterGameLoadingUtils.HasFasterGameLoading
+                || !FasterGameLoadingUtils.EarlyModContentLoading
+                || FasterGameLoadingUtils.FasterGameLoadingEarlyModContentLoadingIsFinished
+            )
             {
                 return Vector2.zero;
             }
@@ -20,27 +24,37 @@ internal static class FasterGameLoadingProgressWindow
         }
     }
 
-    internal static ModContentPack? LoadingMod
-    {
-        get; set;
-    }
+    internal static ModContentPack? LoadingMod { get; set; }
 
     internal static void DrawWindow(Rect statusRect)
     {
-        if (!FasterGameLoadingUtils.HasFasterGameLoading || !FasterGameLoadingUtils.EarlyModContentLoading || FasterGameLoadingUtils.FasterGameLoadingEarlyModContentLoadingIsFinished)
+        if (
+            !FasterGameLoadingUtils.HasFasterGameLoading
+            || !FasterGameLoadingUtils.EarlyModContentLoading
+            || FasterGameLoadingUtils.FasterGameLoadingEarlyModContentLoadingIsFinished
+        )
         {
             return;
         }
 
-        Find.WindowStack.ImmediateWindow(1217160, statusRect, WindowLayer.Super, delegate
-        {
-            DrawContents(statusRect.AtZero());
-        });
+        Find.WindowStack.ImmediateWindow(
+            1217160,
+            statusRect,
+            WindowLayer.Super,
+            delegate
+            {
+                DrawContents(statusRect.AtZero());
+            }
+        );
     }
 
     internal static void DrawContents(Rect rect)
     {
-        if (!FasterGameLoadingUtils.HasFasterGameLoading || !FasterGameLoadingUtils.EarlyModContentLoading || FasterGameLoadingUtils.FasterGameLoadingEarlyModContentLoadingIsFinished)
+        if (
+            !FasterGameLoadingUtils.HasFasterGameLoading
+            || !FasterGameLoadingUtils.EarlyModContentLoading
+            || FasterGameLoadingUtils.FasterGameLoadingEarlyModContentLoadingIsFinished
+        )
         {
             return;
         }
@@ -54,7 +68,10 @@ internal static class FasterGameLoadingProgressWindow
         loadingProgressRect.width -= 2 * HorizontalMargin;
         loadingProgressRect.height = Text.LineHeight;
 
-        Widgets.Label(loadingProgressRect, Translations.GetTranslation($"LoadingProgress.FasterGameLoadingEarlyModContentLoading"));
+        Widgets.Label(
+            loadingProgressRect,
+            Translations.GetTranslation($"LoadingProgress.FasterGameLoadingEarlyModContentLoading")
+        );
 
         var loadingActivityRect = loadingProgressRect;
         loadingProgressRect.y += loadingProgressRect.height + VerticalWidgetMargin;
@@ -64,14 +81,20 @@ internal static class FasterGameLoadingProgressWindow
         var label = string.Empty;
         if (LoadingMod != null)
         {
-            label = Translations.GetTranslation($"LoadingProgress.FasterGameLoadingEarlyModContentLoading.ForMod", LoadingMod.Name);
+            label = Translations.GetTranslation(
+                $"LoadingProgress.FasterGameLoadingEarlyModContentLoading.ForMod",
+                LoadingMod.Name
+            );
         }
 
         if (!string.IsNullOrEmpty(label))
         {
             var ellipsisRect = loadingProgressRect;
             ellipsisRect.width -= 10f;
-            Widgets.Label(loadingProgressRect, Utilities.ClampTextWithEllipsisMarkupAware(ellipsisRect, label));
+            Widgets.Label(
+                loadingProgressRect,
+                Utilities.ClampTextWithEllipsisMarkupAware(ellipsisRect, label)
+            );
         }
 
         var progressRect = loadingProgressRect;
@@ -81,6 +104,7 @@ internal static class FasterGameLoadingProgressWindow
         Widgets_Progressbar.DrawHorizontalProgressBar(
             progressRect,
             FasterGameLoadingUtils.LoadedMods!.Count,
-            LoadedModManager.RunningModsListForReading.Count);
+            LoadedModManager.RunningModsListForReading.Count
+        );
     }
 }

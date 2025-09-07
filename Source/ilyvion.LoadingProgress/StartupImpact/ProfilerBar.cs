@@ -1,22 +1,24 @@
-﻿using System.Globalization;
-
-namespace ilyvion.LoadingProgress.StartupImpact;
+﻿namespace ilyvion.LoadingProgress.StartupImpact;
 
 [HotSwappable]
 internal sealed class ProfilerBar
 {
-    public bool UseLogScale
-    {
-        get; set;
-    }
+    public bool UseLogScale { get; set; }
     public float ProgressBarPadding { get; set; } = 4f;
     public Color DefaultColor { get; set; } = Color.gray;
 
-    public static string TimeText(float ms) => ms > 10000
-            ? "LoadingProgress.StartupImpact.Seconds".Translate((ms * 0.001f).ToString("F1", CultureInfo.InvariantCulture))
-            : (ms > 1000
-                ? "LoadingProgress.StartupImpact.Seconds".Translate((ms * 0.001f).ToString("F2", CultureInfo.InvariantCulture))
-                : "LoadingProgress.StartupImpact.Milliseconds".Translate(ms));
+    public static string TimeText(float ms) =>
+        ms > 10000
+            ? "LoadingProgress.StartupImpact.Seconds".Translate(
+                (ms * 0.001f).ToString("F1", CultureInfo.InvariantCulture)
+            )
+            : (
+                ms > 1000
+                    ? "LoadingProgress.StartupImpact.Seconds".Translate(
+                        (ms * 0.001f).ToString("F2", CultureInfo.InvariantCulture)
+                    )
+                    : "LoadingProgress.StartupImpact.Milliseconds".Translate(ms)
+            );
 
     public void Draw(
         Rect rect,
@@ -48,7 +50,16 @@ internal sealed class ProfilerBar
 
         if (!UseLogScale)
         {
-            DrawLinearScale(metrics, categories, maxImpact, categoryColors, innerX, innerY, innerW, innerH);
+            DrawLinearScale(
+                metrics,
+                categories,
+                maxImpact,
+                categoryColors,
+                innerX,
+                innerY,
+                innerW,
+                innerH
+            );
         }
         else
         {
@@ -57,7 +68,17 @@ internal sealed class ProfilerBar
             var barFill = denomCap > 0f ? LogScaleTransform(sumLinear, tau) / denomCap : 0f;
             barFill = Mathf.Clamp01(barFill);
 
-            DrawLogScale(metrics, categories, categoryColors, tau, innerX, innerY, innerW, innerH, barFill);
+            DrawLogScale(
+                metrics,
+                categories,
+                categoryColors,
+                tau,
+                innerX,
+                innerY,
+                innerW,
+                innerH,
+                barFill
+            );
         }
 
         void DrawLinearScale(
@@ -68,7 +89,8 @@ internal sealed class ProfilerBar
             float innerX,
             float innerY,
             float innerW,
-            float innerH)
+            float innerH
+        )
         {
             var x = innerX;
             for (var i = 0; i < categories.Count; i++)
@@ -85,8 +107,12 @@ internal sealed class ProfilerBar
                 var color = categoryColors.TryGetValue(categories[i], out var c) ? c : DefaultColor;
                 DrawSegment(textRect, color);
 
-                TooltipHandler.TipRegion(textRect, new TipSignal(
-                    $"{StartupImpactProfilerUtil.TranslateCategory(categories[i])}: {TimeText(impact)}"));
+                TooltipHandler.TipRegion(
+                    textRect,
+                    new TipSignal(
+                        $"{StartupImpactProfilerUtil.TranslateCategory(categories[i])}: {TimeText(impact)}"
+                    )
+                );
 
                 x += width;
             }
@@ -101,7 +127,8 @@ internal sealed class ProfilerBar
             float innerY,
             float innerW,
             float innerH,
-            float barFill)
+            float barFill
+        )
         {
             // Shares that sum to 1 in the *original* category order
             var vals = categories.Select((_, i) => Mathf.Max(0, metrics[i])).ToArray();
@@ -143,8 +170,12 @@ internal sealed class ProfilerBar
                 var color = categoryColors.TryGetValue(categories[i], out var c) ? c : DefaultColor;
                 DrawSegment(textRect, color);
 
-                TooltipHandler.TipRegion(textRect, new TipSignal(
-                    $"{StartupImpactProfilerUtil.TranslateCategory(categories[i])}: {TimeText(impact)}"));
+                TooltipHandler.TipRegion(
+                    textRect,
+                    new TipSignal(
+                        $"{StartupImpactProfilerUtil.TranslateCategory(categories[i])}: {TimeText(impact)}"
+                    )
+                );
 
                 xCursor += width;
                 drawn += width;
@@ -183,7 +214,8 @@ internal sealed class ProfilerBar
     /// Applies a log scaling transformation to the input value x, using tau as the scaling parameter.
     /// Used to compress large metric values for log-scale visualization of the profiler bar.
     /// </summary>
-    private static float LogScaleTransform(float x, float tau) => Mathf.Log10(1f + (Mathf.Max(0f, x) / tau));
+    private static float LogScaleTransform(float x, float tau) =>
+        Mathf.Log10(1f + (Mathf.Max(0f, x) / tau));
 
     // Hierarchical log split: greedy "largest vs rest" at each step.
     // Returns shares in the *same order* as the input values; shares sum to 1.
@@ -226,9 +258,10 @@ internal sealed class ProfilerBar
             // Compute denominator for log split between currentValue and rest
             var denom = LogScaleTransform(currentValue, tau) + LogScaleTransform(rest, tau);
             // Fraction of leftover assigned to currentValue (log-proportional)
-            var currentValueFraction = denom > 0f
-                ? LogScaleTransform(currentValue, tau) / denom
-                : (currentValue > 0f ? 1f : 0f);
+            var currentValueFraction =
+                denom > 0f
+                    ? LogScaleTransform(currentValue, tau) / denom
+                    : (currentValue > 0f ? 1f : 0f);
 
             // Assign this share
             sharesSorted[k] = leftover * currentValueFraction;
@@ -280,5 +313,4 @@ internal sealed class ProfilerBar
         // If all values are zero, return all zeros
         return shares;
     }
-
 }

@@ -7,10 +7,7 @@ internal sealed class StartupImpactSessionModViewData(StartupImpactSessionModDat
 
     public StartupImpactSessionModData ModData { get; } = modData;
 
-    public bool HideInUi
-    {
-        get; set;
-    }
+    public bool HideInUi { get; set; }
 
     public IReadOnlyList<float> Metrics => metrics.AsReadOnly();
     public IReadOnlyList<float> OffThreadMetrics => offThreadMetrics.AsReadOnly();

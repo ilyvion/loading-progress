@@ -85,14 +85,26 @@ internal sealed class Settings : ModSettings
 
         Scribe_Values.Look(ref _patchInitialization, "patchInitialization", true);
         Scribe_Values.Look(ref _patchReloadContent, "patchReloadContent", true);
-        Scribe_Values.Look(ref _loadingWindowPlacement, "loadingWindowPlacement", LoadingWindowPlacement.Middle);
+        Scribe_Values.Look(
+            ref _loadingWindowPlacement,
+            "loadingWindowPlacement",
+            LoadingWindowPlacement.Middle
+        );
         Scribe_Values.Look(ref _lastLoadingTime, "lastLoadingTime", -1f);
         Scribe_Values.Look(ref _lastLoadingModHash, "lastLoadingModHash", -1);
         Scribe_Values.Look(ref _showLastLoadingTime, "showLastLoadingTime", true);
         Scribe_Values.Look(ref _showLoadingTimeAsCountDown, "showLoadingTimeAsCountDown", false);
-        Scribe_Values.Look(ref _showLastLoadingTimeProgressBar, "showLastLoadingTimeProgressBar", true);
+        Scribe_Values.Look(
+            ref _showLastLoadingTimeProgressBar,
+            "showLastLoadingTimeProgressBar",
+            true
+        );
         Scribe_Values.Look(ref _showLastLoadingTimeInCorner, "showLastLoadingTimeInCorner", true);
-        Scribe_Values.Look(ref _showFasterGameLoadingEarlyModContentLoading, "showFasterGameLoadingEarlyModContentLoading", true);
+        Scribe_Values.Look(
+            ref _showFasterGameLoadingEarlyModContentLoading,
+            "showFasterGameLoadingEarlyModContentLoading",
+            true
+        );
         Scribe_Values.Look(ref _trackStartupLoadingImpact, "trackStartupLoadingImpact", false);
     }
 
@@ -104,60 +116,74 @@ internal sealed class Settings : ModSettings
         listingStandard.CheckboxLabeled(
             "LoadingProgress.PatchInitialization".Translate(),
             ref _patchInitialization,
-            "LoadingProgress.PatchInitialization.Tip".Translate());
+            "LoadingProgress.PatchInitialization.Tip".Translate()
+        );
 
         listingStandard.CheckboxLabeled(
             "LoadingProgress.PatchReloadContent".Translate(),
             ref _patchReloadContent,
-            "LoadingProgress.PatchReloadContent.Tip".Translate());
+            "LoadingProgress.PatchReloadContent.Tip".Translate()
+        );
 
         listingStandard.CheckboxLabeled(
             "LoadingProgress.LastLoadingTime".Translate(),
             ref _showLastLoadingTime,
-            "LoadingProgress.LastLoadingTime.Tip".Translate());
+            "LoadingProgress.LastLoadingTime.Tip".Translate()
+        );
 
         listingStandard.CheckboxLabeled(
             "LoadingProgress.LoadingTimeAsCountDown".Translate(),
             ref _showLoadingTimeAsCountDown,
-            "LoadingProgress.LoadingTimeAsCountDown.Tip".Translate());
+            "LoadingProgress.LoadingTimeAsCountDown.Tip".Translate()
+        );
 
         listingStandard.CheckboxLabeled(
             "LoadingProgress.LastLoadingTimeProgressBar".Translate(),
             ref _showLastLoadingTimeProgressBar,
-            "LoadingProgress.LastLoadingTimeProgressBar.Tip".Translate());
+            "LoadingProgress.LastLoadingTimeProgressBar.Tip".Translate()
+        );
 
         listingStandard.CheckboxLabeled(
             "LoadingProgress.LastLoadingTimeInCorner".Translate(),
             ref _showLastLoadingTimeInCorner,
-            "LoadingProgress.LastLoadingTimeInCorner.Tip".Translate());
+            "LoadingProgress.LastLoadingTimeInCorner.Tip".Translate()
+        );
 
         listingStandard.CheckboxLabeled(
             "LoadingProgress.ShowFasterGameLoadingEarlyModContentLoading".Translate(),
             ref _showFasterGameLoadingEarlyModContentLoading,
-            "LoadingProgress.ShowFasterGameLoadingEarlyModContentLoading.Tip".Translate());
+            "LoadingProgress.ShowFasterGameLoadingEarlyModContentLoading.Tip".Translate()
+        );
 
         listingStandard.CheckboxLabeled(
             "LoadingProgress.TrackStartupLoadingImpact".Translate(),
             ref _trackStartupLoadingImpact,
-            "LoadingProgress.TrackStartupLoadingImpact.Tip".Translate());
+            "LoadingProgress.TrackStartupLoadingImpact.Tip".Translate()
+        );
 
-        if (listingStandard.ButtonTextLabeledPct(
-            "LoadingProgress.LoadingWindowPlacement".Translate(),
-            $"LoadingProgress.{_loadingWindowPlacement}".Translate(),
-            0.6f,
-            TextAnchor.MiddleLeft))
+        if (
+            listingStandard.ButtonTextLabeledPct(
+                "LoadingProgress.LoadingWindowPlacement".Translate(),
+                $"LoadingProgress.{_loadingWindowPlacement}".Translate(),
+                0.6f,
+                TextAnchor.MiddleLeft
+            )
+        )
         {
             List<FloatMenuOption> list =
             [
                 new FloatMenuOption(
                     "LoadingProgress.Top".Translate(),
-                    () => _loadingWindowPlacement = LoadingWindowPlacement.Top),
+                    () => _loadingWindowPlacement = LoadingWindowPlacement.Top
+                ),
                 new FloatMenuOption(
                     "LoadingProgress.Middle".Translate(),
-                    () => _loadingWindowPlacement = LoadingWindowPlacement.Middle),
+                    () => _loadingWindowPlacement = LoadingWindowPlacement.Middle
+                ),
                 new FloatMenuOption(
                     "LoadingProgress.Bottom".Translate(),
-                    () => _loadingWindowPlacement = LoadingWindowPlacement.Bottom),
+                    () => _loadingWindowPlacement = LoadingWindowPlacement.Bottom
+                ),
                 // new FloatMenuOption(
                 //     "LoadingProgress.Custom".Translate(),
                 //     () => _loadingWindowPlacement = LoadingWindowPlacement.Custom)
@@ -174,5 +200,5 @@ internal enum LoadingWindowPlacement
     Top,
     Middle,
     Bottom,
-    Custom
+    Custom,
 }

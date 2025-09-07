@@ -1,5 +1,3 @@
-using System.Globalization;
-
 namespace ilyvion.LoadingProgress;
 
 internal static class Translations
@@ -24,7 +22,14 @@ internal static class Translations
 
         if (!_englishTranslationsLoaded)
         {
-            var englishLanguageDirectory = Path.Join(Path.Join(Path.Join(LoadingProgressMod.instance.Content.RootDir, "Common"), "Languages", LanguageDatabase.DefaultLangFolderName), "Keyed");
+            var englishLanguageDirectory = Path.Join(
+                Path.Join(
+                    Path.Join(LoadingProgressMod.instance.Content.RootDir, "Common"),
+                    "Languages",
+                    LanguageDatabase.DefaultLangFolderName
+                ),
+                "Keyed"
+            );
             LoadLanguage(ref EnglishTranslationValues, englishLanguageDirectory);
             _englishTranslationsLoaded = true;
         }
@@ -36,13 +41,18 @@ internal static class Translations
             {
                 foreach (var loadFolder in mod.foldersToLoadDescendingOrder)
                 {
-                    var languageDirectory = Path.Join(Path.Join(loadFolder, "Languages", languageFolderName), "Keyed");
+                    var languageDirectory = Path.Join(
+                        Path.Join(loadFolder, "Languages", languageFolderName),
+                        "Keyed"
+                    );
                     if (Directory.Exists(languageDirectory))
                     {
                         LoadLanguage(ref ActiveLanguageTranslationValues, languageDirectory);
                         if (ActiveLanguageTranslationValues is not null)
                         {
-                            LoadingProgressMod.Message($"Loaded translations for {languageFolderName} from {mod.Name} from {languageDirectory}.");
+                            LoadingProgressMod.Message(
+                                $"Loaded translations for {languageFolderName} from {mod.Name} from {languageDirectory}."
+                            );
                             break;
                         }
                     }
@@ -57,7 +67,12 @@ internal static class Translations
 
         if (ActiveLanguageTranslationValues is not null)
         {
-            if (ActiveLanguageTranslationValues.TryGetValue(translationKey, out var activeLanguageTranslation))
+            if (
+                ActiveLanguageTranslationValues.TryGetValue(
+                    translationKey,
+                    out var activeLanguageTranslation
+                )
+            )
             {
                 return string.Format(CultureInfo.CurrentCulture, activeLanguageTranslation, args);
             }
@@ -74,7 +89,10 @@ internal static class Translations
         }
     }
 
-    private static void LoadLanguage(ref Dictionary<string, string>? languageDictionary, string languageDirectory)
+    private static void LoadLanguage(
+        ref Dictionary<string, string>? languageDictionary,
+        string languageDirectory
+    )
     {
         foreach (var file in Directory.GetFiles(languageDirectory, "*.xml"))
         {

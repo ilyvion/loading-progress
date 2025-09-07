@@ -6,17 +6,12 @@ internal sealed class StartupImpact
     private readonly ProfilerStopwatch _loadingProfiler;
 
     public ModInfoList Modlist { get; } = new();
+
     /// <summary>
     /// The total loading time, set only after FinishLoading() is called.
     /// </summary>
-    public float TotalLoadingTime
-    {
-        get; private set;
-    }
-    public Profiler BaseGameProfiler
-    {
-        get;
-    }
+    public float TotalLoadingTime { get; private set; }
+    public Profiler BaseGameProfiler { get; }
 
     public StartupImpact()
     {
@@ -32,6 +27,7 @@ internal sealed class StartupImpact
     }
 
     private bool _loadingTimeMeasured;
+
     public void FinishLoading()
     {
         if (!_loadingTimeMeasured)
@@ -40,7 +36,10 @@ internal sealed class StartupImpact
             _ = _loadingProfiler.Stop("loading");
             TotalLoadingTime = _loadingProfiler.Total;
 
-            LoadingProgressMod.instance.harmony.UnpatchCategory(Assembly.GetExecutingAssembly(), "StartupImpact");
+            LoadingProgressMod.instance.harmony.UnpatchCategory(
+                Assembly.GetExecutingAssembly(),
+                "StartupImpact"
+            );
         }
     }
 
