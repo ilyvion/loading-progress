@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+    <LoadingProgress.StartupImpact.ModConstructor>Запуск конструктора мода</LoadingProgress.StartupImpact.ModConstructor>
+    <LoadingProgress.StartupImpact.LoadDefs>Загрузка дефов</LoadingProgress.StartupImpact.LoadDefs>
+    <LoadingProgress.StartupImpact.CombineXml>Объединение XML в единый документ</LoadingProgress.StartupImpact.CombineXml>
+    <LoadingProgress.StartupImpact.TKeySystemParse>Разбор системы ключей перевода</LoadingProgress.StartupImpact.TKeySystemParse>
+    <LoadingProgress.StartupImpact.LoadedModManagerParseAndProcessXML>Разбор и обработка XML</LoadingProgress.StartupImpact.LoadedModManagerParseAndProcessXML>
+    <LoadingProgress.StartupImpact.ErrorCheckPatches>Проверка патчей на ошибки</LoadingProgress.StartupImpact.ErrorCheckPatches>
+    <LoadingProgress.StartupImpact.LoadPatches>Загрузка патчей</LoadingProgress.StartupImpact.LoadPatches>
+    <LoadingProgress.StartupImpact.ApplyPatches>Применение патчей</LoadingProgress.StartupImpact.ApplyPatches>
+    <LoadingProgress.StartupImpact.RegisterXmlInheritance>Регистрация наследования XML</LoadingProgress.StartupImpact.RegisterXmlInheritance>
+    <LoadingProgress.StartupImpact.ResolveXmlInheritance>Разрешение наследования XML</LoadingProgress.StartupImpact.ResolveXmlInheritance>
+    <LoadingProgress.StartupImpact.ClearCachedPatches>Очистка кэшированных патчей</LoadingProgress.StartupImpact.ClearCachedPatches>
+    <LoadingProgress.StartupImpact.ClearCachedXmlInheritance>Очистка кэшированного наследования XML</LoadingProgress.StartupImpact.ClearCachedXmlInheritance>
+    <LoadingProgress.StartupImpact.LanguageDatabaseInitAllMetadata>Загрузка метаданных языка</LoadingProgress.StartupImpact.LanguageDatabaseInitAllMetadata>
+    <LoadingProgress.StartupImpact.DefDatabaseAddAllInMods>Копирование всех дефов из модов в глобальные базы</LoadingProgress.StartupImpact.DefDatabaseAddAllInMods>
+    <LoadingProgress.StartupImpact.ResolveAllWantedCrossReferences.NonImplied>Разрешение перекрестных ссылок между не-подразумеваемыми дефами</LoadingProgress.StartupImpact.ResolveAllWantedCrossReferences.NonImplied>
+    <LoadingProgress.StartupImpact.DefOfHelperRebindAllDefOfs.Early>Перепривязка DefOf (ранняя)</LoadingProgress.StartupImpact.DefOfHelperRebindAllDefOfs.Early>
+    <LoadingProgress.StartupImpact.TKeySystemBuildMappings>Построение сопоставлений системы ключей перевода</LoadingProgress.StartupImpact.TKeySystemBuildMappings>
+    <LoadingProgress.StartupImpact.BackStoryTranslationUtilityLoadAndInjectBackstoryData>Загрузка и внедрение устаревших переводов биографий</LoadingProgress.StartupImpact.BackStoryTranslationUtilityLoadAndInjectBackstoryData>
+    <LoadingProgress.StartupImpact.ModContentPackReloadContentInt.AudioClips>Загрузка аудиоклипов</LoadingProgress.StartupImpact.ModContentPackReloadContentInt.AudioClips>
+    <LoadingProgress.StartupImpact.ModContentPackReloadContentInt.Textures>Загрузка текстур</LoadingProgress.StartupImpact.ModContentPackReloadContentInt.Textures>
+    <LoadingProgress.StartupImpact.ModContentPackReloadContentInt.Strings>Загрузка строк</LoadingProgress.StartupImpact.ModContentPackReloadContentInt.Strings>
+    <LoadingProgress.StartupImpact.ModContentPackReloadContentInt.AssetBundles>Загрузка пакетов ресурсов</LoadingProgress.StartupImpact.ModContentPackReloadContentInt.AssetBundles>
+    <LoadingProgress.StartupImpact.LoadedLanguageInjectIntoDataBeforeImpliedDefs>Внедрение выбранных языковых данных (ранний проход)</LoadingProgress.StartupImpact.LoadedLanguageInjectIntoDataBeforeImpliedDefs>
+    <LoadingProgress.StartupImpact.ColoredTextResetStaticData>Выполнение глобальных операций (ранний проход)</LoadingProgress.StartupImpact.ColoredTextResetStaticData>
+    <LoadingProgress.StartupImpact.DefGeneratorGenerateImpliedDefsPreResolve>Генерация подразумеваемых дефов (до разрешения)</LoadingProgress.StartupImpact.DefGeneratorGenerateImpliedDefsPreResolve>
+    <LoadingProgress.StartupImpact.ResolveAllWantedCrossReferences.Implied>Разрешение перекрестных ссылок между подразумеваемыми дефами</LoadingProgress.StartupImpact.ResolveAllWantedCrossReferences.Implied>
+    <LoadingProgress.StartupImpact.DefOfHelperRebindAllDefOfs.Final>Перепривязка DefOf (финальная)</LoadingProgress.StartupImpact.DefOfHelperRebindAllDefOfs.Final>
+    <LoadingProgress.StartupImpact.PlayDataLoaderResetStaticDataPre>Другие операции привязки, сброса и глобальные (до разрешения)</LoadingProgress.StartupImpact.PlayDataLoaderResetStaticDataPre>
+    <LoadingProgress.StartupImpact.ResolveReferences>Разрешение ссылок</LoadingProgress.StartupImpact.ResolveReferences>
+    <LoadingProgress.StartupImpact.DefGeneratorGenerateImpliedDefsPostResolve>Генерация подразумеваемых дефов (после разрешения)</LoadingProgress.StartupImpact.DefGeneratorGenerateImpliedDefsPostResolve>
+    <LoadingProgress.StartupImpact.PlayDataLoaderResetStaticDataPost>Другие операции привязки, сброса и глобальные (после разрешения)</LoadingProgress.StartupImpact.PlayDataLoaderResetStaticDataPost>
+    <LoadingProgress.StartupImpact.ErrorCheckAllDefs>Проверка всех дефов на ошибки</LoadingProgress.StartupImpact.ErrorCheckAllDefs>
+    <LoadingProgress.StartupImpact.KeyPrefsInit>Загрузка настроек клавиатуры</LoadingProgress.StartupImpact.KeyPrefsInit>
+    <LoadingProgress.StartupImpact.ShortHashGiverGiveAllShortHashes>Присвоение коротких хэшей</LoadingProgress.StartupImpact.ShortHashGiverGiveAllShortHashes>
+    <LoadingProgress.StartupImpact.ExecuteToExecuteWhenFinished>Выполнение отложенной задачи инициализации {0}</LoadingProgress.StartupImpact.ExecuteToExecuteWhenFinished>
+    <LoadingProgress.StartupImpact.SolidBioDatabaseLoadAllBios>Загрузка всех биографий</LoadingProgress.StartupImpact.SolidBioDatabaseLoadAllBios>
+    <LoadingProgress.StartupImpact.LoadedLanguageInjectIntoDataAfterImpliedDefs>Внедрение выбранных языковых данных в игровые данные</LoadingProgress.StartupImpact.LoadedLanguageInjectIntoDataAfterImpliedDefs>
+    <LoadingProgress.StartupImpact.StaticConstructorOnStartupUtilityCallAll>Запуск статических конструкторов</LoadingProgress.StartupImpact.StaticConstructorOnStartupUtilityCallAll>
+    <LoadingProgress.StartupImpact.FloatMenuMakerMapInit>Инициализация карты всплывающих меню</LoadingProgress.StartupImpact.FloatMenuMakerMapInit>
+    <LoadingProgress.StartupImpact.GlobalTextureAtlasManagerBakeStaticAtlases>Запекание атласов текстур</LoadingProgress.StartupImpact.GlobalTextureAtlasManagerBakeStaticAtlases>
+    <LoadingProgress.StartupImpact.AbstractFilesystemClearAllCache>Очистка кэша файловой системы</LoadingProgress.StartupImpact.AbstractFilesystemClearAllCache>
+    <LoadingProgress.StartupImpact.Total.Mods>Моды</LoadingProgress.StartupImpact.Total.Mods>
+    <LoadingProgress.StartupImpact.Total.ModsHidden>Скрытые моды</LoadingProgress.StartupImpact.Total.ModsHidden>
+    <LoadingProgress.StartupImpact.Total.BaseGame>Не связано напрямую с модами</LoadingProgress.StartupImpact.Total.BaseGame>
+    <LoadingProgress.StartupImpact.Total.Others>Неотслеженное</LoadingProgress.StartupImpact.Total.Others>
+    <LoadingProgress.StartupImpact.Seconds>{0} с</LoadingProgress.StartupImpact.Seconds>
+    <LoadingProgress.StartupImpact.Milliseconds>{0} мс</LoadingProgress.StartupImpact.Milliseconds>
+    <LoadingProgress.StartupImpact.StartupTime>Время запуска: {0}</LoadingProgress.StartupImpact.StartupTime>
+    <LoadingProgress.StartupImpact.StartupMods>Влияние модов на запуск: {0}</LoadingProgress.StartupImpact.StartupMods>
+    <LoadingProgress.StartupImpact.StartupNonmods>Не связано напрямую с модами: {0}</LoadingProgress.StartupImpact.StartupNonmods>
+    <LoadingProgress.StartupImpact.LogarithmicScale>Использовать логарифмическую шкалу</LoadingProgress.StartupImpact.LogarithmicScale>
+    <LoadingProgress.StartupImpact.LogarithmicScale.Tip>Когда включено, значения влияния на запуск отображаются в логарифмической шкале: значение в 10 раз больше будет выглядеть лишь в 2 раза больше. Это помогает сравнивать сильно различающиеся воздействия.</LoadingProgress.StartupImpact.LogarithmicScale.Tip>
+    <LoadingProgress.StartupImpact.ToggleModVisibility.Tip>Переключить видимость влияния этого мода на время запуска. Если это мод с наибольшим влиянием, после скрытия за эталон будет взят следующий по величине.</LoadingProgress.StartupImpact.ToggleModVisibility.Tip>
+    <LoadingProgress.StartupImpact.Saved>Сохранено успешно</LoadingProgress.StartupImpact.Saved>
+    <LoadingProgress.StartupImpact.SaveFailed>Ошибка сохранения: {0}</LoadingProgress.StartupImpact.SaveFailed>
+    <LoadingProgress.StartupImpact.Loaded>Загружено успешно</LoadingProgress.StartupImpact.Loaded>
+    <LoadingProgress.StartupImpact.LoadFailedNoData>Ошибка загрузки: сохранённые данные не найдены</LoadingProgress.StartupImpact.LoadFailedNoData>
+    <LoadingProgress.StartupImpact.LoadFailed>Ошибка загрузки: {0}</LoadingProgress.StartupImpact.LoadFailed>
+    <LoadingProgress.StartupImpact.Disabled>&lt;i&gt;Отслеживание влияния на время запуска отключено в настройках&lt;/i&gt;</LoadingProgress.StartupImpact.Disabled>
+</LanguageData>

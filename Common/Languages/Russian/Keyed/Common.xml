@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+    <LoadingProgress.ExecuteToExecuteWhenFinished>Прогресс загрузки: Выполнение задач отложенной инициализации</LoadingProgress.ExecuteToExecuteWhenFinished>
+    <LoadingProgress.CallAll>Прогресс загрузки: Вызов всех статических конструкторов</LoadingProgress.CallAll>
+    <LoadingProgress.ModHashChanged>(Список модов изменился с последнего запуска игры; оценка может быть неточной.)</LoadingProgress.ModHashChanged>
+    <LoadingProgress.LoadingTime>Загрузка игры заняла {0}</LoadingProgress.LoadingTime>
+    <LoadingProgress.LoadingTime.Tip>Кликните, чтобы увидеть подробную разбивку времени загрузки.</LoadingProgress.LoadingTime.Tip>
+    <LoadingProgress.TimeRemaining>Осталось {0} из {1}</LoadingProgress.TimeRemaining>
+    <LoadingProgress.TimeOverEstimate>{0} сверх {1}</LoadingProgress.TimeOverEstimate>
+    <LoadingProgress.FasterGameLoadingEarlyModContentLoading>Прогресс загрузки — Ранняя загрузка контента модов Faster Game Loading</LoadingProgress.FasterGameLoadingEarlyModContentLoading>
+    <LoadingProgress.FasterGameLoadingEarlyModContentLoading.ForMod>Faster Game Loading выполняет раннюю загрузку контента для &lt;i&gt;{0}&lt;/i&gt;...</LoadingProgress.FasterGameLoadingEarlyModContentLoading.ForMod>
+</LanguageData>

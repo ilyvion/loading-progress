@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+    <LoadingProgress.Stage.Initializing>Инициализация...</LoadingProgress.Stage.Initializing>
+    <LoadingProgress.Stage.LoadingModClasses>Загрузка классов модов... (&lt;i&gt;{0}&lt;/i&gt;)</LoadingProgress.Stage.LoadingModClasses>
+    <LoadingProgress.Stage.LoadModXml>Загрузка XML модов... (&lt;i&gt;{0}&lt;/i&gt;)</LoadingProgress.Stage.LoadModXml>
+    <LoadingProgress.Stage.CombineIntoUnifiedXml>Объединение XML...</LoadingProgress.Stage.CombineIntoUnifiedXml>
+    <LoadingProgress.Stage.TKeySystemParse>Разбор системы ключей перевода...</LoadingProgress.Stage.TKeySystemParse>
+    <LoadingProgress.Stage.ErrorCheckPatches>Проверка патчей XML на ошибки...</LoadingProgress.Stage.ErrorCheckPatches>
+    <LoadingProgress.Stage.ErrorCheckPatches.ForMod>Проверка патчей XML на ошибки... (&lt;i&gt;{0}&lt;/i&gt;)</LoadingProgress.Stage.ErrorCheckPatches.ForMod>
+    <LoadingProgress.Stage.ApplyPatches>Применение патчей XML... (&lt;i&gt;{0}&lt;/i&gt;)</LoadingProgress.Stage.ApplyPatches>
+    <LoadingProgress.Stage.ParseAndProcessXml>Разбор и обработка XML...</LoadingProgress.Stage.ParseAndProcessXml>
+    <LoadingProgress.Stage.ParseAndProcessXml.ForMod>Разбор и обработка XML... (&lt;i&gt;{0}&lt;/i&gt;)</LoadingProgress.Stage.ParseAndProcessXml.ForMod>
+    <LoadingProgress.Stage.XmlInheritanceResolve>Разрешение наследования XML...</LoadingProgress.Stage.XmlInheritanceResolve>
+    <LoadingProgress.Stage.LoadingDefs>Загрузка дефов... (&lt;i&gt;{0}&lt;/i&gt;)</LoadingProgress.Stage.LoadingDefs>
+    <LoadingProgress.Stage.LoadingDefs.WithDef>Загрузка дефов... (&lt;i&gt;{0} — {1} ({2})&lt;/i&gt;)</LoadingProgress.Stage.LoadingDefs.WithDef>
+    <LoadingProgress.Stage.ClearCachedPatches>Очистка кэшированных патчей...</LoadingProgress.Stage.ClearCachedPatches>
+    <LoadingProgress.Stage.XmlInheritanceClear>Очистка наследования XML...</LoadingProgress.Stage.XmlInheritanceClear>
+    <LoadingProgress.Stage.LoadLanguageMetadata>Загрузка метаданных языка...</LoadingProgress.Stage.LoadLanguageMetadata>
+    <LoadingProgress.Stage.LoadLanguage>Загрузка данных языка... (&lt;i&gt;{0}&lt;/i&gt;)</LoadingProgress.Stage.LoadLanguage>
+    <LoadingProgress.Stage.CopyAllDefsToGlobalDatabases>Копирование всех дефов из модов в глобальные базы...</LoadingProgress.Stage.CopyAllDefsToGlobalDatabases>
+    <LoadingProgress.Stage.ResolveCrossReferencesBetweenNonImpliedDefsStage1>Разрешение перекрестных ссылок между не-подразумеваемыми дефами (этап 1)...</LoadingProgress.Stage.ResolveCrossReferencesBetweenNonImpliedDefsStage1>
+    <LoadingProgress.Stage.ResolveCrossReferencesBetweenNonImpliedDefsStage2>Разрешение перекрестных ссылок между не-подразумеваемыми дефами (этап 2)...</LoadingProgress.Stage.ResolveCrossReferencesBetweenNonImpliedDefsStage2>
+    <LoadingProgress.Stage.RebindDefOfsEarly>Перепривязка DefOf (ранняя)...</LoadingProgress.Stage.RebindDefOfsEarly>
+    <LoadingProgress.Stage.TKeySystemBuildMappings>Построение сопоставлений системы ключей перевода...</LoadingProgress.Stage.TKeySystemBuildMappings>
+    <LoadingProgress.Stage.LegacyBackstoryTranslations>Загрузка устаревших переводов биографий...</LoadingProgress.Stage.LegacyBackstoryTranslations>
+    <LoadingProgress.Stage.InjectSelectedLanguageDataEarly>Внедрение выбранных языковых данных в игровые данные (ранний проход)...</LoadingProgress.Stage.InjectSelectedLanguageDataEarly>
+    <LoadingProgress.Stage.GlobalOperationsEarly>Выполнение глобальных операций (ранний проход)...</LoadingProgress.Stage.GlobalOperationsEarly>
+    <LoadingProgress.Stage.GenerateImpliedDefs>Генерация подразумеваемых дефов (до разрешения)...</LoadingProgress.Stage.GenerateImpliedDefs>
+    <LoadingProgress.Stage.ResolveCrossReferencesBetweenImpliedDefs>Разрешение перекрестных ссылок между дефами, созданными подразумеваемыми дефами...</LoadingProgress.Stage.ResolveCrossReferencesBetweenImpliedDefs>
+    <LoadingProgress.Stage.RebindDefOfsFinal>Перепривязка DefOf (финальная)...</LoadingProgress.Stage.RebindDefOfsFinal>
+    <LoadingProgress.Stage.OtherOperationsPreResolve>Выполнение других глобальных операций (до разрешения)...</LoadingProgress.Stage.OtherOperationsPreResolve>
+    <LoadingProgress.Stage.ResolveReferences>Разрешение ссылок... (&lt;i&gt;{0}&lt;/i&gt;)</LoadingProgress.Stage.ResolveReferences>
+    <LoadingProgress.Stage.OtherOperationsPostResolve>Выполнение других глобальных операций (после разрешения)...</LoadingProgress.Stage.OtherOperationsPostResolve>
+    <LoadingProgress.Stage.ErrorCheckAllDefs>Проверка всех дефов на ошибки...</LoadingProgress.Stage.ErrorCheckAllDefs>
+    <LoadingProgress.Stage.ShortHashGiving>Присвоение коротких хэшей дефам...</LoadingProgress.Stage.ShortHashGiving>
+    <LoadingProgress.Stage.ExecuteToExecuteWhenFinished>Выполнение задач отложенной инициализации... (&lt;i&gt;{0}&lt;/i&gt;)</LoadingProgress.Stage.ExecuteToExecuteWhenFinished>
+    <LoadingProgress.Stage.ExecuteToExecuteWhenFinished.Reloading.audio_clips>Загрузка аудиоклипов для &lt;i&gt;{0}&lt;/i&gt;</LoadingProgress.Stage.ExecuteToExecuteWhenFinished.Reloading.audio_clips>
+    <LoadingProgress.Stage.ExecuteToExecuteWhenFinished.Reloading.textures>Загрузка текстур для &lt;i&gt;{0}&lt;/i&gt;</LoadingProgress.Stage.ExecuteToExecuteWhenFinished.Reloading.textures>
+    <LoadingProgress.Stage.ExecuteToExecuteWhenFinished.Reloading.strings>Загрузка строк для &lt;i&gt;{0}&lt;/i&gt;</LoadingProgress.Stage.ExecuteToExecuteWhenFinished.Reloading.strings>
+    <LoadingProgress.Stage.ExecuteToExecuteWhenFinished.Reloading.asset_bundles>Загрузка пакетов ресурсов для &lt;i&gt;{0}&lt;/i&gt;</LoadingProgress.Stage.ExecuteToExecuteWhenFinished.Reloading.asset_bundles>
+    <LoadingProgress.Stage.StaticConstructorOnStartupCallAll>Вызов всех статических конструкторов... (&lt;i&gt;{0}&lt;/i&gt;)</LoadingProgress.Stage.StaticConstructorOnStartupCallAll>
+    <LoadingProgress.Stage.LoadingAllBios>Загрузка всех биографий...</LoadingProgress.Stage.LoadingAllBios>
+    <LoadingProgress.Stage.InjectSelectedLanguageDataIntoGameData>Внедрение выбранных языковых данных в игровые данные...</LoadingProgress.Stage.InjectSelectedLanguageDataIntoGameData>
+    <LoadingProgress.Stage.AtlasBaking>Запекание статических атласов...</LoadingProgress.Stage.AtlasBaking>
+    <LoadingProgress.Stage.GarbageCollection>Сборка мусора...</LoadingProgress.Stage.GarbageCollection>
+    <LoadingProgress.Stage.Finished>Готово!</LoadingProgress.Stage.Finished>
+</LanguageData>

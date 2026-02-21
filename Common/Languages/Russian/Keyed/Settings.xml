@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+    <LoadingProgress.PatchInitialization>Патчить код поздней инициализации для отображения прогресса загрузки</LoadingProgress.PatchInitialization>
+    <LoadingProgress.PatchInitialization.Tip>Когда включено, мод пропатчит участок процесса запуска RimWorld, где игра обычно зависает, чтобы сделать его более отзывчивым. Это позволяет отслеживать и отображать прогресс для каждого статического конструктора. Проблемы маловероятны, если только у вас нет модов, которые очень специфично вмешиваются в этот код и чувствительны к таймингу.\n\nЕсли возникают проблемы с Loading Progress, попробуйте отключить эту настройку — это может решить проблему.</LoadingProgress.PatchInitialization.Tip>
+    <LoadingProgress.PatchReloadContent>Патчить код загрузки контента для отображения прогресса загрузки</LoadingProgress.PatchReloadContent>
+    <LoadingProgress.PatchReloadContent.Tip>Когда включено, мод заменит метод загрузки контента модов, чтобы отслеживать и показывать прогресс для каждого перезагружаемого пакета контента. Проблемы маловероятны, если только другие моды не патчат этот же код. Мод выдаст предупреждение в лог, если обнаружит такие вмешательства.\n\nЕсли возникают проблемы с Loading Progress, попробуйте отключить эту настройку. Сообщайте о проблемах с модами, вызвавшими предупреждение.</LoadingProgress.PatchReloadContent.Tip>
+    <LoadingProgress.LastLoadingTime>Показывать время загрузки</LoadingProgress.LastLoadingTime>
+    <LoadingProgress.LastLoadingTime.Tip>Когда включено, мод будет показывать прошедшее время. После первой успешной загрузки оно сохраняется и используется как оценка для следующего запуска.</LoadingProgress.LastLoadingTime.Tip>
+    <LoadingProgress.LoadingTimeAsCountDown>Показывать время загрузки как обратный отсчёт</LoadingProgress.LoadingTimeAsCountDown>
+    <LoadingProgress.LoadingTimeAsCountDown.Tip>Когда включено, время загрузки будет отображаться как обратный отсчёт от оценочного значения. Удобно видеть, сколько примерно осталось.</LoadingProgress.LoadingTimeAsCountDown.Tip>
+    <LoadingProgress.LastLoadingTimeProgressBar> - Показывать полосу прогресса времени загрузки</LoadingProgress.LastLoadingTimeProgressBar>
+    <LoadingProgress.LastLoadingTimeProgressBar.Tip>Когда включено, во время загрузки будет отображаться полоса прогресса, показывающая, сколько времени прошло относительно ожидаемого.</LoadingProgress.LastLoadingTimeProgressBar.Tip>
+    <LoadingProgress.LastLoadingTimeInCorner>Показывать время загрузки в нижнем правом углу главного меню</LoadingProgress.LastLoadingTimeInCorner>
+    <LoadingProgress.LastLoadingTimeInCorner.Tip>Когда включено, в нижнем правом углу главного меню будет отображаться время, затраченное на загрузку игры.</LoadingProgress.LastLoadingTimeInCorner.Tip>
+    <LoadingProgress.ShowFasterGameLoadingEarlyModContentLoading>Показывать прогресс ранней загрузки контента модов Faster Game Loading</LoadingProgress.ShowFasterGameLoadingEarlyModContentLoading>
+    <LoadingProgress.ShowFasterGameLoadingEarlyModContentLoading.Tip>Когда включено и Faster Game Loading активен, мод будет показывать дополнительный индикатор загрузки контента модов, загружаемого на раннем этапе запуска.</LoadingProgress.ShowFasterGameLoadingEarlyModContentLoading.Tip>
+    <LoadingProgress.TrackStartupLoadingImpact>Отслеживать влияние модов на время запуска</LoadingProgress.TrackStartupLoadingImpact>
+    <LoadingProgress.TrackStartupLoadingImpact.Tip>Когда включено, мод будет отслеживать влияние модов и базовой игры на время запуска, позволяя увидеть подробную разбивку причин задержек.</LoadingProgress.TrackStartupLoadingImpact.Tip>
+    <LoadingProgress.LoadingWindowPlacement>Расположение окна загрузки</LoadingProgress.LoadingWindowPlacement>
+    <LoadingProgress.Top>Сверху</LoadingProgress.Top>
+    <LoadingProgress.Middle>По центру</LoadingProgress.Middle>
+    <LoadingProgress.Bottom>Снизу</LoadingProgress.Bottom>
+    <LoadingProgress.Custom>Пользовательское</LoadingProgress.Custom>
+</LanguageData>

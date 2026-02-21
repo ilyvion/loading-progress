@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Russian localization, thanks to [Aks](https://steamcommunity.com/id/aks_kun/).
+
 ## [0.9.5] - 2025-08-26
 
 ### Fixed
