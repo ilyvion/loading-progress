@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.6] - 2026-02-21
+
 ### Added
 
 - Russian localization, thanks to [Aks](https://steamcommunity.com/id/aks_kun/).
@@ -190,7 +192,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First implementation of the mod.
 
-[Unreleased]: https://github.com/ilyvion/loading-progress/compare/v0.9.5...HEAD
+[Unreleased]: https://github.com/ilyvion/loading-progress/compare/v0.9.6...HEAD
+[0.9.6]: https://github.com/ilyvion/loading-progress/compare/v0.9.5..v0.9.6
 [0.9.5]: https://github.com/ilyvion/loading-progress/compare/v0.9.4..v0.9.5
 [0.9.4]: https://github.com/ilyvion/loading-progress/compare/v0.9.3..v0.9.4
 [0.9.3]: https://github.com/ilyvion/loading-progress/compare/v0.9.2..v0.9.3
