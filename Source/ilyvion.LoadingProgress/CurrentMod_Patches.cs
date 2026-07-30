@@ -27,7 +27,8 @@ internal static class LoadedModManager_LoadingDataTracker_Patches
             return;
         }
 
-        var total = xmls.SelectMany(x => x.xmlDoc.DocumentElement.ChildNodes.Cast<XmlNode>())
+        var total = xmls.Where(x => x?.xmlDoc?.DocumentElement != null)
+            .SelectMany(x => x.xmlDoc.DocumentElement.ChildNodes.Cast<XmlNode>())
             .Count();
         LoadingProgressWindow.StageProgress = (0, total);
     }
