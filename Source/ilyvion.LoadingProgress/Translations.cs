@@ -94,6 +94,10 @@ internal static class Translations
         string languageDirectory
     )
     {
+        if (!Directory.Exists(languageDirectory))
+        {
+            return;
+        }
         foreach (var file in Directory.GetFiles(languageDirectory, "*.xml"))
         {
             try
