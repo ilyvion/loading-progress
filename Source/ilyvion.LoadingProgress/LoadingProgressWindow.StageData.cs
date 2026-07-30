@@ -777,7 +777,13 @@ internal sealed partial class LoadingProgressWindow
                         if (removeCount > 0)
                         {
                             // Remove only those rules
-                            StageRules.RemoveAll((r, idx) => idx < i && r.Stage != matchedStage);
+                            for (var j = i - 1; j >= 0; j--)
+                            {
+                                if (StageRules[j].Stage != matchedStage)
+                                {
+                                    StageRules.RemoveAt(j);
+                                }
+                            }
                         }
                     }
                     CurrentStageRule = rule;
