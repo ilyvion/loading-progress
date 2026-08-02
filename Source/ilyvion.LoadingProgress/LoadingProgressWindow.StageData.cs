@@ -691,6 +691,7 @@ internal sealed partial class LoadingProgressWindow
     internal static void SetCurrentLoadingActivityRaw(string value) =>
         _currentLoadingActivity = value;
 
+    private static readonly object _stageRulesLock = new();
     private static StageRule CurrentStageRule = StageRules[0];
     internal static string CurrentLoadingActivity
     {
@@ -756,33 +757,36 @@ internal sealed partial class LoadingProgressWindow
                 return;
             }
 
-            for (var i = 0; i < StageRules.Count; i++)
+            lock (_stageRulesLock)
             {
-                var rule = StageRules[i];
-                if (rule.Predicate(value))
+                for (var i = 0; i < StageRules.Count; i++)
                 {
-                    // Remove all prior rules that do NOT share the same LoadingStage as
-                    // the matched rule
-                    if (i > 0)
+                    var rule = StageRules[i];
+                    if (rule.Predicate(value))
                     {
-                        var matchedStage = rule.Stage;
-                        var removeCount = 0;
-                        for (var j = 0; j < i; j++)
+                        // Remove all prior rules that do NOT share the same LoadingStage as
+                        // the matched rule
+                        if (i > 0)
                         {
-                            if (StageRules[j].Stage != matchedStage)
+                            var matchedStage = rule.Stage;
+                            var removeCount = 0;
+                            for (var j = 0; j < i; j++)
                             {
-                                removeCount++;
+                                if (StageRules[j].Stage != matchedStage)
+                                {
+                                    removeCount++;
+                                }
+                            }
+                            if (removeCount > 0)
+                            {
+                                // Remove only those rules
+                                StageRules.RemoveAll((r, idx) => idx < i && r.Stage != matchedStage);
                             }
                         }
-                        if (removeCount > 0)
-                        {
-                            // Remove only those rules
-                            StageRules.RemoveAll((r, idx) => idx < i && r.Stage != matchedStage);
-                        }
+                        CurrentStageRule = rule;
+                        rule.Action(value);
+                        return;
                     }
-                    CurrentStageRule = rule;
-                    rule.Action(value);
-                    return;
                 }
             }
 
