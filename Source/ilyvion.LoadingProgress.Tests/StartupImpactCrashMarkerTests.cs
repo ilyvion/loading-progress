@@ -1,11 +1,10 @@
+using DevTools.Testing;
 using ilyvion.LoadingProgress.StartupImpact;
-using RimTestRedux;
 
 namespace ilyvion.LoadingProgress.Tests;
 
-[HotSwappable]
-[TestSuite]
-internal static class StartupImpactCrashMarkerTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class StartupImpactCrashMarkerTests
 {
     private const long Ticks = 639253208682638880L;
 
@@ -16,11 +15,11 @@ internal static class StartupImpactCrashMarkerTests
             StartupImpactCrashMarker.Format(Ticks, 1114224214, 229, "ErrorCheckAllDefs")
         );
 
-        Assert.That(parsed.HasValue).Is.True();
-        Assert.That(parsed!.Value.StartedAtUtc.Ticks).Is.EqualTo(Ticks);
-        Assert.That(parsed.Value.ModListHash).Is.EqualTo(1114224214);
-        Assert.That(parsed.Value.ModsLoaded).Is.EqualTo(229);
-        Assert.That(parsed.Value.LastStage).Is.EqualTo("ErrorCheckAllDefs");
+        Expect.IsTrue(parsed.HasValue);
+        Expect.AreEqual(Ticks, parsed!.Value.StartedAtUtc.Ticks);
+        Expect.AreEqual(1114224214, parsed.Value.ModListHash);
+        Expect.AreEqual(229, parsed.Value.ModsLoaded);
+        Expect.AreEqual("ErrorCheckAllDefs", parsed.Value.LastStage);
     }
 
     [Test]
@@ -30,8 +29,8 @@ internal static class StartupImpactCrashMarkerTests
             StartupImpactCrashMarker.Format(Ticks, 0, 0, "")
         );
 
-        Assert.That(parsed.HasValue).Is.True();
-        Assert.That(parsed!.Value.LastStage).Is.EqualTo("");
+        Expect.IsTrue(parsed.HasValue);
+        Expect.AreEqual("", parsed!.Value.LastStage);
     }
 
     // The marker is rewritten on every stage change and whatever stopped that
@@ -47,10 +46,10 @@ internal static class StartupImpactCrashMarkerTests
 
         for (var cut = 0; cut < complete.Length; cut++)
         {
-            Assert.That(StartupImpactCrashMarker.Parse(complete[..cut]).HasValue).Is.False();
+            Expect.IsFalse(StartupImpactCrashMarker.Parse(complete[..cut]).HasValue);
         }
 
-        Assert.That(StartupImpactCrashMarker.Parse(complete).HasValue).Is.True();
+        Expect.IsTrue(StartupImpactCrashMarker.Parse(complete).HasValue);
     }
 
     [Test]
@@ -60,36 +59,30 @@ internal static class StartupImpactCrashMarkerTests
 
         StartupImpactCrashMarker.RecordStage("AfterFinish");
 
-        Assert.That(File.Exists(StartupImpactCrashMarker.MarkerFilePath)).Is.False();
+        Expect.IsFalse(File.Exists(StartupImpactCrashMarker.MarkerFilePath));
     }
 
     [Test]
     public static void AMarkerWithoutAStartTimeIsNoMarker() =>
-        Assert
-            .That(StartupImpactCrashMarker.Parse("version=1\nstage=LoadModXml\n").HasValue)
-            .Is.False();
+        Expect.IsFalse(StartupImpactCrashMarker.Parse("version=1\nstage=LoadModXml\n").HasValue);
 
     [Test]
     public static void GarbageIsNoMarker()
     {
-        Assert.That(StartupImpactCrashMarker.Parse("").HasValue).Is.False();
-        Assert.That(StartupImpactCrashMarker.Parse("\0\0\0").HasValue).Is.False();
-        Assert
-            .That(StartupImpactCrashMarker.Parse("startedAtUtcTicks=not-a-number\n").HasValue)
-            .Is.False();
+        Expect.IsFalse(StartupImpactCrashMarker.Parse("").HasValue);
+        Expect.IsFalse(StartupImpactCrashMarker.Parse("\0\0\0").HasValue);
+        Expect.IsFalse(StartupImpactCrashMarker.Parse("startedAtUtcTicks=not-a-number\n").HasValue);
     }
 
     // DateTime would throw on either of these rather than return a bad value.
     [Test]
     public static void AnOutOfRangeStartTimeIsNoMarker()
     {
-        Assert.That(StartupImpactCrashMarker.Parse("startedAtUtcTicks=0\n").HasValue).Is.False();
-        Assert.That(StartupImpactCrashMarker.Parse("startedAtUtcTicks=-5\n").HasValue).Is.False();
-        Assert
-            .That(
-                StartupImpactCrashMarker.Parse("startedAtUtcTicks=99999999999999999999\n").HasValue
-            )
-            .Is.False();
+        Expect.IsFalse(StartupImpactCrashMarker.Parse("startedAtUtcTicks=0\n").HasValue);
+        Expect.IsFalse(StartupImpactCrashMarker.Parse("startedAtUtcTicks=-5\n").HasValue);
+        Expect.IsFalse(
+            StartupImpactCrashMarker.Parse("startedAtUtcTicks=99999999999999999999\n").HasValue
+        );
     }
 
     // Written with \n, but a marker that has been through anything Windows-shaped
@@ -101,7 +94,7 @@ internal static class StartupImpactCrashMarkerTests
             "startedAtUtcTicks=" + Ticks + "\r\nstage=LoadModXml\r\n"
         );
 
-        Assert.That(parsed.HasValue).Is.True();
-        Assert.That(parsed!.Value.LastStage).Is.EqualTo("LoadModXml");
+        Expect.IsTrue(parsed.HasValue);
+        Expect.AreEqual("LoadModXml", parsed!.Value.LastStage);
     }
 }

@@ -1,10 +1,9 @@
-using RimTestRedux;
+using DevTools.Testing;
 
 namespace ilyvion.LoadingProgress.Tests;
 
-[HotSwappable]
-[TestSuite]
-internal static class ExtraLongEventUIWindowLayoutTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class ExtraLongEventUIWindowLayoutTests
 {
     [Test]
     public static void ComputeReservedExtentCentersTheBlockOnScreen()
@@ -14,10 +13,10 @@ internal static class ExtraLongEventUIWindowLayoutTests
             200f,
             new Vector2(1920f, 1080f)
         );
-        Assert.That(rect.x).Is.EqualTo(760f);
-        Assert.That(rect.y).Is.EqualTo(440f);
-        Assert.That(rect.width).Is.EqualTo(400f);
-        Assert.That(rect.height).Is.EqualTo(200f);
+        Expect.AreEqual(760f, rect.x);
+        Expect.AreEqual(440f, rect.y);
+        Expect.AreEqual(400f, rect.width);
+        Expect.AreEqual(200f, rect.height);
     }
 
     [Test]
@@ -28,10 +27,10 @@ internal static class ExtraLongEventUIWindowLayoutTests
             reserved,
             statusBoxHeight: 70f
         );
-        Assert.That(trimmed.x).Is.EqualTo(100f);
-        Assert.That(trimmed.y).Is.EqualTo(287f);
-        Assert.That(trimmed.width).Is.EqualTo(400f);
-        Assert.That(trimmed.height).Is.EqualTo(413f);
+        Expect.AreEqual(100f, trimmed.x);
+        Expect.AreEqual(287f, trimmed.y);
+        Expect.AreEqual(400f, trimmed.width);
+        Expect.AreEqual(413f, trimmed.height);
     }
 
     [Test]
@@ -42,7 +41,7 @@ internal static class ExtraLongEventUIWindowLayoutTests
             reserved,
             statusBoxHeight: 70f
         );
-        Assert.That(trimmed.height).Is.EqualTo(0f);
+        Expect.AreEqual(0f, trimmed.height);
     }
 
     [Test]
@@ -54,8 +53,8 @@ internal static class ExtraLongEventUIWindowLayoutTests
             reservedExtent: null,
             screenHeight: 1080f
         );
-        Assert.That(position.x).Is.EqualTo(100f);
-        Assert.That(position.y).Is.EqualTo(100f);
+        Expect.AreEqual(100f, position.x);
+        Expect.AreEqual(100f, position.y);
     }
 
     [Test]
@@ -70,8 +69,8 @@ internal static class ExtraLongEventUIWindowLayoutTests
             reserved,
             screenHeight: 1080f
         );
-        Assert.That(position.x).Is.EqualTo(0f);
-        Assert.That(position.y).Is.EqualTo(0f);
+        Expect.AreEqual(0f, position.x);
+        Expect.AreEqual(0f, position.y);
     }
 
     [Test]
@@ -84,8 +83,8 @@ internal static class ExtraLongEventUIWindowLayoutTests
             reserved,
             screenHeight: 1080f
         );
-        Assert.That(position.x).Is.EqualTo(700f);
-        Assert.That(position.y).Is.EqualTo(710f);
+        Expect.AreEqual(700f, position.x);
+        Expect.AreEqual(710f, position.y);
     }
 
     [Test]
@@ -98,8 +97,8 @@ internal static class ExtraLongEventUIWindowLayoutTests
             reserved,
             screenHeight: 1080f
         );
-        Assert.That(position.x).Is.EqualTo(700f);
-        Assert.That(position.y).Is.EqualTo(90f);
+        Expect.AreEqual(700f, position.x);
+        Expect.AreEqual(90f, position.y);
     }
 
     [Test]
@@ -112,8 +111,8 @@ internal static class ExtraLongEventUIWindowLayoutTests
             reserved,
             screenHeight: 900f
         );
-        Assert.That(position.x).Is.EqualTo(700f);
-        Assert.That(position.y).Is.EqualTo(0f);
+        Expect.AreEqual(700f, position.x);
+        Expect.AreEqual(0f, position.y);
     }
 
     [Test]
@@ -125,7 +124,7 @@ internal static class ExtraLongEventUIWindowLayoutTests
             reservedExtent: null,
             screenHeight: 1000f
         );
-        Assert.That(y).Is.EqualTo(400f);
+        Expect.AreEqual(400f, y);
     }
 
     [Test]
@@ -140,7 +139,7 @@ internal static class ExtraLongEventUIWindowLayoutTests
             reserved,
             screenHeight: 1200f
         );
-        Assert.That(y).Is.EqualTo(555f);
+        Expect.AreEqual(555f, y);
     }
 
     [Test]
@@ -152,13 +151,13 @@ internal static class ExtraLongEventUIWindowLayoutTests
             ourCombinedHeight: 300f,
             screenHeight: 1200f
         );
-        Assert.That(balanced.x).Is.EqualTo(50f);
-        Assert.That(balanced.y).Is.EqualTo(345f);
-        Assert.That(balanced.width).Is.EqualTo(400f);
-        Assert.That(balanced.height).Is.EqualTo(200f);
+        Expect.AreEqual(50f, balanced.x);
+        Expect.AreEqual(345f, balanced.y);
+        Expect.AreEqual(400f, balanced.width);
+        Expect.AreEqual(200f, balanced.height);
         // Top margin (above balanced.y) and bottom margin (below our own window, which sits
         // balanced.height + 10px below balanced.y) both come out to 345px - a centered group.
-        Assert.That(1200f - (balanced.y + 200f + 10f + 300f)).Is.EqualTo(balanced.y);
+        Expect.AreEqual(balanced.y, 1200f - (balanced.y + 200f + 10f + 300f));
     }
 
     [Test]
@@ -170,8 +169,8 @@ internal static class ExtraLongEventUIWindowLayoutTests
             fasterGameLoadingWindowSize: Vector2.zero,
             fasterGameLoadingGoesAbove: false
         );
-        Assert.That(top).Is.EqualTo(100f);
-        Assert.That(bottom).Is.EqualTo(250f);
+        Expect.AreEqual(100f, top);
+        Expect.AreEqual(250f, bottom);
     }
 
     [Test]
@@ -183,8 +182,8 @@ internal static class ExtraLongEventUIWindowLayoutTests
             fasterGameLoadingWindowSize: new Vector2(400f, 80f),
             fasterGameLoadingGoesAbove: false
         );
-        Assert.That(top).Is.EqualTo(100f);
-        Assert.That(bottom).Is.EqualTo(340f);
+        Expect.AreEqual(100f, top);
+        Expect.AreEqual(340f, bottom);
     }
 
     [Test]
@@ -196,8 +195,8 @@ internal static class ExtraLongEventUIWindowLayoutTests
             fasterGameLoadingWindowSize: new Vector2(400f, 80f),
             fasterGameLoadingGoesAbove: true
         );
-        Assert.That(top).Is.EqualTo(10f);
-        Assert.That(bottom).Is.EqualTo(250f);
+        Expect.AreEqual(10f, top);
+        Expect.AreEqual(250f, bottom);
     }
 
     [Test]
@@ -210,7 +209,7 @@ internal static class ExtraLongEventUIWindowLayoutTests
             aboveCandidate,
             reservedExtent: null
         );
-        Assert.That(top).Is.EqualTo(190f);
+        Expect.AreEqual(190f, top);
     }
 
     [Test]
@@ -223,7 +222,7 @@ internal static class ExtraLongEventUIWindowLayoutTests
             aboveCandidate,
             reservedExtent: null
         );
-        Assert.That(top).Is.EqualTo(510f);
+        Expect.AreEqual(510f, top);
     }
 
     [Test]
@@ -239,7 +238,7 @@ internal static class ExtraLongEventUIWindowLayoutTests
             aboveCandidate,
             reservedExtent: reserved
         );
-        Assert.That(top).Is.EqualTo(510f);
+        Expect.AreEqual(510f, top);
     }
 
     [Test]
@@ -253,6 +252,6 @@ internal static class ExtraLongEventUIWindowLayoutTests
             aboveCandidate,
             reservedExtent: reserved
         );
-        Assert.That(top).Is.EqualTo(190f);
+        Expect.AreEqual(190f, top);
     }
 }

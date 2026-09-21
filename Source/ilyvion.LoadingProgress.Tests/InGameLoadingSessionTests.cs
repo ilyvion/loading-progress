@@ -1,11 +1,10 @@
 using System.Xml;
-using RimTestRedux;
+using DevTools.Testing;
 
 namespace ilyvion.LoadingProgress.Tests;
 
-[HotSwappable]
-[TestSuite]
-internal static class InGameLoadingSessionTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class InGameLoadingSessionTests
 {
     [Test]
     public static void DetermineKindMapsGeneratingWorldToWorldGeneration()
@@ -19,7 +18,7 @@ internal static class InGameLoadingSessionTests
             gameToLoadPending: false,
             doAsynchronously: true
         );
-        Assert.That(kind).Is.EqualTo(InGameSessionKind.WorldGeneration);
+        Expect.AreEqual(InGameSessionKind.WorldGeneration, kind);
     }
 
     [Test]
@@ -34,7 +33,7 @@ internal static class InGameLoadingSessionTests
             gameToLoadPending: false,
             doAsynchronously: false
         );
-        Assert.That(kind).Is.EqualTo(InGameSessionKind.PlanetRegeneration);
+        Expect.AreEqual(InGameSessionKind.PlanetRegeneration, kind);
     }
 
     [Test]
@@ -52,7 +51,7 @@ internal static class InGameLoadingSessionTests
             gameToLoadPending: false,
             doAsynchronously: true
         );
-        Assert.That(kind).Is.EqualTo(InGameSessionKind.NewGameMapGeneration);
+        Expect.AreEqual(InGameSessionKind.NewGameMapGeneration, kind);
     }
 
     [Test]
@@ -67,7 +66,7 @@ internal static class InGameLoadingSessionTests
             gameToLoadPending: false,
             doAsynchronously: true
         );
-        Assert.That(kind).Is.EqualTo(InGameSessionKind.NewGameMapGeneration);
+        Expect.AreEqual(InGameSessionKind.NewGameMapGeneration, kind);
     }
 
     [Test]
@@ -85,7 +84,7 @@ internal static class InGameLoadingSessionTests
             gameToLoadPending: false,
             doAsynchronously: true
         );
-        Assert.That(kind).Is.EqualTo(InGameSessionKind.NewGameMapGeneration);
+        Expect.AreEqual(InGameSessionKind.NewGameMapGeneration, kind);
     }
 
     [Test]
@@ -103,7 +102,7 @@ internal static class InGameLoadingSessionTests
             gameToLoadPending: false,
             doAsynchronously: true
         );
-        Assert.That(kind).Is.EqualTo(InGameSessionKind.EncounterMapGeneration);
+        Expect.AreEqual(InGameSessionKind.EncounterMapGeneration, kind);
     }
 
     [Test]
@@ -122,7 +121,7 @@ internal static class InGameLoadingSessionTests
             gameToLoadPending: false,
             doAsynchronously: false
         );
-        Assert.That(kind).Is.EqualTo(InGameSessionKind.EncounterMapGenerationStatic);
+        Expect.AreEqual(InGameSessionKind.EncounterMapGenerationStatic, kind);
     }
 
     [Test]
@@ -140,7 +139,7 @@ internal static class InGameLoadingSessionTests
             gameToLoadPending: false,
             doAsynchronously: false
         );
-        Assert.That(kind).Is.EqualTo(InGameSessionKind.EncounterMapGenerationStatic);
+        Expect.AreEqual(InGameSessionKind.EncounterMapGenerationStatic, kind);
     }
 
     [Test]
@@ -158,7 +157,7 @@ internal static class InGameLoadingSessionTests
             gameToLoadPending: false,
             doAsynchronously: true
         );
-        Assert.That(kind).Is.EqualTo(InGameSessionKind.EncounterMapGeneration);
+        Expect.AreEqual(InGameSessionKind.EncounterMapGeneration, kind);
     }
 
     [Test]
@@ -173,7 +172,7 @@ internal static class InGameLoadingSessionTests
             gameToLoadPending: false,
             doAsynchronously: true
         );
-        Assert.That(kind).Is.EqualTo(InGameSessionKind.SaveLoading);
+        Expect.AreEqual(InGameSessionKind.SaveLoading, kind);
     }
 
     [Test]
@@ -192,7 +191,7 @@ internal static class InGameLoadingSessionTests
             gameToLoadPending: true,
             doAsynchronously: true
         );
-        Assert.That(kind).Is.EqualTo(InGameSessionKind.SaveLoading);
+        Expect.AreEqual(InGameSessionKind.SaveLoading, kind);
     }
 
     [Test]
@@ -209,7 +208,7 @@ internal static class InGameLoadingSessionTests
             gameToLoadPending: false,
             doAsynchronously: true
         );
-        Assert.That(kind).Is.EqualTo(InGameSessionKind.None);
+        Expect.AreEqual(InGameSessionKind.None, kind);
     }
 
     [Test]
@@ -224,7 +223,7 @@ internal static class InGameLoadingSessionTests
             gameToLoadPending: false,
             doAsynchronously: true
         );
-        Assert.That(kind).Is.EqualTo(InGameSessionKind.None);
+        Expect.AreEqual(InGameSessionKind.None, kind);
     }
 
     [Test]
@@ -239,7 +238,7 @@ internal static class InGameLoadingSessionTests
             gameToLoadPending: false,
             doAsynchronously: false
         );
-        Assert.That(kind).Is.EqualTo(InGameSessionKind.None);
+        Expect.AreEqual(InGameSessionKind.None, kind);
     }
 
     [Test]
@@ -259,7 +258,7 @@ internal static class InGameLoadingSessionTests
             gameToLoadPending: false,
             doAsynchronously: true
         );
-        Assert.That(kind).Is.EqualTo(InGameSessionKind.WorldGeneration);
+        Expect.AreEqual(InGameSessionKind.WorldGeneration, kind);
     }
 
     [Test]
@@ -279,7 +278,7 @@ internal static class InGameLoadingSessionTests
             gameToLoadPending: false,
             doAsynchronously: true
         );
-        Assert.That(kind).Is.EqualTo(InGameSessionKind.WorldGeneration);
+        Expect.AreEqual(InGameSessionKind.WorldGeneration, kind);
     }
 
     [Test]
@@ -302,7 +301,7 @@ internal static class InGameLoadingSessionTests
             gameToLoadPending: false,
             doAsynchronously: false
         );
-        Assert.That(kind).Is.EqualTo(InGameSessionKind.SaveLoading);
+        Expect.AreEqual(InGameSessionKind.SaveLoading, kind);
     }
 
     [Test]
@@ -324,7 +323,7 @@ internal static class InGameLoadingSessionTests
             gameToLoadPending: false,
             doAsynchronously: false
         );
-        Assert.That(kind).Is.EqualTo(InGameSessionKind.NewGameMapGeneration);
+        Expect.AreEqual(InGameSessionKind.NewGameMapGeneration, kind);
     }
 
     [Test]
@@ -344,7 +343,7 @@ internal static class InGameLoadingSessionTests
             gameToLoadPending: false,
             doAsynchronously: false
         );
-        Assert.That(kind).Is.EqualTo(InGameSessionKind.None);
+        Expect.AreEqual(InGameSessionKind.None, kind);
     }
 
     [Test]
@@ -366,7 +365,7 @@ internal static class InGameLoadingSessionTests
             gameToLoadPending: false,
             doAsynchronously: true
         );
-        Assert.That(kind).Is.EqualTo(InGameSessionKind.None);
+        Expect.AreEqual(InGameSessionKind.None, kind);
     }
 
     [Test]
@@ -386,7 +385,7 @@ internal static class InGameLoadingSessionTests
             gameToLoadPending: false,
             doAsynchronously: true
         );
-        Assert.That(kind).Is.EqualTo(InGameSessionKind.None);
+        Expect.AreEqual(InGameSessionKind.None, kind);
     }
 
     [Test]
@@ -409,7 +408,7 @@ internal static class InGameLoadingSessionTests
             gameToLoadPending: false,
             doAsynchronously: true
         );
-        Assert.That(kind).Is.EqualTo(InGameSessionKind.NewGameMapGeneration);
+        Expect.AreEqual(InGameSessionKind.NewGameMapGeneration, kind);
 
         kind = InGameLoadingSession.AdvanceSession(
             kind,
@@ -425,7 +424,7 @@ internal static class InGameLoadingSessionTests
             gameToLoadPending: false,
             doAsynchronously: false
         );
-        Assert.That(kind).Is.EqualTo(InGameSessionKind.NewGameMapGeneration);
+        Expect.AreEqual(InGameSessionKind.NewGameMapGeneration, kind);
 
         kind = InGameLoadingSession.AdvanceSession(
             kind,
@@ -441,7 +440,7 @@ internal static class InGameLoadingSessionTests
             gameToLoadPending: false,
             doAsynchronously: true
         );
-        Assert.That(kind).Is.EqualTo(InGameSessionKind.NewGameMapGeneration);
+        Expect.AreEqual(InGameSessionKind.NewGameMapGeneration, kind);
 
         kind = InGameLoadingSession.AdvanceSession(
             kind,
@@ -457,7 +456,7 @@ internal static class InGameLoadingSessionTests
             gameToLoadPending: false,
             doAsynchronously: false
         );
-        Assert.That(kind).Is.EqualTo(InGameSessionKind.None);
+        Expect.AreEqual(InGameSessionKind.None, kind);
     }
 
     [Test]
@@ -482,7 +481,7 @@ internal static class InGameLoadingSessionTests
             gameToLoadPending: false,
             doAsynchronously: true
         );
-        Assert.That(kind).Is.EqualTo(InGameSessionKind.EncounterMapGeneration);
+        Expect.AreEqual(InGameSessionKind.EncounterMapGeneration, kind);
 
         // currentEvent is briefly null between the two events (the first event's worker thread
         // has finished but the second hasn't been dequeued yet); the session must not drop.
@@ -500,7 +499,7 @@ internal static class InGameLoadingSessionTests
             gameToLoadPending: false,
             doAsynchronously: false
         );
-        Assert.That(kind).Is.EqualTo(InGameSessionKind.EncounterMapGeneration);
+        Expect.AreEqual(InGameSessionKind.EncounterMapGeneration, kind);
 
         kind = InGameLoadingSession.AdvanceSession(
             kind,
@@ -516,7 +515,7 @@ internal static class InGameLoadingSessionTests
             gameToLoadPending: false,
             doAsynchronously: true
         );
-        Assert.That(kind).Is.EqualTo(InGameSessionKind.EncounterMapGeneration);
+        Expect.AreEqual(InGameSessionKind.EncounterMapGeneration, kind);
 
         kind = InGameLoadingSession.AdvanceSession(
             kind,
@@ -532,7 +531,7 @@ internal static class InGameLoadingSessionTests
             gameToLoadPending: false,
             doAsynchronously: false
         );
-        Assert.That(kind).Is.EqualTo(InGameSessionKind.None);
+        Expect.AreEqual(InGameSessionKind.None, kind);
     }
 
     [Test]
@@ -559,7 +558,7 @@ internal static class InGameLoadingSessionTests
             gameToLoadPending: true,
             doAsynchronously: true
         );
-        Assert.That(kind).Is.EqualTo(InGameSessionKind.SaveLoading);
+        Expect.AreEqual(InGameSessionKind.SaveLoading, kind);
 
         kind = InGameLoadingSession.AdvanceSession(
             kind,
@@ -575,7 +574,7 @@ internal static class InGameLoadingSessionTests
             gameToLoadPending: true,
             doAsynchronously: false
         );
-        Assert.That(kind).Is.EqualTo(InGameSessionKind.SaveLoading);
+        Expect.AreEqual(InGameSessionKind.SaveLoading, kind);
 
         kind = InGameLoadingSession.AdvanceSession(
             kind,
@@ -591,7 +590,7 @@ internal static class InGameLoadingSessionTests
             gameToLoadPending: true,
             doAsynchronously: true
         );
-        Assert.That(kind).Is.EqualTo(InGameSessionKind.SaveLoading);
+        Expect.AreEqual(InGameSessionKind.SaveLoading, kind);
 
         // The event text changes several times within this same event (world -> map -> init ->
         // spawn) via SetCurrentEventText, but the event object itself never changes, so the
@@ -610,7 +609,7 @@ internal static class InGameLoadingSessionTests
             gameToLoadPending: true,
             doAsynchronously: true
         );
-        Assert.That(kind).Is.EqualTo(InGameSessionKind.SaveLoading);
+        Expect.AreEqual(InGameSessionKind.SaveLoading, kind);
 
         // The final, untextkeyed screen-fade event ends the session.
         kind = InGameLoadingSession.AdvanceSession(
@@ -627,7 +626,7 @@ internal static class InGameLoadingSessionTests
             gameToLoadPending: false,
             doAsynchronously: false
         );
-        Assert.That(kind).Is.EqualTo(InGameSessionKind.None);
+        Expect.AreEqual(InGameSessionKind.None, kind);
     }
 
     [Test]
@@ -638,21 +637,21 @@ internal static class InGameLoadingSessionTests
             InGameSessionPhase.NewGameMapGeneration_SetUp,
             "Generate contents into map"
         );
-        Assert.That(phase).Is.EqualTo(InGameSessionPhase.NewGameMapGeneration_GenSteps);
+        Expect.AreEqual(InGameSessionPhase.NewGameMapGeneration_GenSteps, phase);
 
         phase = InGameLoadingSession.DeterminePhaseFromLabel(
             InGameSessionKind.NewGameMapGeneration,
             phase,
             "Finalize map init"
         );
-        Assert.That(phase).Is.EqualTo(InGameSessionPhase.NewGameMapGeneration_Finalize);
+        Expect.AreEqual(InGameSessionPhase.NewGameMapGeneration_Finalize, phase);
 
         phase = InGameLoadingSession.DeterminePhaseFromLabel(
             InGameSessionKind.NewGameMapGeneration,
             phase,
             "MapComponent.MapGenerated()"
         );
-        Assert.That(phase).Is.EqualTo(InGameSessionPhase.NewGameMapGeneration_PostInit);
+        Expect.AreEqual(InGameSessionPhase.NewGameMapGeneration_PostInit, phase);
     }
 
     [Test]
@@ -663,7 +662,7 @@ internal static class InGameLoadingSessionTests
             InGameSessionPhase.NewGameMapGeneration_Finalize,
             "Map generator post init"
         );
-        Assert.That(phase).Is.EqualTo(InGameSessionPhase.NewGameMapGeneration_PostInit);
+        Expect.AreEqual(InGameSessionPhase.NewGameMapGeneration_PostInit, phase);
     }
 
     [Test]
@@ -676,7 +675,7 @@ internal static class InGameLoadingSessionTests
             InGameSessionPhase.NewGameMapGeneration_GenSteps,
             "GenStep - ElevationFertility"
         );
-        Assert.That(phase).Is.EqualTo(InGameSessionPhase.NewGameMapGeneration_GenSteps);
+        Expect.AreEqual(InGameSessionPhase.NewGameMapGeneration_GenSteps, phase);
     }
 
     [Test]
@@ -689,74 +688,66 @@ internal static class InGameLoadingSessionTests
             InGameSessionPhase.EncounterMapGeneration_SetUp,
             "Generate contents into map"
         );
-        Assert.That(phase).Is.EqualTo(InGameSessionPhase.EncounterMapGeneration_GenSteps);
+        Expect.AreEqual(InGameSessionPhase.EncounterMapGeneration_GenSteps, phase);
 
         phase = InGameLoadingSession.DeterminePhaseFromLabel(
             InGameSessionKind.EncounterMapGeneration,
             phase,
             "Finalize map init"
         );
-        Assert.That(phase).Is.EqualTo(InGameSessionPhase.EncounterMapGeneration_Finalize);
+        Expect.AreEqual(InGameSessionPhase.EncounterMapGeneration_Finalize, phase);
 
         phase = InGameLoadingSession.DeterminePhaseFromLabel(
             InGameSessionKind.EncounterMapGeneration,
             phase,
             "MapComponent.MapGenerated()"
         );
-        Assert.That(phase).Is.EqualTo(InGameSessionPhase.EncounterMapGeneration_PostInit);
+        Expect.AreEqual(InGameSessionPhase.EncounterMapGeneration_PostInit, phase);
     }
 
     [Test]
     public static void ShouldEnterSpawningColonistsPhaseIsTrueWhenTheSpawningColonistsEventBecomesCurrent() =>
-        Assert
-            .That(
-                InGameLoadingSession.ShouldEnterSpawningColonistsPhase(
-                    InGameSessionKind.EncounterMapGeneration,
-                    eventChanged: true,
-                    "SpawningColonists"
-                )
+        Expect.IsTrue(
+            InGameLoadingSession.ShouldEnterSpawningColonistsPhase(
+                InGameSessionKind.EncounterMapGeneration,
+                eventChanged: true,
+                "SpawningColonists"
             )
-            .Is.True();
+        );
 
     [Test]
     public static void ShouldEnterSpawningColonistsPhaseIsFalseForOtherKinds() =>
         // NewGameMapGeneration never chains into a "SpawningColonists" event; a modded call
         // site emitting one while a new-game session is active must not be picked up.
-        Assert
-            .That(
-                InGameLoadingSession.ShouldEnterSpawningColonistsPhase(
-                    InGameSessionKind.NewGameMapGeneration,
-                    eventChanged: true,
-                    "SpawningColonists"
-                )
+        Expect.IsFalse(
+            InGameLoadingSession.ShouldEnterSpawningColonistsPhase(
+                InGameSessionKind.NewGameMapGeneration,
+                eventChanged: true,
+                "SpawningColonists"
             )
-            .Is.False();
+        );
 
     [Test]
     public static void ShouldEnterSpawningColonistsPhaseIsFalseWhenTheEventDidNotChange() =>
         // Guards against re-entering the phase (and resetting its progress) on every frame the
         // SpawningColonists event stays current, not just the one frame it becomes current.
-        Assert
-            .That(
-                InGameLoadingSession.ShouldEnterSpawningColonistsPhase(
-                    InGameSessionKind.EncounterMapGeneration,
-                    eventChanged: false,
-                    "SpawningColonists"
-                )
+        Expect.IsFalse(
+            InGameLoadingSession.ShouldEnterSpawningColonistsPhase(
+                InGameSessionKind.EncounterMapGeneration,
+                eventChanged: false,
+                "SpawningColonists"
             )
-            .Is.False();
+        );
 
     [Test]
     public static void ShouldEnterSpawningColonistsPhaseIsFalseForUnrelatedKeys() =>
-        Assert
-            .That(
-                InGameLoadingSession.ShouldEnterSpawningColonistsPhase(
-                    InGameSessionKind.EncounterMapGeneration,
-                    eventChanged: true,
-                    "GeneratingMap"
-                )
+        Expect.IsFalse(
+            InGameLoadingSession.ShouldEnterSpawningColonistsPhase(
+                InGameSessionKind.EncounterMapGeneration,
+                eventChanged: true,
+                "GeneratingMap"
             )
-            .Is.False();
+        );
 
     [Test]
     public static void DeterminePhaseFromLabelAdvancesSaveLoadingToFinishingOnGameFinalizeInitLabel()
@@ -766,7 +757,7 @@ internal static class InGameLoadingSessionTests
             InGameSessionPhase.SaveLoading_Spawning,
             "Game.FinalizeInit"
         );
-        Assert.That(phase).Is.EqualTo(InGameSessionPhase.SaveLoading_Finishing);
+        Expect.AreEqual(InGameSessionPhase.SaveLoading_Finishing, phase);
     }
 
     [Test]
@@ -777,7 +768,7 @@ internal static class InGameLoadingSessionTests
             InGameSessionPhase.SaveLoading_Spawning,
             "Spawn everything into the map"
         );
-        Assert.That(phase).Is.EqualTo(InGameSessionPhase.SaveLoading_Spawning);
+        Expect.AreEqual(InGameSessionPhase.SaveLoading_Spawning, phase);
     }
 
     [Test]
@@ -791,217 +782,198 @@ internal static class InGameLoadingSessionTests
             InGameSessionPhase.WorldGeneration_SetupSteps,
             "WorldGenStep - Tiles"
         );
-        Assert.That(phase).Is.EqualTo(InGameSessionPhase.WorldGeneration_SetupSteps);
+        Expect.AreEqual(InGameSessionPhase.WorldGeneration_SetupSteps, phase);
     }
 
     [Test]
     public static void DeterminePhaseFromLabelIsANoOpForPlanetRegeneration() =>
         // Planet regeneration has only the one phase and emits no DeepProfiler labels at all
         // (per-layer progress instead comes from the WorldDrawLayerBase.Regenerate prefix).
-        Assert
-            .That(
-                InGameLoadingSession.DeterminePhaseFromLabel(
-                    InGameSessionKind.PlanetRegeneration,
-                    InGameSessionPhase.PlanetRegeneration_RegeneratingLayers,
-                    "GenStep - Terrain"
-                )
+        Expect.AreEqual(
+            InGameSessionPhase.PlanetRegeneration_RegeneratingLayers,
+            InGameLoadingSession.DeterminePhaseFromLabel(
+                InGameSessionKind.PlanetRegeneration,
+                InGameSessionPhase.PlanetRegeneration_RegeneratingLayers,
+                "GenStep - Terrain"
             )
-            .Is.EqualTo(InGameSessionPhase.PlanetRegeneration_RegeneratingLayers);
+        );
 
     [Test]
     public static void DeterminePhaseFromLabelIsANoOpForEncounterMapGenerationStatic() =>
         // The static kind's one painted frame is fixed before the synchronous action (and any
         // labels it would emit) even runs, so it has only the one phase and ignores labels.
-        Assert
-            .That(
-                InGameLoadingSession.DeterminePhaseFromLabel(
-                    InGameSessionKind.EncounterMapGenerationStatic,
-                    InGameSessionPhase.EncounterMapGenerationStatic_Generating,
-                    "GenStep - ElevationFertility"
-                )
+        Expect.AreEqual(
+            InGameSessionPhase.EncounterMapGenerationStatic_Generating,
+            InGameLoadingSession.DeterminePhaseFromLabel(
+                InGameSessionKind.EncounterMapGenerationStatic,
+                InGameSessionPhase.EncounterMapGenerationStatic_Generating,
+                "GenStep - ElevationFertility"
             )
-            .Is.EqualTo(InGameSessionPhase.EncounterMapGenerationStatic_Generating);
+        );
 
     [Test]
     public static void DetermineSaveLoadingPhaseFromEventTextCallOrderMapsCallsInFixedOrder()
     {
-        Assert
-            .That(InGameLoadingSession.DetermineSaveLoadingPhaseFromEventTextCallOrder(1))
-            .Is.EqualTo(InGameSessionPhase.SaveLoading_World);
-        Assert
-            .That(InGameLoadingSession.DetermineSaveLoadingPhaseFromEventTextCallOrder(2))
-            .Is.EqualTo(InGameSessionPhase.SaveLoading_Maps);
-        Assert
-            .That(InGameLoadingSession.DetermineSaveLoadingPhaseFromEventTextCallOrder(3))
-            .Is.EqualTo(InGameSessionPhase.SaveLoading_Initializing);
-        Assert
-            .That(InGameLoadingSession.DetermineSaveLoadingPhaseFromEventTextCallOrder(4))
-            .Is.EqualTo(InGameSessionPhase.SaveLoading_Spawning);
+        Expect.AreEqual(
+            InGameSessionPhase.SaveLoading_World,
+            InGameLoadingSession.DetermineSaveLoadingPhaseFromEventTextCallOrder(1)
+        );
+        Expect.AreEqual(
+            InGameSessionPhase.SaveLoading_Maps,
+            InGameLoadingSession.DetermineSaveLoadingPhaseFromEventTextCallOrder(2)
+        );
+        Expect.AreEqual(
+            InGameSessionPhase.SaveLoading_Initializing,
+            InGameLoadingSession.DetermineSaveLoadingPhaseFromEventTextCallOrder(3)
+        );
+        Expect.AreEqual(
+            InGameSessionPhase.SaveLoading_Spawning,
+            InGameLoadingSession.DetermineSaveLoadingPhaseFromEventTextCallOrder(4)
+        );
     }
 
     [Test]
     public static void DetermineSaveLoadingPhaseFromEventTextCallOrderClampsCallsPastTheFourth() =>
         // Defensive: SetCurrentEventText is only ever called 4 times by vanilla, but a modded
         // caller (or a future game version) calling it a 5th time shouldn't invent a new phase.
-        Assert
-            .That(InGameLoadingSession.DetermineSaveLoadingPhaseFromEventTextCallOrder(5))
-            .Is.EqualTo(InGameSessionPhase.SaveLoading_Spawning);
+        Expect.AreEqual(
+            InGameSessionPhase.SaveLoading_Spawning,
+            InGameLoadingSession.DetermineSaveLoadingPhaseFromEventTextCallOrder(5)
+        );
 
     [Test]
     public static void DetermineSaveLoadingPhaseFromEventTextCallOrderDefaultsToReadingFile() =>
-        Assert
-            .That(InGameLoadingSession.DetermineSaveLoadingPhaseFromEventTextCallOrder(0))
-            .Is.EqualTo(InGameSessionPhase.SaveLoading_ReadingFile);
+        Expect.AreEqual(
+            InGameSessionPhase.SaveLoading_ReadingFile,
+            InGameLoadingSession.DetermineSaveLoadingPhaseFromEventTextCallOrder(0)
+        );
 
     [Test]
     public static void IsSaveLoadingSubProgressResetLabelIsTrueForBothInitializingLoopLabels()
     {
-        Assert
-            .That(
-                InGameLoadingSession.IsSaveLoadingSubProgressResetLabel(
-                    "ResolveAllCrossReferences()"
-                )
-            )
-            .Is.True();
-        Assert
-            .That(InGameLoadingSession.IsSaveLoadingSubProgressResetLabel("DoAllPostLoadInits()"))
-            .Is.True();
+        Expect.IsTrue(
+            InGameLoadingSession.IsSaveLoadingSubProgressResetLabel("ResolveAllCrossReferences()")
+        );
+        Expect.IsTrue(
+            InGameLoadingSession.IsSaveLoadingSubProgressResetLabel("DoAllPostLoadInits()")
+        );
     }
 
     [Test]
     public static void IsSaveLoadingSubProgressResetLabelIsTrueForThingPostMapInit() =>
-        Assert
-            .That(InGameLoadingSession.IsSaveLoadingSubProgressResetLabel("Thing.PostMapInit()"))
-            .Is.True();
+        Expect.IsTrue(
+            InGameLoadingSession.IsSaveLoadingSubProgressResetLabel("Thing.PostMapInit()")
+        );
 
     [Test]
     public static void IsSaveLoadingSubProgressResetLabelIsFalseForUnrelatedLabels() =>
-        Assert
-            .That(
-                InGameLoadingSession.IsSaveLoadingSubProgressResetLabel(
-                    "Spawn everything into the map"
-                )
-            )
-            .Is.False();
+        Expect.IsFalse(
+            InGameLoadingSession.IsSaveLoadingSubProgressResetLabel("Spawn everything into the map")
+        );
 
     [Test]
     public static void DetermineInitializingSubPhaseTotalUsesCrossReferencingExposablesCountForResolveAllCrossReferences() =>
-        Assert
-            .That(
-                InGameLoadingSession.DetermineInitializingSubPhaseTotal(
-                    "ResolveAllCrossReferences()",
-                    crossReferencingExposablesCount: 42,
-                    saveablesToPostLoadCount: 7
-                )
+        Expect.AreEqual(
+            42,
+            InGameLoadingSession.DetermineInitializingSubPhaseTotal(
+                "ResolveAllCrossReferences()",
+                crossReferencingExposablesCount: 42,
+                saveablesToPostLoadCount: 7
             )
-            .Is.EqualTo(42);
+        );
 
     [Test]
     public static void DetermineInitializingSubPhaseTotalUsesSaveablesToPostLoadCountForDoAllPostLoadInits() =>
-        Assert
-            .That(
-                InGameLoadingSession.DetermineInitializingSubPhaseTotal(
-                    "DoAllPostLoadInits()",
-                    crossReferencingExposablesCount: 42,
-                    saveablesToPostLoadCount: 7
-                )
+        Expect.AreEqual(
+            7,
+            InGameLoadingSession.DetermineInitializingSubPhaseTotal(
+                "DoAllPostLoadInits()",
+                crossReferencingExposablesCount: 42,
+                saveablesToPostLoadCount: 7
             )
-            .Is.EqualTo(7);
+        );
 
     [Test]
     public static void DetermineInitializingSubPhaseTotalIsZeroForThingPostMapInit() =>
         // The Thing.PostMapInit() loop's total isn't known upfront from any live collection count;
         // it's set later, from the first postfix call that has a Map instance to read
         // map.listerThings.AllThings.Count from.
-        Assert
-            .That(
-                InGameLoadingSession.DetermineInitializingSubPhaseTotal(
-                    "Thing.PostMapInit()",
-                    crossReferencingExposablesCount: 42,
-                    saveablesToPostLoadCount: 7
-                )
+        Expect.AreEqual(
+            0,
+            InGameLoadingSession.DetermineInitializingSubPhaseTotal(
+                "Thing.PostMapInit()",
+                crossReferencingExposablesCount: 42,
+                saveablesToPostLoadCount: 7
             )
-            .Is.EqualTo(0);
+        );
 
     [Test]
     public static void DetermineThingPostMapInitPhaseMapsMapGenerationKindsToTheirOwnFinalizePhase()
     {
-        Assert
-            .That(
-                InGameLoadingSession.DetermineThingPostMapInitPhase(
-                    InGameSessionKind.NewGameMapGeneration
-                )
+        Expect.AreEqual(
+            InGameSessionPhase.NewGameMapGeneration_Finalize,
+            InGameLoadingSession.DetermineThingPostMapInitPhase(
+                InGameSessionKind.NewGameMapGeneration
             )
-            .Is.EqualTo(InGameSessionPhase.NewGameMapGeneration_Finalize);
-        Assert
-            .That(
-                InGameLoadingSession.DetermineThingPostMapInitPhase(
-                    InGameSessionKind.EncounterMapGeneration
-                )
+        );
+        Expect.AreEqual(
+            InGameSessionPhase.EncounterMapGeneration_Finalize,
+            InGameLoadingSession.DetermineThingPostMapInitPhase(
+                InGameSessionKind.EncounterMapGeneration
             )
-            .Is.EqualTo(InGameSessionPhase.EncounterMapGeneration_Finalize);
+        );
     }
 
     [Test]
     public static void DetermineThingPostMapInitPhaseMapsSaveLoadingToItsSpawningPhase() =>
         // SaveLoading has no dedicated Finalize phase: Map.FinalizeInit() (and so its
         // Thing.PostMapInit() loop) runs inside Spawning instead.
-        Assert
-            .That(
-                InGameLoadingSession.DetermineThingPostMapInitPhase(InGameSessionKind.SaveLoading)
-            )
-            .Is.EqualTo(InGameSessionPhase.SaveLoading_Spawning);
+        Expect.AreEqual(
+            InGameSessionPhase.SaveLoading_Spawning,
+            InGameLoadingSession.DetermineThingPostMapInitPhase(InGameSessionKind.SaveLoading)
+        );
 
     [Test]
     public static void DetermineThingPostMapInitPhaseIsNullForKindsThatNeverReachIt()
     {
-        Assert
-            .That(
-                InGameLoadingSession.DetermineThingPostMapInitPhase(
-                    InGameSessionKind.WorldGeneration
-                )
-            )
-            .Is.Null();
-        Assert
-            .That(
-                InGameLoadingSession.DetermineThingPostMapInitPhase(
-                    InGameSessionKind.PlanetRegeneration
-                )
-            )
-            .Is.Null();
-        Assert
-            .That(
-                InGameLoadingSession.DetermineThingPostMapInitPhase(
-                    InGameSessionKind.EncounterMapGenerationStatic
-                )
-            )
-            .Is.Null();
-        Assert
-            .That(InGameLoadingSession.DetermineThingPostMapInitPhase(InGameSessionKind.None))
-            .Is.Null();
+        Expect.IsTrue(
+            InGameLoadingSession.DetermineThingPostMapInitPhase(InGameSessionKind.WorldGeneration)
+                == null
+        );
+        Expect.IsTrue(
+            InGameLoadingSession.DetermineThingPostMapInitPhase(
+                InGameSessionKind.PlanetRegeneration
+            ) == null
+        );
+        Expect.IsTrue(
+            InGameLoadingSession.DetermineThingPostMapInitPhase(
+                InGameSessionKind.EncounterMapGenerationStatic
+            ) == null
+        );
+        Expect.IsTrue(
+            InGameLoadingSession.DetermineThingPostMapInitPhase(InGameSessionKind.None) == null
+        );
     }
 
     [Test]
     public static void DetermineDeferredPhaseMapsEachChunkableKindToItsOwnDeferredPhase()
     {
-        Assert
-            .That(InGameLoadingSession.DetermineDeferredPhase(InGameSessionKind.WorldGeneration))
-            .Is.EqualTo(InGameSessionPhase.WorldGeneration_Deferred);
-        Assert
-            .That(
-                InGameLoadingSession.DetermineDeferredPhase(InGameSessionKind.NewGameMapGeneration)
-            )
-            .Is.EqualTo(InGameSessionPhase.NewGameMapGeneration_Deferred);
-        Assert
-            .That(InGameLoadingSession.DetermineDeferredPhase(InGameSessionKind.SaveLoading))
-            .Is.EqualTo(InGameSessionPhase.SaveLoading_Deferred);
-        Assert
-            .That(
-                InGameLoadingSession.DetermineDeferredPhase(
-                    InGameSessionKind.EncounterMapGeneration
-                )
-            )
-            .Is.EqualTo(InGameSessionPhase.EncounterMapGeneration_Deferred);
+        Expect.AreEqual(
+            InGameSessionPhase.WorldGeneration_Deferred,
+            InGameLoadingSession.DetermineDeferredPhase(InGameSessionKind.WorldGeneration)
+        );
+        Expect.AreEqual(
+            InGameSessionPhase.NewGameMapGeneration_Deferred,
+            InGameLoadingSession.DetermineDeferredPhase(InGameSessionKind.NewGameMapGeneration)
+        );
+        Expect.AreEqual(
+            InGameSessionPhase.SaveLoading_Deferred,
+            InGameLoadingSession.DetermineDeferredPhase(InGameSessionKind.SaveLoading)
+        );
+        Expect.AreEqual(
+            InGameSessionPhase.EncounterMapGeneration_Deferred,
+            InGameLoadingSession.DetermineDeferredPhase(InGameSessionKind.EncounterMapGeneration)
+        );
     }
 
     [Test]
@@ -1011,28 +983,27 @@ internal static class InGameLoadingSessionTests
         // enumerator-based long event, and EncounterMapGenerationStatic's one painted frame
         // precedes any of the generation it describes; neither goes through
         // InGameDeferredActionReplacement.
-        Assert
-            .That(InGameLoadingSession.DetermineDeferredPhase(InGameSessionKind.PlanetRegeneration))
-            .Is.Null();
-        Assert
-            .That(
-                InGameLoadingSession.DetermineDeferredPhase(
-                    InGameSessionKind.EncounterMapGenerationStatic
-                )
-            )
-            .Is.Null();
-        Assert.That(InGameLoadingSession.DetermineDeferredPhase(InGameSessionKind.None)).Is.Null();
+        Expect.IsTrue(
+            InGameLoadingSession.DetermineDeferredPhase(InGameSessionKind.PlanetRegeneration)
+                == null
+        );
+        Expect.IsTrue(
+            InGameLoadingSession.DetermineDeferredPhase(
+                InGameSessionKind.EncounterMapGenerationStatic
+            ) == null
+        );
+        Expect.IsTrue(InGameLoadingSession.DetermineDeferredPhase(InGameSessionKind.None) == null);
     }
 
     [Test]
     public static void AdvanceProgressCurrentIncrementsBelowMax() =>
-        Assert.That(InGameLoadingSession.AdvanceProgressCurrent(3, 5)).Is.EqualTo(4);
+        Expect.AreEqual(4, InGameLoadingSession.AdvanceProgressCurrent(3, 5));
 
     // Regression coverage for §8 risk item 8: counts derived from approximate totals (e.g.
     // things spawned after load) must never let the inner bar exceed its own max.
     [Test]
     public static void AdvanceProgressCurrentClampsAtMax() =>
-        Assert.That(InGameLoadingSession.AdvanceProgressCurrent(5, 5)).Is.EqualTo(5);
+        Expect.AreEqual(5, InGameLoadingSession.AdvanceProgressCurrent(5, 5));
 
     [Test]
     public static void CountDirtyVisibleLayersCountsOnlyLayersThatAreBothDirtyAndVisible()
@@ -1044,48 +1015,47 @@ internal static class InGameLoadingSessionTests
             (Dirty: false, Visible: false),
             (Dirty: true, Visible: true),
         ]);
-        Assert.That(count).Is.EqualTo(2);
+        Expect.AreEqual(2, count);
     }
 
     [Test]
     public static void CountDirtyVisibleLayersReturnsZeroForAnEmptyLayerList() =>
-        Assert.That(InGameLoadingSession.CountDirtyVisibleLayers([])).Is.EqualTo(0);
+        Expect.AreEqual(0, InGameLoadingSession.CountDirtyVisibleLayers([]));
 
     [Test]
     public static void StripKnownLabelPrefixStripsGenStepPrefix() =>
-        Assert
-            .That(InGameLoadingSession.StripKnownLabelPrefix("GenStep - ElevationFertility"))
-            .Is.EqualTo("ElevationFertility");
+        Expect.AreEqual(
+            "ElevationFertility",
+            InGameLoadingSession.StripKnownLabelPrefix("GenStep - ElevationFertility")
+        );
 
     [Test]
     public static void StripKnownLabelPrefixStripsWorldGenStepPrefix() =>
-        Assert
-            .That(InGameLoadingSession.StripKnownLabelPrefix("WorldGenStep - Tiles"))
-            .Is.EqualTo("Tiles");
+        Expect.AreEqual(
+            "Tiles",
+            InGameLoadingSession.StripKnownLabelPrefix("WorldGenStep - Tiles")
+        );
 
     [Test]
     public static void StripKnownLabelPrefixLeavesOtherLabelsUnchanged() =>
-        Assert
-            .That(InGameLoadingSession.StripKnownLabelPrefix("Finalize map init"))
-            .Is.EqualTo("Finalize map init");
+        Expect.AreEqual(
+            "Finalize map init",
+            InGameLoadingSession.StripKnownLabelPrefix("Finalize map init")
+        );
 
     [Test]
     public static void IsSuppressedWorldGenLayerLabelDetectsTheLayerBoundaryLabel() =>
-        Assert
-            .That(
-                InGameLoadingSession.IsSuppressedWorldGenLayerLabel(
-                    "WorldGen - RimWorld.Planet.SurfaceLayer"
-                )
+        Expect.IsTrue(
+            InGameLoadingSession.IsSuppressedWorldGenLayerLabel(
+                "WorldGen - RimWorld.Planet.SurfaceLayer"
             )
-            .Is.True();
+        );
 
     // "WorldGenStep - Tiles" must not be mistaken for the "WorldGen - <type>" layer-boundary
     // label just because it shares a prefix; it's a legitimate, readable label on its own.
     [Test]
     public static void IsSuppressedWorldGenLayerLabelDoesNotMatchWorldGenStepLabels() =>
-        Assert
-            .That(InGameLoadingSession.IsSuppressedWorldGenLayerLabel("WorldGenStep - Tiles"))
-            .Is.False();
+        Expect.IsFalse(InGameLoadingSession.IsSuppressedWorldGenLayerLabel("WorldGenStep - Tiles"));
 
     [Test]
     public static void CountThingsAcrossMapsSumsThingNodesFromEveryMap()
@@ -1110,7 +1080,7 @@ internal static class InGameLoadingSessionTests
             """
         );
 
-        Assert.That(InGameLoadingSession.CountThingsAcrossMaps(doc.DocumentElement)).Is.EqualTo(3);
+        Expect.AreEqual(3, InGameLoadingSession.CountThingsAcrossMaps(doc.DocumentElement));
     }
 
     [Test]
@@ -1118,7 +1088,7 @@ internal static class InGameLoadingSessionTests
     {
         var doc = ParseXmlFixture("<game></game>");
 
-        Assert.That(InGameLoadingSession.CountThingsAcrossMaps(doc.DocumentElement)).Is.EqualTo(0);
+        Expect.AreEqual(0, InGameLoadingSession.CountThingsAcrossMaps(doc.DocumentElement));
     }
 
     [Test]
@@ -1139,7 +1109,7 @@ internal static class InGameLoadingSessionTests
             """
         );
 
-        Assert.That(InGameLoadingSession.CountThingsAcrossMaps(doc.DocumentElement)).Is.EqualTo(1);
+        Expect.AreEqual(1, InGameLoadingSession.CountThingsAcrossMaps(doc.DocumentElement));
     }
 
     // XmlDocument.LoadXml(string) resolves external entities by default (XXE risk); these

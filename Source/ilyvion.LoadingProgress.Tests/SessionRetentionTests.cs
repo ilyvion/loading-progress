@@ -1,11 +1,10 @@
+using DevTools.Testing;
 using ilyvion.LoadingProgress.StartupImpact.Dialog;
-using RimTestRedux;
 
 namespace ilyvion.LoadingProgress.Tests;
 
-[HotSwappable]
-[TestSuite]
-internal static class SessionRetentionTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class SessionRetentionTests
 {
     private sealed class Entry(string name, bool pinned = false, bool baseline = false)
     {
@@ -35,15 +34,15 @@ internal static class SessionRetentionTests
     public static void NothingIsEvictedWhileTheHistoryIsUnderTheLimit()
     {
         var evicted = Evict(10, true, new Entry("a"), new Entry("b"), new Entry("c"));
-        Assert.ThatCollection(evicted).Is.Empty();
+        Expect.IsEmpty(evicted);
     }
 
     [Test]
     public static void TheOldestOrdinarySessionIsEvictedFirst()
     {
         var evicted = Evict(2, true, new Entry("newest"), new Entry("middle"), new Entry("oldest"));
-        Assert.ThatCollection(evicted).Has.Count(1);
-        Assert.ThatCollection(evicted).Does.Contain("oldest");
+        Expect.AreEqual(1, evicted.Count);
+        Expect.IsTrue(evicted.Contains("oldest"));
     }
 
     [Test]
@@ -59,8 +58,8 @@ internal static class SessionRetentionTests
             new Entry("b"),
             new Entry("c")
         );
-        Assert.ThatCollection(evicted).Has.Count(1);
-        Assert.ThatCollection(evicted).Does.Contain("c");
+        Expect.AreEqual(1, evicted.Count);
+        Expect.IsTrue(evicted.Contains("c"));
     }
 
     [Test]
@@ -76,9 +75,9 @@ internal static class SessionRetentionTests
             new Entry("b"),
             new Entry("c")
         );
-        Assert.ThatCollection(evicted).Has.Count(2);
-        Assert.ThatCollection(evicted).Does.Contain("b");
-        Assert.ThatCollection(evicted).Does.Contain("c");
+        Expect.AreEqual(2, evicted.Count);
+        Expect.IsTrue(evicted.Contains("b"));
+        Expect.IsTrue(evicted.Contains("c"));
     }
 
     [Test]
@@ -92,8 +91,8 @@ internal static class SessionRetentionTests
             new Entry("c"),
             new Entry("known good", baseline: true)
         );
-        Assert.ThatCollection(evicted).Has.Count(1);
-        Assert.ThatCollection(evicted).Does.Contain("c");
+        Expect.AreEqual(1, evicted.Count);
+        Expect.IsTrue(evicted.Contains("c"));
     }
 
     [Test]
@@ -109,7 +108,7 @@ internal static class SessionRetentionTests
             new Entry("c"),
             new Entry("known good", baseline: true)
         );
-        Assert.ThatCollection(evicted).Is.Empty();
+        Expect.IsEmpty(evicted);
     }
 
     [Test]
@@ -118,14 +117,14 @@ internal static class SessionRetentionTests
         // Guards against a settings value of 0 or 1 quietly erasing the history that makes a
         // comparison possible at all.
         var evicted = Evict(0, true, new Entry("a"), new Entry("b"), new Entry("c"));
-        Assert.ThatCollection(evicted).Has.Count(1);
-        Assert.ThatCollection(evicted).Does.Contain("c");
+        Expect.AreEqual(1, evicted.Count);
+        Expect.IsTrue(evicted.Contains("c"));
     }
 
     [Test]
     public static void AnEmptyHistoryEvictsNothing()
     {
         var evicted = Evict(10, true);
-        Assert.ThatCollection(evicted).Is.Empty();
+        Expect.IsEmpty(evicted);
     }
 }

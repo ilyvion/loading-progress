@@ -1,11 +1,10 @@
+using DevTools.Testing;
 using ilyvion.LoadingProgress.StartupImpact.Dialog;
-using RimTestRedux;
 
 namespace ilyvion.LoadingProgress.Tests;
 
-[HotSwappable]
-[TestSuite]
-internal static class StartupImpactSessionDataTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class StartupImpactSessionDataTests
 {
     // The timestamp used to be taken when the session was captured, so each startup impact
     // window stamped its own. Two saves from one startup then landed in the history as two
@@ -16,7 +15,7 @@ internal static class StartupImpactSessionDataTests
         var first = StartupImpactSessionData.FromCurrentSession();
         var second = StartupImpactSessionData.FromCurrentSession();
 
-        Assert.That(first.SavedAtUtc.Ticks).Is.EqualTo(second.SavedAtUtc.Ticks);
+        Expect.AreEqual(second.SavedAtUtc.Ticks, first.SavedAtUtc.Ticks);
     }
 
     [Test]
@@ -24,6 +23,6 @@ internal static class StartupImpactSessionDataTests
     {
         var session = StartupImpactSessionData.FromCurrentSession();
 
-        Assert.That(session.ModListHash).Is.EqualTo(StartupImpactSessionData.CurrentModListHash());
+        Expect.AreEqual(StartupImpactSessionData.CurrentModListHash(), session.ModListHash);
     }
 }

@@ -1,11 +1,10 @@
+using DevTools.Testing;
 using ilyvion.LoadingProgress.StartupImpact.Dialog;
-using RimTestRedux;
 
 namespace ilyvion.LoadingProgress.Tests;
 
-[HotSwappable]
-[TestSuite]
-internal static class StartupImpactSessionStorageTests
+[TestFixture(TestType.MainMenu)]
+internal sealed class StartupImpactSessionStorageTests
 {
     // ForUnfinishedBoot is the one factory that builds an entry from plain values, so it
     // stands in for a stored session here. Nothing these tests assert depends on whether the
@@ -40,8 +39,8 @@ internal static class StartupImpactSessionStorageTests
 
         StartupImpactSessionStorage.ApplyFlags(entries, "new", pinned: false, baseline: true);
 
-        Assert.That(Find(entries, "new").Baseline).Is.True();
-        Assert.That(Find(entries, "old").Baseline).Is.False();
+        Expect.IsTrue(Find(entries, "new").Baseline);
+        Expect.IsFalse(Find(entries, "old").Baseline);
     }
 
     // A session used to lose its pin when it became the baseline, so clearing the baseline
@@ -53,8 +52,8 @@ internal static class StartupImpactSessionStorageTests
 
         StartupImpactSessionStorage.ApplyFlags(entries, "kept", pinned: true, baseline: true);
 
-        Assert.That(Find(entries, "kept").Pinned).Is.True();
-        Assert.That(Find(entries, "kept").Baseline).Is.True();
+        Expect.IsTrue(Find(entries, "kept").Pinned);
+        Expect.IsTrue(Find(entries, "kept").Baseline);
     }
 
     [Test]
@@ -69,9 +68,9 @@ internal static class StartupImpactSessionStorageTests
 
         StartupImpactSessionStorage.ApplyFlags(entries, "target", pinned: true, baseline: false);
 
-        Assert.That(Find(entries, "target").Pinned).Is.True();
-        Assert.That(Find(entries, "pinned").Pinned).Is.True();
-        Assert.That(Find(entries, "baseline").Baseline).Is.True();
+        Expect.IsTrue(Find(entries, "target").Pinned);
+        Expect.IsTrue(Find(entries, "pinned").Pinned);
+        Expect.IsTrue(Find(entries, "baseline").Baseline);
     }
 
     // A session can hold both flags now that taking the baseline no longer clears a pin, and
@@ -82,9 +81,10 @@ internal static class StartupImpactSessionStorageTests
     {
         var entry = Entry("both", pinned: true, baseline: true);
 
-        Assert
-            .That(DialogStartupImpactHistory.GroupOf(entry))
-            .Is.EqualTo(DialogStartupImpactHistory.SessionGroup.Baseline);
+        Expect.AreEqual(
+            DialogStartupImpactHistory.SessionGroup.Baseline,
+            DialogStartupImpactHistory.GroupOf(entry)
+        );
     }
 
     // The picker holds the list it loaded when it opened, so the session it names may have
@@ -100,7 +100,7 @@ internal static class StartupImpactSessionStorageTests
 
         StartupImpactSessionStorage.ApplyFlags(entries, "gone", pinned: true, baseline: false);
 
-        Assert.That(Find(entries, "a").Pinned).Is.True();
-        Assert.That(Find(entries, "b").Baseline).Is.True();
+        Expect.IsTrue(Find(entries, "a").Pinned);
+        Expect.IsTrue(Find(entries, "b").Baseline);
     }
 }
