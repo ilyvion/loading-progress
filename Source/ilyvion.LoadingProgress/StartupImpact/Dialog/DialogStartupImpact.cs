@@ -396,7 +396,9 @@ internal sealed class DialogStartupImpact : Window
         }
     }
 
+#pragma warning disable CA1506 // CA1506: Avoid excessive class coupling -- TODO: maybe resolve later?
     public override void DoWindowContents(Rect area)
+#pragma warning restore CA1506
     {
         if (HasNothingToShow())
         {
