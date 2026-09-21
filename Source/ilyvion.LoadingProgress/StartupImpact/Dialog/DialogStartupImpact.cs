@@ -238,12 +238,70 @@ internal sealed class DialogStartupImpact : Window
         .StartupImpact
         .WasTrackingEnabledAtStartup;
 
+    /// <summary>
+    /// Whether anything has ever been kept in the history.
+    /// </summary>
+    /// <remarks>
+    /// The screen shown when tracking was off only offers History when there is
+    /// one to open, so a player who has never turned tracking on sees the same
+    /// screen they saw before this existed rather than a button leading to three
+    /// empty groups. Decided once when the window opens: DoWindowContents is at
+    /// its class coupling limit, and this would otherwise be a file check per
+    /// frame.
+    /// </remarks>
+    private readonly bool _hasSavedHistory = File.Exists(StartupImpactSessionStorage.IndexFilePath);
+
     public DialogStartupImpact()
+        : this(null) { }
+
+    /// <summary>
+    /// Opens showing a stored session, or this launch's own when given none.
+    /// </summary>
+    /// <remarks>
+    /// The current session is captured either way, so PreClose restores it and
+    /// reopening the window shows this launch again, exactly as the Load button
+    /// behaved before.
+    /// </remarks>
+    internal DialogStartupImpact(StartupImpactSessionData? sessionData)
     {
+        // Movable, so it can be placed beside the saved session list. The two are different
+        // window types, so both stay open, and Load in the list swaps what this one shows.
+        draggable = true;
+
         _currentSessionData = StartupImpactSessionData.FromCurrentSession();
-        _sessionData = _currentSessionData;
+        _sessionData = sessionData ?? _currentSessionData;
         Initialize();
     }
+
+    /// <summary>
+    /// Shows a stored session in the window that is already open.
+    /// </summary>
+    /// <remarks>
+    /// Opening a second window would discard the log scale, scale detail and
+    /// sort the player had set, and WindowStack.Add removes any window of the
+    /// same type anyway, so the list would be swapping one window for another
+    /// on every Load.
+    /// </remarks>
+    internal void ShowSession(StartupImpactSessionData sessionData)
+    {
+        _sessionData = sessionData;
+        Initialize();
+
+        // This window may already have been on screen, showing a different run, so say what
+        // just replaced it rather than silently swapping every figure.
+        StatusText = "LoadingProgress.StartupImpact.History.Status.Loaded".Translate(
+            StartupImpactSessionIndexEntry.FormatTimestamp(sessionData.SavedAtUtc)
+        );
+    }
+
+    /// <summary>
+    /// Opens the saved session picker.
+    /// </summary>
+    /// <remarks>
+    /// Its own method so DoWindowContents does not gain a reference to another
+    /// type: that method already sits on its class coupling limit.
+    /// </remarks>
+    private static void OpenHistory() => Find.WindowStack.Add(new DialogStartupImpactHistory());
 
     public override void PreClose()
     {
@@ -340,7 +398,7 @@ internal sealed class DialogStartupImpact : Window
 
     public override void DoWindowContents(Rect area)
     {
-        if (!_wasTrackingEnabledAtStartup)
+        if (HasNothingToShow())
         {
             DoDisabledContents(area);
             return;
@@ -402,6 +460,7 @@ internal sealed class DialogStartupImpact : Window
                 ProfilerBar.TimeText(_sessionData.LoadingTime)
             )
         );
+        DrawStoredSessionCaption(titleRect);
         y += titleRect.height;
 
         Rect profileRect = new(0, y, area.width, BarHeight);
@@ -566,8 +625,12 @@ internal sealed class DialogStartupImpact : Window
         _table.EndTable();
 
         GUI.color = Color.white;
+        var showSave = HasSomethingToSave();
+        var trailingButtons = showSave ? 3 : 2;
         var buttonsStartX =
-            area.width - ((ButtonWidth + OuterSpacing) * 3) - (ExportButtonWidth + OuterSpacing);
+            area.width
+            - ((ButtonWidth + OuterSpacing) * trailingButtons)
+            - (ExportButtonWidth + OuterSpacing);
         var x = buttonsStartX;
         var yBtn = area.height - ButtonHeight - 3f;
 
@@ -607,41 +670,42 @@ internal sealed class DialogStartupImpact : Window
             "LoadingProgress.StartupImpact.ExportHtml.Tip".Translate()
         );
         x += ExportButtonWidth + OuterSpacing;
-        if (Widgets.ButtonText(new Rect(x, yBtn, ButtonWidth, ButtonHeight), "Save".Translate()))
+        if (showSave)
         {
-            _exportedPath = null;
-            try
+            if (
+                Widgets.ButtonText(new Rect(x, yBtn, ButtonWidth, ButtonHeight), "Save".Translate())
+            )
             {
-                StartupImpactSessionStorage.Save(_sessionData);
-                StatusText = "LoadingProgress.StartupImpact.Saved".Translate();
+                _exportedPath = null;
+                try
+                {
+                    // The current session, never whichever one is on screen. External tools
+                    // such as RimSort read this file, so writing a stored session over it
+                    // would hand them an old run labelled as the latest.
+                    //
+                    // It records into the history too. This button is only shown when
+                    // automatic saving is off, which is the one case where nothing else writes
+                    // a session, so without this the History button beside it would have
+                    // nothing to open.
+                    StartupImpactSessionStorage.SaveAndRecord(_currentSessionData);
+                    StatusText = "LoadingProgress.StartupImpact.Saved".Translate();
+                }
+                catch (Exception ex)
+                {
+                    StatusText = "LoadingProgress.StartupImpact.SaveFailed".Translate(ex.Message);
+                }
             }
-            catch (Exception ex)
-            {
-                StatusText = "LoadingProgress.StartupImpact.SaveFailed".Translate(ex.Message);
-            }
+            x += ButtonWidth + OuterSpacing;
         }
-        x += ButtonWidth + OuterSpacing;
-        if (Widgets.ButtonText(new Rect(x, yBtn, ButtonWidth, ButtonHeight), "Load".Translate()))
+        if (
+            Widgets.ButtonText(
+                new Rect(x, yBtn, ButtonWidth, ButtonHeight),
+                "LoadingProgress.StartupImpact.History".Translate()
+            )
+        )
         {
             _exportedPath = null;
-            try
-            {
-                var newSessionData = StartupImpactSessionStorage.Load();
-                if (newSessionData != null)
-                {
-                    _sessionData = newSessionData;
-                    Initialize();
-                    StatusText = "LoadingProgress.StartupImpact.Loaded".Translate();
-                }
-                else
-                {
-                    StatusText = "LoadingProgress.StartupImpact.LoadFailedNoData".Translate();
-                }
-            }
-            catch (Exception ex)
-            {
-                StatusText = "LoadingProgress.StartupImpact.LoadFailed".Translate(ex.Message);
-            }
+            OpenHistory();
         }
         x += ButtonWidth + OuterSpacing;
         if (
@@ -685,6 +749,75 @@ internal sealed class DialogStartupImpact : Window
         }
     }
 
+    /// <summary>
+    /// Whether there is nothing to draw: tracking was off for this startup, and
+    /// no stored session has been opened in its place.
+    /// </summary>
+    /// <remarks>
+    /// Only the current session is missing when tracking was off. A stored one
+    /// carries its own figures and is worth showing whatever this boot did.
+    /// </remarks>
+    private bool HasNothingToShow() =>
+        !_wasTrackingEnabledAtStartup && ReferenceEquals(_sessionData, _currentSessionData);
+
+    /// <summary>
+    /// Whether the Save button belongs on the button row: this startup measured
+    /// something, and nothing else is writing it to disk.
+    /// </summary>
+    /// <remarks>
+    /// With auto-save on, the report file is rewritten every startup and the
+    /// history keeps the sessions, so the button does nothing the mod is not
+    /// doing already.
+    ///
+    /// The tracking half matters because opening a stored session draws this
+    /// layout even when tracking was off for the whole load. The current session
+    /// is empty in that case, and Save writes the current session, so the button
+    /// would hand external tools a report with no timings in it and add a 00:00
+    /// row to the history.
+    ///
+    /// Its own method for the same reason as <see cref="HasNothingToShow"/>:
+    /// DoWindowContents is already at its complexity limit.
+    /// </remarks>
+    /// <summary>
+    /// Says which stored run is on screen, at the right-hand end of the title
+    /// row.
+    /// </summary>
+    /// <remarks>
+    /// The picker stays open beside this window and its Load button swaps every
+    /// figure here, so without this the only thing telling one run from another
+    /// is the number the player remembers seeing a moment ago. Nothing is drawn
+    /// for this startup's own session, which is what the window has always
+    /// shown.
+    ///
+    /// Its own method to keep DoWindowContents off its class coupling limit.
+    /// </remarks>
+    private void DrawStoredSessionCaption(Rect titleRect)
+    {
+        if (
+            ReferenceEquals(_sessionData, _currentSessionData)
+            || _sessionData.SavedAtUtc == DateTime.MinValue
+        )
+        {
+            return;
+        }
+
+        Text.Font = GameFont.Small;
+        Text.Anchor = TextAnchor.MiddleRight;
+        GUI.color = DefaultColor;
+        Widgets.Label(
+            titleRect,
+            "LoadingProgress.StartupImpact.ShowingSaved".Translate(
+                StartupImpactSessionIndexEntry.FormatTimestamp(_sessionData.SavedAtUtc)
+            )
+        );
+        GUI.color = Color.white;
+        Text.Anchor = TextAnchor.MiddleLeft;
+        Text.Font = GameFont.Medium;
+    }
+
+    private bool HasSomethingToSave() =>
+        _wasTrackingEnabledAtStartup && !LoadingProgressMod.Settings.AutoSaveStartupImpactReport;
+
     private void DoDisabledContents(Rect area)
     {
         var isTrackingEnabledNow = LoadingProgressMod.Settings.TrackStartupLoadingImpact;
@@ -706,16 +839,39 @@ internal sealed class DialogStartupImpact : Window
 
         var yBtn = area.height - ButtonHeight;
         var closeLabel = "Close".Translate();
+        var historyLabel = "LoadingProgress.StartupImpact.History".Translate();
 
+        // Sessions kept from earlier runs are still readable even though this one recorded
+        // nothing, so the way to them belongs on this screen too. Only when there are some:
+        // with no history this screen is exactly the one the mod showed before, which is what
+        // a player who has never turned tracking on should still see.
+        var trailingButtons = _hasSavedHistory ? 2 : 1;
         if (isTrackingEnabledNow)
         {
-            var closeOnlyRect = new Rect(
-                (area.width - ButtonWidth) / 2f,
-                yBtn,
-                ButtonWidth,
-                ButtonHeight
-            );
-            if (Widgets.ButtonText(closeOnlyRect, closeLabel, true, false, true))
+            var width = (ButtonWidth * trailingButtons) + (OuterSpacing * (trailingButtons - 1));
+            var buttonX = (area.width - width) / 2f;
+            if (_hasSavedHistory)
+            {
+                if (
+                    Widgets.ButtonText(
+                        new Rect(buttonX, yBtn, ButtonWidth, ButtonHeight),
+                        historyLabel
+                    )
+                )
+                {
+                    OpenHistory();
+                }
+                buttonX += ButtonWidth + OuterSpacing;
+            }
+            if (
+                Widgets.ButtonText(
+                    new Rect(buttonX, yBtn, ButtonWidth, ButtonHeight),
+                    closeLabel,
+                    true,
+                    false,
+                    true
+                )
+            )
             {
                 Close();
             }
@@ -724,8 +880,10 @@ internal sealed class DialogStartupImpact : Window
 
         var enableLabel = "LoadingProgress.StartupImpact.EnableTracking".Translate();
         var enableButtonWidth = Text.CalcSize(enableLabel).x + (OuterSpacing * 2);
+        var rowWidth =
+            enableButtonWidth + (OuterSpacing * trailingButtons) + (ButtonWidth * trailingButtons);
         var enableButtonRect = new Rect(
-            (area.width - enableButtonWidth - OuterSpacing - ButtonWidth) / 2f,
+            (area.width - rowWidth) / 2f,
             yBtn,
             enableButtonWidth,
             ButtonHeight
@@ -736,12 +894,16 @@ internal sealed class DialogStartupImpact : Window
             LoadingProgressMod.instance.WriteSettings();
             Close();
         }
-        var closeButtonRect = new Rect(
-            enableButtonRect.xMax + OuterSpacing,
-            yBtn,
-            ButtonWidth,
-            ButtonHeight
-        );
+        var nextX = enableButtonRect.xMax + OuterSpacing;
+        if (_hasSavedHistory)
+        {
+            if (Widgets.ButtonText(new Rect(nextX, yBtn, ButtonWidth, ButtonHeight), historyLabel))
+            {
+                OpenHistory();
+            }
+            nextX += ButtonWidth + OuterSpacing;
+        }
+        var closeButtonRect = new Rect(nextX, yBtn, ButtonWidth, ButtonHeight);
         if (Widgets.ButtonText(closeButtonRect, closeLabel, true, false, true))
         {
             Close();

@@ -42,4 +42,11 @@
     <LoadingProgress.Custom>Custom</LoadingProgress.Custom>
     <LoadingProgress.EditCustomPlacement>Set custom position...</LoadingProgress.EditCustomPlacement>
     <LoadingProgress.CustomPlacementPreview.Tip>Drag this window to where you want the loading window to appear, then close it. It can't be dragged off-screen, and its position is kept relative to your screen size, so it stays in the same relative spot if you change resolution.</LoadingProgress.CustomPlacementPreview.Tip>
+    <LoadingProgress.SessionsToKeep> - Sessions to keep: {0}</LoadingProgress.SessionsToKeep>
+    <LoadingProgress.SessionsToKeep.Tip>How many past startup impact sessions to keep on disk.\n\nA session costs roughly 950 bytes per mod, so on a 230-mod list each one is around 220 KB. The oldest session drops off once the limit is reached.\n\nThis is separate from 'Estimates to store' above, which counts loading time samples feeding the estimate rather than sessions on disk.</LoadingProgress.SessionsToKeep.Tip>
+    <LoadingProgress.KeepPinnedSessions> - Keep pinned sessions past that limit</LoadingProgress.KeepPinnedSessions>
+    <LoadingProgress.KeepPinnedSessions.Tip>When enabled, a pinned session is never the one dropped when the limit is reached, and does not occupy one of the slots.\n\nTurn this off to have pinned sessions age out like any other, with the pin affecting only where they appear in the list.</LoadingProgress.KeepPinnedSessions.Tip>
+    <LoadingProgress.KeepUnfinishedBoots> - Keep sessions from startups that never finished</LoadingProgress.KeepUnfinishedBoots>
+    <LoadingProgress.KeepUnfinishedBoots.Tip>A startup that hangs or crashes partway through writes no report at all today, which loses the runs with the most diagnostic value.\n\nWhen enabled, a small marker is kept while the game loads and removed once it finishes. One still present at the next startup becomes a history entry recording when that startup began and which loading stage it reached. There is no per-mod breakdown for such a run, because the game stopped before there was one.</LoadingProgress.KeepUnfinishedBoots.Tip>
+    <LoadingProgress.ManageSessions>Manage saved sessions...</LoadingProgress.ManageSessions>
 </LanguageData>

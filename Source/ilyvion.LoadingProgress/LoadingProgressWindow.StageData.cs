@@ -1,4 +1,5 @@
 using System.Text;
+using ilyvion.LoadingProgress.StartupImpact;
 using LudeonTK;
 
 namespace ilyvion.LoadingProgress;
@@ -677,6 +678,18 @@ internal sealed partial class LoadingProgressWindow
                 LoadingDataTracker.Current = null;
 
                 field = value;
+
+                // Record where a boot that never finishes got to. Guarded on IsActive so a
+                // disabled marker costs a bool read, not an enum name, on every transition.
+                //
+                // Finished is deliberately not recorded. It is set from
+                // InitializingInterface, a separately queued event that runs even when
+                // loading ended before the marker could be cleared, so recording it would
+                // replace the stage the boot stopped at with one it never reached.
+                if (StartupImpactCrashMarker.IsActive && value != LoadingStage.Finished)
+                {
+                    StartupImpactCrashMarker.RecordStage(value.ToString());
+                }
 
                 // A stage transition is exactly the kind of change that should be visible right
                 // away, even if it lands inside what would otherwise be a batched, unpainted

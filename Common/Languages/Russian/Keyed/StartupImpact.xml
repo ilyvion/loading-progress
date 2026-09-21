@@ -48,6 +48,7 @@
     <LoadingProgress.StartupImpact.Seconds>{0} с</LoadingProgress.StartupImpact.Seconds>
     <LoadingProgress.StartupImpact.Milliseconds>{0} мс</LoadingProgress.StartupImpact.Milliseconds>
     <LoadingProgress.StartupImpact.StartupTime>Время запуска: {0}</LoadingProgress.StartupImpact.StartupTime>
+    <LoadingProgress.StartupImpact.ShowingSaved>Сохранённый запуск от {0}</LoadingProgress.StartupImpact.ShowingSaved>
     <LoadingProgress.StartupImpact.SessionStats>Обработано дефов: {0}, применено операций патчей: {1}, загружено модов: {2}</LoadingProgress.StartupImpact.SessionStats>
     <LoadingProgress.StartupImpact.StartupMods>Влияние модов на запуск: {0}</LoadingProgress.StartupImpact.StartupMods>
     <LoadingProgress.StartupImpact.StartupNonmods>Не связано напрямую с модами: {0}</LoadingProgress.StartupImpact.StartupNonmods>
@@ -67,13 +68,45 @@
     <LoadingProgress.StartupImpact.ExportFailed>Ошибка экспорта: {0}</LoadingProgress.StartupImpact.ExportFailed>
     <LoadingProgress.StartupImpact.Saved>Сохранено успешно</LoadingProgress.StartupImpact.Saved>
     <LoadingProgress.StartupImpact.SaveFailed>Ошибка сохранения: {0}</LoadingProgress.StartupImpact.SaveFailed>
-    <LoadingProgress.StartupImpact.Loaded>Загружено успешно</LoadingProgress.StartupImpact.Loaded>
-    <LoadingProgress.StartupImpact.LoadFailedNoData>Ошибка загрузки: сохранённые данные не найдены</LoadingProgress.StartupImpact.LoadFailedNoData>
-    <LoadingProgress.StartupImpact.LoadFailed>Ошибка загрузки: {0}</LoadingProgress.StartupImpact.LoadFailed>
     <LoadingProgress.StartupImpact.DisabledAtStartup>Отслеживание влияния на время запуска было отключено при старте игры, поэтому для этой сессии нет данных.</LoadingProgress.StartupImpact.DisabledAtStartup>
     <LoadingProgress.StartupImpact.EnableTracking>Включить отслеживание влияния на время запуска</LoadingProgress.StartupImpact.EnableTracking>
     <LoadingProgress.StartupImpact.EnableTrackingHint>Включите его ниже, чтобы отслеживать при следующем запуске игры.</LoadingProgress.StartupImpact.EnableTrackingHint>
     <LoadingProgress.StartupImpact.WillTrackNextStartup>Теперь оно включено, и будет отслеживаться при следующем запуске игры.</LoadingProgress.StartupImpact.WillTrackNextStartup>
     <LoadingProgress.StartupImpact.HtmlReport.Title>Отчёт о влиянии на время запуска</LoadingProgress.StartupImpact.HtmlReport.Title>
     <LoadingProgress.StartupImpact.HtmlReport.Footer>Создано модом Loading Progress {0}.</LoadingProgress.StartupImpact.HtmlReport.Footer>
+    <LoadingProgress.StartupImpact.History.Title>История влияния на запуск</LoadingProgress.StartupImpact.History.Title>
+    <LoadingProgress.StartupImpact.History.Column.When>Когда</LoadingProgress.StartupImpact.History.Column.When>
+    <LoadingProgress.StartupImpact.History.Column.Load>Время</LoadingProgress.StartupImpact.History.Column.Load>
+    <LoadingProgress.StartupImpact.History.Column.Mods>Моды</LoadingProgress.StartupImpact.History.Column.Mods>
+    <LoadingProgress.StartupImpact.History.Column.List>Список</LoadingProgress.StartupImpact.History.Column.List>
+    <LoadingProgress.StartupImpact.History.Column.Notes>Примечания</LoadingProgress.StartupImpact.History.Column.Notes>
+    <LoadingProgress.StartupImpact.History.Group.Pinned>Закреплённые</LoadingProgress.StartupImpact.History.Group.Pinned>
+    <LoadingProgress.StartupImpact.History.Group.Recent>Недавние</LoadingProgress.StartupImpact.History.Group.Recent>
+    <LoadingProgress.StartupImpact.History.Group.Baseline>Эталон</LoadingProgress.StartupImpact.History.Group.Baseline>
+    <LoadingProgress.StartupImpact.History.Empty.Pinned>Ничего не закреплено. Закреплённая сессия сохраняется, даже когда выходит за предел.</LoadingProgress.StartupImpact.History.Empty.Pinned>
+    <LoadingProgress.StartupImpact.History.Empty.Recent>Сессий пока не сохранено.</LoadingProgress.StartupImpact.History.Empty.Recent>
+    <LoadingProgress.StartupImpact.History.Empty.Baseline>Эталон не выбран. Выбранный эталон сохраняется независимо от предела.</LoadingProgress.StartupImpact.History.Empty.Baseline>
+    <LoadingProgress.StartupImpact.History.ChooseBaseline>Выбрать эталон</LoadingProgress.StartupImpact.History.ChooseBaseline>
+    <LoadingProgress.StartupImpact.History.Pin>Закрепить</LoadingProgress.StartupImpact.History.Pin>
+    <LoadingProgress.StartupImpact.History.Unpin>Открепить</LoadingProgress.StartupImpact.History.Unpin>
+    <LoadingProgress.StartupImpact.History.ClearBaseline>Снять</LoadingProgress.StartupImpact.History.ClearBaseline>
+    <LoadingProgress.StartupImpact.History.SetBaseline>Сделать эталоном</LoadingProgress.StartupImpact.History.SetBaseline>
+    <LoadingProgress.StartupImpact.History.Load>Загрузить</LoadingProgress.StartupImpact.History.Load>
+    <LoadingProgress.StartupImpact.History.Delete>Удалить</LoadingProgress.StartupImpact.History.Delete>
+    <LoadingProgress.StartupImpact.History.NoLoadTime>нет</LoadingProgress.StartupImpact.History.NoLoadTime>
+    <LoadingProgress.StartupImpact.History.NoBreakdown>Этот запуск не завершился, поэтому разбивки по модам для него нет.</LoadingProgress.StartupImpact.History.NoBreakdown>
+    <LoadingProgress.StartupImpact.History.Note.Unfinished>Не завершился</LoadingProgress.StartupImpact.History.Note.Unfinished>
+    <LoadingProgress.StartupImpact.History.Note.UnfinishedAt>Остановился на этапе «{0}»</LoadingProgress.StartupImpact.History.Note.UnfinishedAt>
+    <LoadingProgress.StartupImpact.History.Note.DifferentList>Другой список модов, сравнение некорректно</LoadingProgress.StartupImpact.History.Note.DifferentList>
+    <LoadingProgress.StartupImpact.History.Status.Pinned>Закреплено.</LoadingProgress.StartupImpact.History.Status.Pinned>
+    <LoadingProgress.StartupImpact.History.Status.Unpinned>Откреплено.</LoadingProgress.StartupImpact.History.Status.Unpinned>
+    <LoadingProgress.StartupImpact.History.Status.BaselineSet>Эталон установлен.</LoadingProgress.StartupImpact.History.Status.BaselineSet>
+    <LoadingProgress.StartupImpact.History.Status.BaselineCleared>Эталон снят. Пока вы не выберете другую сессию, эталона нет.</LoadingProgress.StartupImpact.History.Status.BaselineCleared>
+    <LoadingProgress.StartupImpact.History.Status.Deleted>Сессия удалена.</LoadingProgress.StartupImpact.History.Status.Deleted>
+    <LoadingProgress.StartupImpact.History.Status.Loaded>Показан запуск от {0}.</LoadingProgress.StartupImpact.History.Status.Loaded>
+    <LoadingProgress.StartupImpact.History.Status.LoadFailed>Не удалось прочитать данные этой сессии.</LoadingProgress.StartupImpact.History.Status.LoadFailed>
+    <LoadingProgress.StartupImpact.History.Summary>Сохранено: {0}, предел: {1}</LoadingProgress.StartupImpact.History.Summary>
+    <LoadingProgress.StartupImpact.History.Confirm.Delete>Удалить сохранённую сессию от {0}?</LoadingProgress.StartupImpact.History.Confirm.Delete>
+    <LoadingProgress.StartupImpact.History>История</LoadingProgress.StartupImpact.History>
+    <LoadingProgress.StartupImpact.History.Confirm.Baseline>Это эталон. Если его удалить, эталона не будет, пока вы не выберете другую сессию.</LoadingProgress.StartupImpact.History.Confirm.Baseline>
 </LanguageData>

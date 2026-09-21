@@ -8,7 +8,7 @@ The progress window isn't just for startup anymore. It also appears during in-ga
 
 ## Loading time impact tracking
 
-Loosely based on the mod Startup Impact, the mod can track and show what mods are having what impact on your loading times. Click the loading time summary text in the bottom-right corner of your screen on the main menu to see the stats, including a sortable, filterable per-mod breakdown, a stacked comparison bar, and an option to export a self-contained HTML report you can open in any browser or share without RimWorld running. This feature is disabled by default; enable it in the mod's settings if you'd like to use it.
+Loosely based on the mod Startup Impact, the mod can track and show what mods are having what impact on your loading times. Click the loading time summary text in the bottom-right corner of your screen on the main menu to see the stats, including a sortable, filterable per-mod breakdown, a stacked comparison bar, and an option to export a self-contained HTML report you can open in any browser or share without RimWorld running. Saved sessions are kept as a history rather than only the most recent one, so two launches can be compared, and a launch that hangs or crashes partway through is recorded too, noting the loading stage it stopped at. This feature is disabled by default; enable it in the mod's settings if you'd like to use it.
 
 ## Mod compatibility
 

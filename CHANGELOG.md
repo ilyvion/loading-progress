@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Startup impact sessions are now kept as a history instead of only the most recent one. Sessions reach it from automatic saving and from the Save button on the startup impact window, so a history builds up whether or not automatic saving is on. A 'Manage saved sessions' button in the startup impact settings opens a picker listing what has been kept, showing when each run happened, how long it took, how many mods it loaded and a hash of the mod list it ran under, so two runs can be told apart as comparable or not. Any run can be opened in the startup impact window, pinned so it survives past the limit, marked as the baseline everything is compared against, or deleted. How many to keep is configurable. 'StartupImpactData.xml' is still written at the same point in startup and in the same format, with two elements added to the session it holds, so external tools such as RimSort read it as they did before. Contributed by [beverage](https://github.com/beverage).
+- Startups that never finish are now recorded, independently of the automatic saving setting, since a startup that never finished cannot be saved by hand afterwards. One that hangs or crashes partway through previously wrote no report at all, which lost the runs with the most diagnostic value. A small marker is now kept while the game loads and removed once it finishes, so one still present at the next startup becomes a history entry recording when that startup began and which loading stage it reached. There is no per-mod breakdown for such a run, because the game stopped before there was one. This can be turned off.
+
+### Changed
+
+- The Load button on the startup impact window is now History, and opens the saved session picker. It used to re-read 'StartupImpactData.xml'; that file is still written exactly as before and still readable by the external tools that consume it, but it is not itself one of the kept sessions, so a report written by an earlier version is no longer reachable from the window.
+- The Save button on the startup impact window is now shown only when automatic saving is off, and only when tracking was on for the startup being saved. With automatic saving on, the report file is rewritten every startup and the session is kept in the history, so the button had nothing left to do.
+- The mod settings screen now scrolls, so it is no longer limited to the number of rows the settings window can show at once.
+
+### Fixed
+
+- The Save button on the startup impact window wrote whichever session was on screen to 'StartupImpactData.xml'. Opening a stored session and pressing Save therefore replaced the latest report with an older run, which external tools such as RimSort go on to read as the most recent load. It now always writes the current session.
+
 ## [0.15.0] - 2026-09-14
 
 ### Added

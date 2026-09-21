@@ -42,4 +42,11 @@
     <LoadingProgress.Custom>Пользовательское</LoadingProgress.Custom>
     <LoadingProgress.EditCustomPlacement>Задать позицию...</LoadingProgress.EditCustomPlacement>
     <LoadingProgress.CustomPlacementPreview.Tip>Перетащите это окно туда, где должно появляться окно загрузки, затем закройте его. Его нельзя перетащить за пределы экрана, а его позиция сохраняется относительно размера экрана, поэтому она останется на том же относительном месте при смене разрешения.</LoadingProgress.CustomPlacementPreview.Tip>
+    <LoadingProgress.SessionsToKeep> - Количество сохраняемых сессий: {0}</LoadingProgress.SessionsToKeep>
+    <LoadingProgress.SessionsToKeep.Tip>Сколько прошлых сессий влияния на запуск хранить на диске.\n\nОдна сессия занимает примерно 950 байт на мод, то есть около 220 КБ при списке из 230 модов. При достижении предела самая старая сессия удаляется.\n\nЭто не то же самое, что «Количество сохраняемых оценок» выше: там считаются замеры времени загрузки для оценки, а не сессии на диске.</LoadingProgress.SessionsToKeep.Tip>
+    <LoadingProgress.KeepPinnedSessions> - Сохранять закреплённые сессии сверх предела</LoadingProgress.KeepPinnedSessions>
+    <LoadingProgress.KeepPinnedSessions.Tip>Когда включено, закреплённая сессия никогда не удаляется при достижении предела и не занимает одно из мест.\n\nОтключите, чтобы закреплённые сессии удалялись наравне с остальными, а закрепление влияло только на их положение в списке.</LoadingProgress.KeepPinnedSessions.Tip>
+    <LoadingProgress.KeepUnfinishedBoots> - Сохранять сессии незавершённых запусков</LoadingProgress.KeepUnfinishedBoots>
+    <LoadingProgress.KeepUnfinishedBoots.Tip>Запуск, который завис или аварийно завершился, сейчас не оставляет никакого отчёта, и теряются именно те запуски, которые наиболее полезны для диагностики.\n\nКогда включено, во время загрузки хранится небольшая метка, которая удаляется после её завершения. Метка, оставшаяся к следующему запуску, становится записью в истории: когда тот запуск начался и до какого этапа загрузки дошёл. Разбивки по модам у такой записи нет, потому что игра остановилась раньше, чем она появилась.</LoadingProgress.KeepUnfinishedBoots.Tip>
+    <LoadingProgress.ManageSessions>Управлять сохранёнными сессиями...</LoadingProgress.ManageSessions>
 </LanguageData>

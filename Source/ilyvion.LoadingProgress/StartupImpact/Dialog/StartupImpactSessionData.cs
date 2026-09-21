@@ -14,6 +14,9 @@ internal sealed class StartupImpactSessionData : IExposable
     private int? defsParsed;
     private int? patchOperationsApplied;
 
+    private long savedAtUtcTicks;
+    private int modListHash;
+
     public float LoadingTime => loadingTime;
     public IReadOnlyDictionary<string, float> Metrics => metrics.AsReadOnly();
     public float TotalImpact => totalImpact;
@@ -25,6 +28,20 @@ internal sealed class StartupImpactSessionData : IExposable
     public int? ModsLoaded => modsLoaded;
     public int? DefsParsed => defsParsed;
     public int? PatchOperationsApplied => patchOperationsApplied;
+
+    /// <summary>
+    /// When this session was captured. Sessions saved before history existed
+    /// have no timestamp and report <see cref="DateTime.MinValue"/>.
+    /// </summary>
+    public DateTime SavedAtUtc =>
+        savedAtUtcTicks == 0 ? DateTime.MinValue : new DateTime(savedAtUtcTicks, DateTimeKind.Utc);
+
+    /// <summary>
+    /// Hash of the mod list this session ran under, from the same
+    /// <see cref="StableListHasher"/> the loading window compares against, so two
+    /// sessions can be told apart as comparable or not.
+    /// </summary>
+    public int ModListHash => modListHash;
 
     internal static StartupImpactSessionData FromCurrentSession()
     {
@@ -51,6 +68,8 @@ internal sealed class StartupImpactSessionData : IExposable
             modsLoaded = LoadingSessionStats.ModsLoaded,
             defsParsed = LoadingSessionStats.DefsParsed,
             patchOperationsApplied = LoadingSessionStats.PatchOperationsApplied,
+            savedAtUtcTicks = startupImpact.SessionCapturedAtUtc.Ticks,
+            modListHash = CurrentModListHash(),
         };
 
         return startupImpactSessionData;
@@ -83,7 +102,17 @@ internal sealed class StartupImpactSessionData : IExposable
         Scribe_Values.Look(ref modsLoaded, "modsLoaded");
         Scribe_Values.Look(ref defsParsed, "defsParsed");
         Scribe_Values.Look(ref patchOperationsApplied, "patchOperationsApplied");
+        Scribe_Values.Look(ref savedAtUtcTicks, "savedAtUtcTicks");
+        Scribe_Values.Look(ref modListHash, "modListHash");
     }
+
+    /// <summary>
+    /// The same hash the loading window computes for the running mod list.
+    /// </summary>
+    internal static int CurrentModListHash() =>
+        StableListHasher.ComputeListHash(
+            LoadedModManager.RunningModsListForReading.Select(mod => mod.PackageId)
+        );
 
     // These are used by Scribe_Collections.Look
     private List<string>? metricsKeysWorkingList;

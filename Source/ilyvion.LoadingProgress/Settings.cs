@@ -169,6 +169,27 @@ internal sealed class Settings : ModSettings
         set => _showBaseGameOffThreadImpact = value;
     }
 
+    private int _sessionsToKeep = SessionRetention.DefaultSessionsToKeep;
+    public int SessionsToKeep
+    {
+        get => _sessionsToKeep;
+        set => _sessionsToKeep = value;
+    }
+
+    private bool _keepPinnedSessions = true;
+    public bool KeepPinnedSessions
+    {
+        get => _keepPinnedSessions;
+        set => _keepPinnedSessions = value;
+    }
+
+    private bool _keepUnfinishedBoots = true;
+    public bool KeepUnfinishedBoots
+    {
+        get => _keepUnfinishedBoots;
+        set => _keepUnfinishedBoots = value;
+    }
+
     private Color _progressBarColor = Widgets_Progressbar.BarColor;
     public Color ProgressBarColor
     {
@@ -242,16 +263,81 @@ internal sealed class Settings : ModSettings
         Scribe_Values.Look(ref _trackStartupLoadingImpact, "trackStartupLoadingImpact", false);
         Scribe_Values.Look(ref _autoSaveStartupImpactReport, "autoSaveStartupImpactReport", false);
         Scribe_Values.Look(ref _showBaseGameOffThreadImpact, "showBaseGameOffThreadImpact", false);
+        Scribe_Values.Look(
+            ref _sessionsToKeep,
+            "sessionsToKeep",
+            SessionRetention.DefaultSessionsToKeep
+        );
+        Scribe_Values.Look(ref _keepPinnedSessions, "keepPinnedSessions", true);
+        Scribe_Values.Look(ref _keepUnfinishedBoots, "keepUnfinishedBoots", true);
         Scribe_Values.Look(ref _progressBarColor, "progressBarColor", Widgets_Progressbar.BarColor);
         Scribe_Values.Look(ref _smallBarColor, "smallBarColor", Widgets_Progressbar.SmallBarColor);
     }
 
     private static TimeSpan? _loadingTime;
 
+    private Vector2 _settingsScrollPosition;
+
+    /// <summary>
+    /// Height of the settings content, carried from the previous frame so the
+    /// scroll view knows how far it reaches.
+    /// </summary>
+    private float _settingsContentHeight = 600f;
+
+    /// <summary>
+    /// Retention settings, sitting with the rest of the startup impact group and
+    /// shown whenever tracking is on. Sessions reach the history from automatic
+    /// saving and from the impact window's own Save button, so they can exist
+    /// with auto-save off and the settings that bound them have to be reachable.
+    /// </summary>
+    /// <remarks>
+    /// Its own method rather than more lines in DoSettingsWindowContents, which
+    /// is already close to its class coupling limit.
+    /// </remarks>
+    private void DoSessionHistorySettings(Listing_Standard listingStandard)
+    {
+        _sessionsToKeep = (int)
+            listingStandard.SliderLabeled(
+                "LoadingProgress.SessionsToKeep".Translate(_sessionsToKeep),
+                _sessionsToKeep,
+                SessionRetention.MinimumSessionsToKeep,
+                SessionRetention.MaximumSessionsToKeep,
+                tooltip: "LoadingProgress.SessionsToKeep.Tip".Translate()
+            );
+
+        listingStandard.CheckboxLabeled(
+            "LoadingProgress.KeepPinnedSessions".Translate(),
+            ref _keepPinnedSessions,
+            "LoadingProgress.KeepPinnedSessions.Tip".Translate()
+        );
+
+        listingStandard.CheckboxLabeled(
+            "LoadingProgress.KeepUnfinishedBoots".Translate(),
+            ref _keepUnfinishedBoots,
+            "LoadingProgress.KeepUnfinishedBoots.Tip".Translate()
+        );
+
+        if (listingStandard.ButtonText("LoadingProgress.ManageSessions".Translate()))
+        {
+            Find.WindowStack.Add(new DialogStartupImpactHistory(modal: true));
+        }
+    }
+
     public void DoSettingsWindowContents(Rect inRect)
     {
-        Listing_Standard listingStandard = new();
-        listingStandard.Begin(inRect);
+        // Dialog_ModSettings gives this method a fixed 584px on a 700px window, and the
+        // settings had grown to within a row of filling it: adding any further row pushed the
+        // loading time button at the bottom off the edge, where it was clipped rather than
+        // scrolled to.
+        Rect viewRect = new(0f, 0f, inRect.width - ScrollBarWidth, _settingsContentHeight);
+        Widgets.BeginScrollView(inRect, ref _settingsScrollPosition, viewRect);
+
+        // maxOneColumn is load-bearing. Without it GetRect breaks to a second column as soon
+        // as the content passes the view rect's height, and CurHeight, which is the column's
+        // own y, resets with it. Feeding that back as the next frame's height collapses the
+        // view rect until only the first row fits.
+        Listing_Standard listingStandard = new() { maxOneColumn = true };
+        listingStandard.Begin(viewRect);
 
         listingStandard.CheckboxLabeled(
             "LoadingProgress.PatchInitialization".Translate(),
@@ -335,6 +421,11 @@ internal sealed class Settings : ModSettings
                 ref _autoSaveStartupImpactReport,
                 "LoadingProgress.AutoSaveStartupImpactReport.Tip".Translate()
             );
+
+            // Tied to tracking rather than to auto-save: the Save button records a session
+            // too, so a history can exist with auto-save off, and the settings that bound it
+            // have to be reachable in that case.
+            DoSessionHistorySettings(listingStandard);
 
             listingStandard.CheckboxLabeled(
                 "LoadingProgress.ShowBaseGameOffThreadImpact".Translate(),
@@ -425,8 +516,34 @@ internal sealed class Settings : ModSettings
             }
         }
 
+        _settingsContentHeight = NextViewHeight(
+            listingStandard.CurHeight,
+            inRect.height,
+            BottomPadding
+        );
         listingStandard.End();
+
+        Widgets.EndScrollView();
     }
+
+    private const float ScrollBarWidth = 20f;
+    private const float BottomPadding = 12f;
+
+    /// <summary>
+    /// Height to give the settings view rect next frame, from the height the
+    /// listing just measured.
+    /// </summary>
+    /// <remarks>
+    /// Never returns less than the viewport. A view rect shorter than what is
+    /// on screen is what lets Listing break to a second column, and the height
+    /// it reports afterwards is that column's own, so feeding it back
+    /// unclamped collapses the screen to a single row.
+    /// </remarks>
+    internal static float NextViewHeight(
+        float measuredContentHeight,
+        float viewportHeight,
+        float padding
+    ) => Math.Max(viewportHeight, measuredContentHeight + padding);
 }
 
 internal enum LoadingWindowPlacement
