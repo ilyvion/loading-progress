@@ -38,6 +38,7 @@ internal static class StartupImpactCrashMarker
     }
 
     private static volatile bool _isActive;
+    private static readonly object _lock = new();
     private static long _startedAtUtcTicks;
     private static int _modListHash;
     private static string _stage = "";
@@ -151,11 +152,14 @@ internal static class StartupImpactCrashMarker
     /// </summary>
     internal static void Begin(int modListHash)
     {
-        IsActive = true;
-        _startedAtUtcTicks = DateTime.UtcNow.Ticks;
-        _modListHash = modListHash;
-        _stage = "";
-        Write();
+        lock (_lock)
+        {
+            IsActive = true;
+            _startedAtUtcTicks = DateTime.UtcNow.Ticks;
+            _modListHash = modListHash;
+            _stage = "";
+            Write();
+        }
     }
 
     /// <summary>
@@ -168,8 +172,15 @@ internal static class StartupImpactCrashMarker
         {
             return;
         }
-        _stage = stage ?? "";
-        Write();
+        lock (_lock)
+        {
+            if (!IsActive)
+            {
+                return;
+            }
+            _stage = stage ?? "";
+            Write();
+        }
     }
 
     /// <summary>
@@ -177,17 +188,20 @@ internal static class StartupImpactCrashMarker
     /// </summary>
     internal static void Clear()
     {
-        IsActive = false;
-        try
+        lock (_lock)
         {
-            if (File.Exists(MarkerFilePath))
+            IsActive = false;
+            try
             {
-                File.Delete(MarkerFilePath);
+                if (File.Exists(MarkerFilePath))
+                {
+                    File.Delete(MarkerFilePath);
+                }
             }
-        }
-        catch (Exception e)
-        {
-            LoadingProgressMod.Warning("Could not remove the startup marker: " + e.Message);
+            catch (Exception e)
+            {
+                LoadingProgressMod.Warning("Could not remove the startup marker: " + e.Message);
+            }
         }
     }
 

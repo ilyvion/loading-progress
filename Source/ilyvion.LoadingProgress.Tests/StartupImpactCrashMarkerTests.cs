@@ -54,6 +54,16 @@ internal static class StartupImpactCrashMarkerTests
     }
 
     [Test]
+    public static void ARecordedStageAfterClearDoesNotRecreateTheMarker()
+    {
+        StartupImpactCrashMarker.Clear();
+
+        StartupImpactCrashMarker.RecordStage("AfterFinish");
+
+        Assert.That(File.Exists(StartupImpactCrashMarker.MarkerFilePath)).Is.False();
+    }
+
+    [Test]
     public static void AMarkerWithoutAStartTimeIsNoMarker() =>
         Assert
             .That(StartupImpactCrashMarker.Parse("version=1\nstage=LoadModXml\n").HasValue)
