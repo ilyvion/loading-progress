@@ -761,24 +761,6 @@ internal sealed class DialogStartupImpact : Window
         !_wasTrackingEnabledAtStartup && ReferenceEquals(_sessionData, _currentSessionData);
 
     /// <summary>
-    /// Whether the Save button belongs on the button row: this startup measured
-    /// something, and nothing else is writing it to disk.
-    /// </summary>
-    /// <remarks>
-    /// With auto-save on, the report file is rewritten every startup and the
-    /// history keeps the sessions, so the button does nothing the mod is not
-    /// doing already.
-    ///
-    /// The tracking half matters because opening a stored session draws this
-    /// layout even when tracking was off for the whole load. The current session
-    /// is empty in that case, and Save writes the current session, so the button
-    /// would hand external tools a report with no timings in it and add a 00:00
-    /// row to the history.
-    ///
-    /// Its own method for the same reason as <see cref="HasNothingToShow"/>:
-    /// DoWindowContents is already at its complexity limit.
-    /// </remarks>
-    /// <summary>
     /// Says which stored run is on screen, at the right-hand end of the title
     /// row.
     /// </summary>
@@ -815,6 +797,24 @@ internal sealed class DialogStartupImpact : Window
         Text.Font = GameFont.Medium;
     }
 
+    /// <summary>
+    /// Whether the Save button belongs on the button row: this startup measured
+    /// something, and nothing else is writing it to disk.
+    /// </summary>
+    /// <remarks>
+    /// With auto-save on, the report file is rewritten every startup and the
+    /// history keeps the sessions, so the button does nothing the mod is not
+    /// doing already.
+    ///
+    /// The tracking half matters because opening a stored session draws this
+    /// layout even when tracking was off for the whole load. The current session
+    /// is empty in that case, and Save writes the current session, so the button
+    /// would hand external tools a report with no timings in it and add a 00:00
+    /// row to the history.
+    ///
+    /// Its own method for the same reason as <see cref="HasNothingToShow"/>:
+    /// DoWindowContents is already at its complexity limit.
+    /// </remarks>
     private bool HasSomethingToSave() =>
         _wasTrackingEnabledAtStartup && !LoadingProgressMod.Settings.AutoSaveStartupImpactReport;
 
