@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.16.0] - 2026-09-22
+
 ### Added
 
 - Startup impact sessions are now kept as a history instead of only the most recent one. Sessions reach it from automatic saving and from the Save button on the startup impact window, so a history builds up whether or not automatic saving is on. A 'Manage saved sessions' button in the startup impact settings opens a picker listing what has been kept, showing when each run happened, how long it took, how many mods it loaded and a hash of the mod list it ran under, so two runs can be told apart as comparable or not. Any run can be opened in the startup impact window, pinned so it survives past the limit, marked as the baseline everything is compared against, or deleted. How many to keep is configurable. 'StartupImpactData.xml' is still written at the same point in startup and in the same format, with two elements added to the session it holds, so external tools such as RimSort read it as they did before. Contributed by [beverage](https://github.com/beverage).
@@ -329,7 +331,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First implementation of the mod.
 
-[Unreleased]: https://github.com/ilyvion/loading-progress/compare/v0.15.0...HEAD
+[Unreleased]: https://github.com/ilyvion/loading-progress/compare/v0.16.0...HEAD
+[0.16.0]: https://github.com/ilyvion/loading-progress/compare/v0.15.0..v0.16.0
 [0.15.0]: https://github.com/ilyvion/loading-progress/compare/v0.14.0..v0.15.0
 [0.14.0]: https://github.com/ilyvion/loading-progress/compare/v0.13.2..v0.14.0
 [0.13.2]: https://github.com/ilyvion/loading-progress/compare/v0.13.1..v0.13.2
