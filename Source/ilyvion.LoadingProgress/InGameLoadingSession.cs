@@ -425,6 +425,78 @@ internal static class InGameLoadingSession
             "LoadingProgress.InGame.Label.CountingResources",
         ["wealthWatcher.ForceRecount()"] = "LoadingProgress.InGame.Label.CalculatingWealth",
         ["Game.FinalizeInit"] = "LoadingProgress.InGame.Label.FinishingUp",
+
+        // World/map generation: DeepProfiler labels here are GenStepDef/WorldGenStepDef defNames
+        // (after StripKnownLabelPrefix removes their "GenStep - "/"WorldGenStep - " prefix) or raw
+        // method names, not player-facing text. Single common words that already read naturally as
+        // nouns (e.g. "Terrain", "Roads", "Pollution", "Factions", "Landmarks", "Tiles", "Snow",
+        // "Animals", "Fog", "Plants") are deliberately left out of this table.
+        ["GenerateWorld"] = "LoadingProgress.InGame.Label.GeneratingWorld",
+        ["InitNewGeneratedMap"] = "LoadingProgress.InGame.Label.SettingUpMapGeneration",
+        ["MapComponent.MapGenerated()"] = "LoadingProgress.InGame.Label.RunningMapComponents",
+        ["RebuildAllRegions"] = "LoadingProgress.InGame.Label.MappingOutRooms",
+        ["GenerateInitialFogGrid"] = "LoadingProgress.InGame.Label.SettingUpFogOfWar",
+
+        ["ElevationFertility"] = "LoadingProgress.InGame.Label.ShapingTerrain",
+        // Every "Mutator*" gen step (tile mutators like ancient ruins or toxic fallout modifying
+        // map generation) shares one translation key, the same way the two thing-list labels above
+        // do; a player doesn't need to distinguish the sub-steps from each other.
+        ["MutatorPostElevationFertility"] = "LoadingProgress.InGame.Label.ApplyingMapFeatures",
+        ["MutatorPostTerrain"] = "LoadingProgress.InGame.Label.ApplyingMapFeatures",
+        ["MutatorCriticalStructures"] = "LoadingProgress.InGame.Label.ApplyingMapFeatures",
+        ["MutatorNonCriticalStructures"] = "LoadingProgress.InGame.Label.ApplyingMapFeatures",
+        ["MutatorFinal"] = "LoadingProgress.InGame.Label.ApplyingMapFeatures",
+        ["Mutators"] = "LoadingProgress.InGame.Label.ApplyingMapFeatures",
+        ["RocksFromGrid"] = "LoadingProgress.InGame.Label.PlacingRockFormations",
+        ["ScatterShrines"] = "LoadingProgress.InGame.Label.PlacingShrines",
+        ["ScatterRuinsSimple"] = "LoadingProgress.InGame.Label.PlacingRuins",
+        ["AncientUtilityBuilding"] = "LoadingProgress.InGame.Label.PlacingAncientBuildings",
+        ["FindPlayerStartSpot"] = "LoadingProgress.InGame.Label.ChoosingStartingSpot",
+        ["ScenParts"] = "LoadingProgress.InGame.Label.ApplyingScenarioSettings",
+        ["SteamGeysers"] = "LoadingProgress.InGame.Label.PlacingSteamGeysers",
+        ["ScatterRoadDebris"] = "LoadingProgress.InGame.Label.ScatteringRoadDebris",
+        ["ScatterCaveDebris"] = "LoadingProgress.InGame.Label.ScatteringCaveDebris",
+        ["MechanoidRemains"] = "LoadingProgress.InGame.Label.PlacingMechanoidRemains",
+        ["AncientTurret"] = "LoadingProgress.InGame.Label.PlacingAncientTurrets",
+        ["AncientMechs"] = "LoadingProgress.InGame.Label.PlacingAncientMechanoids",
+        ["AncientLandingPad"] = "LoadingProgress.InGame.Label.PlacingAncientLandingPad",
+        ["AncientFences"] = "LoadingProgress.InGame.Label.PlacingAncientFences",
+        ["AncientPipelineSection"] = "LoadingProgress.InGame.Label.PlacingAncientPipelines",
+        ["AncientJunkClusters"] = "LoadingProgress.InGame.Label.ScatteringAncientJunk",
+        ["AncientPollutionJunk"] = "LoadingProgress.InGame.Label.ScatteringPollutedJunk",
+        ["RockChunks"] = "LoadingProgress.InGame.Label.PlacingRockChunks",
+        ["PoluxTrees"] = "LoadingProgress.InGame.Label.GrowingPoluxTrees",
+        ["CaveHives"] = "LoadingProgress.InGame.Label.PlacingInsectHives",
+        ["AnimaTrees"] = "LoadingProgress.InGame.Label.PlacingAnimaTrees",
+        ["AncientExostriderRemains"] = "LoadingProgress.InGame.Label.PlacingExostriderRemains",
+        ["VoidMonolith"] = "LoadingProgress.InGame.Label.PlacingVoidMonolith",
+        ["AncientSites"] = "LoadingProgress.InGame.Label.PlacingAncientSites",
+        ["AncientRoads"] = "LoadingProgress.InGame.Label.PlacingAncientRoads",
+
+        // World-map redraw layers (see OnWorldDrawLayerRegenerationStarted): the label is the
+        // layer's own .NET type name, since WorldDrawLayerBase instances have no def or label of
+        // their own to draw a friendly name from.
+        ["GlobalDrawLayer_Stars"] = "LoadingProgress.InGame.Label.DrawingStars",
+        ["GlobalDrawLayer_Sun"] = "LoadingProgress.InGame.Label.DrawingSunlight",
+        ["WorldDrawLayer_CurrentMapTile"] = "LoadingProgress.InGame.Label.MarkingCurrentTile",
+        ["WorldDrawLayer_SelectedTile"] = "LoadingProgress.InGame.Label.MarkingSelectedTile",
+        ["WorldDrawLayer_SettleTile"] = "LoadingProgress.InGame.Label.MarkingSettlementTile",
+        ["WorldDrawLayer_MouseTile"] = "LoadingProgress.InGame.Label.MarkingTileUnderCursor",
+        ["WorldDrawLayer_ClosestTile"] = "LoadingProgress.InGame.Label.MarkingNearestTile",
+        ["WorldDrawLayer_UngeneratedPlanetParts"] =
+            "LoadingProgress.InGame.Label.DrawingUnexploredAreas",
+        ["WorldDrawLayer_WorldObjects_Expandable"] =
+            "LoadingProgress.InGame.Label.DrawingWorldObjects",
+        ["WorldDrawLayer_WorldObjects_NonExpandable"] =
+            "LoadingProgress.InGame.Label.DrawingWorldObjects",
+        ["WorldDrawLayer_Landmarks"] = "LoadingProgress.InGame.Label.DrawingLandmarks",
+        ["WorldDrawLayer_Glow"] = "LoadingProgress.InGame.Label.DrawingPlanetGlow",
+        ["WorldDrawLayer_Hills"] = "LoadingProgress.InGame.Label.DrawingHills",
+        ["WorldDrawLayer_Pollution"] = "LoadingProgress.InGame.Label.DrawingPollution",
+        ["WorldDrawLayer_Rivers"] = "LoadingProgress.InGame.Label.DrawingRivers",
+        ["WorldDrawLayer_Roads"] = "LoadingProgress.InGame.Label.DrawingRoads",
+        ["WorldDrawLayer_Terrain"] = "LoadingProgress.InGame.Label.DrawingTerrain",
+        ["WorldDrawLayer_Clouds"] = "LoadingProgress.InGame.Label.DrawingClouds",
     };
 
     internal static string? TranslationKeyForKnownLabel(string label) =>

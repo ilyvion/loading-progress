@@ -54,4 +54,56 @@
     <LoadingProgress.InGame.Label.CalculatingWealth>Calculating colony wealth</LoadingProgress.InGame.Label.CalculatingWealth>
     <LoadingProgress.InGame.Label.FinishingUp>Finishing up</LoadingProgress.InGame.Label.FinishingUp>
     <LoadingProgress.InGame.Label.RedrawingMapChunk>Redrawing map (chunk {0} of {1})</LoadingProgress.InGame.Label.RedrawingMapChunk>
+
+    <LoadingProgress.InGame.Label.GeneratingWorld>Generating world</LoadingProgress.InGame.Label.GeneratingWorld>
+    <LoadingProgress.InGame.Label.SettingUpMapGeneration>Setting up map generation</LoadingProgress.InGame.Label.SettingUpMapGeneration>
+    <LoadingProgress.InGame.Label.RunningMapComponents>Running final map setup</LoadingProgress.InGame.Label.RunningMapComponents>
+    <LoadingProgress.InGame.Label.MappingOutRooms>Mapping out rooms</LoadingProgress.InGame.Label.MappingOutRooms>
+    <LoadingProgress.InGame.Label.SettingUpFogOfWar>Setting up fog of war</LoadingProgress.InGame.Label.SettingUpFogOfWar>
+
+    <LoadingProgress.InGame.Label.ShapingTerrain>Shaping the terrain</LoadingProgress.InGame.Label.ShapingTerrain>
+    <LoadingProgress.InGame.Label.ApplyingMapFeatures>Applying special map features</LoadingProgress.InGame.Label.ApplyingMapFeatures>
+    <LoadingProgress.InGame.Label.PlacingRockFormations>Placing rock formations</LoadingProgress.InGame.Label.PlacingRockFormations>
+    <LoadingProgress.InGame.Label.PlacingShrines>Placing shrines</LoadingProgress.InGame.Label.PlacingShrines>
+    <LoadingProgress.InGame.Label.PlacingRuins>Placing ruins</LoadingProgress.InGame.Label.PlacingRuins>
+    <LoadingProgress.InGame.Label.PlacingAncientBuildings>Placing ancient buildings</LoadingProgress.InGame.Label.PlacingAncientBuildings>
+    <LoadingProgress.InGame.Label.ChoosingStartingSpot>Choosing your starting spot</LoadingProgress.InGame.Label.ChoosingStartingSpot>
+    <LoadingProgress.InGame.Label.ApplyingScenarioSettings>Applying scenario settings</LoadingProgress.InGame.Label.ApplyingScenarioSettings>
+    <LoadingProgress.InGame.Label.PlacingSteamGeysers>Placing steam geysers</LoadingProgress.InGame.Label.PlacingSteamGeysers>
+    <LoadingProgress.InGame.Label.ScatteringRoadDebris>Scattering road debris</LoadingProgress.InGame.Label.ScatteringRoadDebris>
+    <LoadingProgress.InGame.Label.ScatteringCaveDebris>Scattering cave debris</LoadingProgress.InGame.Label.ScatteringCaveDebris>
+    <LoadingProgress.InGame.Label.PlacingMechanoidRemains>Placing mechanoid remains</LoadingProgress.InGame.Label.PlacingMechanoidRemains>
+    <LoadingProgress.InGame.Label.PlacingAncientTurrets>Placing ancient turrets</LoadingProgress.InGame.Label.PlacingAncientTurrets>
+    <LoadingProgress.InGame.Label.PlacingAncientMechanoids>Placing ancient mechanoids</LoadingProgress.InGame.Label.PlacingAncientMechanoids>
+    <LoadingProgress.InGame.Label.PlacingAncientLandingPad>Placing an ancient landing pad</LoadingProgress.InGame.Label.PlacingAncientLandingPad>
+    <LoadingProgress.InGame.Label.PlacingAncientFences>Placing ancient fences</LoadingProgress.InGame.Label.PlacingAncientFences>
+    <LoadingProgress.InGame.Label.PlacingAncientPipelines>Placing ancient pipelines</LoadingProgress.InGame.Label.PlacingAncientPipelines>
+    <LoadingProgress.InGame.Label.ScatteringAncientJunk>Scattering ancient junk</LoadingProgress.InGame.Label.ScatteringAncientJunk>
+    <LoadingProgress.InGame.Label.ScatteringPollutedJunk>Scattering polluted junk</LoadingProgress.InGame.Label.ScatteringPollutedJunk>
+    <LoadingProgress.InGame.Label.PlacingRockChunks>Placing rock chunks</LoadingProgress.InGame.Label.PlacingRockChunks>
+    <LoadingProgress.InGame.Label.GrowingPoluxTrees>Growing polux trees</LoadingProgress.InGame.Label.GrowingPoluxTrees>
+    <LoadingProgress.InGame.Label.PlacingInsectHives>Placing insect hives</LoadingProgress.InGame.Label.PlacingInsectHives>
+    <LoadingProgress.InGame.Label.PlacingAnimaTrees>Placing anima trees</LoadingProgress.InGame.Label.PlacingAnimaTrees>
+    <LoadingProgress.InGame.Label.PlacingExostriderRemains>Placing ancient exostrider remains</LoadingProgress.InGame.Label.PlacingExostriderRemains>
+    <LoadingProgress.InGame.Label.PlacingVoidMonolith>Placing the void monolith</LoadingProgress.InGame.Label.PlacingVoidMonolith>
+    <LoadingProgress.InGame.Label.PlacingAncientSites>Placing ancient sites</LoadingProgress.InGame.Label.PlacingAncientSites>
+    <LoadingProgress.InGame.Label.PlacingAncientRoads>Placing ancient roads</LoadingProgress.InGame.Label.PlacingAncientRoads>
+
+    <LoadingProgress.InGame.Label.DrawingStars>Drawing stars</LoadingProgress.InGame.Label.DrawingStars>
+    <LoadingProgress.InGame.Label.DrawingSunlight>Drawing sunlight</LoadingProgress.InGame.Label.DrawingSunlight>
+    <LoadingProgress.InGame.Label.MarkingCurrentTile>Marking your current tile</LoadingProgress.InGame.Label.MarkingCurrentTile>
+    <LoadingProgress.InGame.Label.MarkingSelectedTile>Marking the selected tile</LoadingProgress.InGame.Label.MarkingSelectedTile>
+    <LoadingProgress.InGame.Label.MarkingSettlementTile>Marking the settlement tile</LoadingProgress.InGame.Label.MarkingSettlementTile>
+    <LoadingProgress.InGame.Label.MarkingTileUnderCursor>Marking the tile under your cursor</LoadingProgress.InGame.Label.MarkingTileUnderCursor>
+    <LoadingProgress.InGame.Label.MarkingNearestTile>Marking the nearest tile</LoadingProgress.InGame.Label.MarkingNearestTile>
+    <LoadingProgress.InGame.Label.DrawingUnexploredAreas>Drawing unexplored areas</LoadingProgress.InGame.Label.DrawingUnexploredAreas>
+    <LoadingProgress.InGame.Label.DrawingWorldObjects>Drawing world objects</LoadingProgress.InGame.Label.DrawingWorldObjects>
+    <LoadingProgress.InGame.Label.DrawingLandmarks>Drawing landmarks</LoadingProgress.InGame.Label.DrawingLandmarks>
+    <LoadingProgress.InGame.Label.DrawingPlanetGlow>Drawing planet glow</LoadingProgress.InGame.Label.DrawingPlanetGlow>
+    <LoadingProgress.InGame.Label.DrawingHills>Drawing hills</LoadingProgress.InGame.Label.DrawingHills>
+    <LoadingProgress.InGame.Label.DrawingPollution>Drawing pollution</LoadingProgress.InGame.Label.DrawingPollution>
+    <LoadingProgress.InGame.Label.DrawingRivers>Drawing rivers</LoadingProgress.InGame.Label.DrawingRivers>
+    <LoadingProgress.InGame.Label.DrawingRoads>Drawing roads</LoadingProgress.InGame.Label.DrawingRoads>
+    <LoadingProgress.InGame.Label.DrawingTerrain>Drawing terrain</LoadingProgress.InGame.Label.DrawingTerrain>
+    <LoadingProgress.InGame.Label.DrawingClouds>Drawing clouds</LoadingProgress.InGame.Label.DrawingClouds>
 </LanguageData>

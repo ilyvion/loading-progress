@@ -1117,7 +1117,40 @@ internal sealed class InGameLoadingSessionTests
             InGameLoadingSession.TranslationKeyForKnownLabel("Spawn everything into the map")
                 == null
         );
+        // "Terrain"/"Roads" etc. are GenStepDef/WorldGenStepDef defNames left over after
+        // StripKnownLabelPrefix, but they're already plain, single-word nouns.
+        Expect.IsTrue(InGameLoadingSession.TranslationKeyForKnownLabel("Terrain") == null);
+        Expect.IsTrue(InGameLoadingSession.TranslationKeyForKnownLabel("Roads") == null);
     }
+
+    // GenStepDef/WorldGenStepDef defNames left over after StripKnownLabelPrefix are the step's
+    // internal identifier, not player-facing text, so they get mapped like any other technical
+    // label.
+    [Test]
+    public static void TranslationKeyForKnownLabelMapsGenStepDefNamesToATranslationKey() =>
+        Expect.AreEqual(
+            "LoadingProgress.InGame.Label.ShapingTerrain",
+            InGameLoadingSession.TranslationKeyForKnownLabel("ElevationFertility")
+        );
+
+    // Every "Mutator*" gen step shares one translation key rather than one each, the same way
+    // the thing-list labels above do.
+    [Test]
+    public static void TranslationKeyForKnownLabelMapsAllMutatorGenStepsToTheSameKey() =>
+        Expect.AreEqual(
+            InGameLoadingSession.TranslationKeyForKnownLabel("MutatorPostElevationFertility"),
+            InGameLoadingSession.TranslationKeyForKnownLabel("MutatorFinal")
+        );
+
+    // World-map redraw layers (see OnWorldDrawLayerRegenerationStarted) set Label to the
+    // regenerating layer's own .NET type name, which reads like code rather than something a
+    // player would understand.
+    [Test]
+    public static void TranslationKeyForKnownLabelMapsWorldDrawLayerTypeNamesToATranslationKey() =>
+        Expect.AreEqual(
+            "LoadingProgress.InGame.Label.DrawingHills",
+            InGameLoadingSession.TranslationKeyForKnownLabel("WorldDrawLayer_Hills")
+        );
 
     [Test]
     public static void IsSuppressedWorldGenLayerLabelDetectsTheLayerBoundaryLabel() =>

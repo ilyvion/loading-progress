@@ -54,4 +54,56 @@
     <LoadingProgress.InGame.Label.CalculatingWealth>Расчёт благосостояния колонии</LoadingProgress.InGame.Label.CalculatingWealth>
     <LoadingProgress.InGame.Label.FinishingUp>Завершение</LoadingProgress.InGame.Label.FinishingUp>
     <LoadingProgress.InGame.Label.RedrawingMapChunk>Перерисовка карты (участок {0} из {1})</LoadingProgress.InGame.Label.RedrawingMapChunk>
+
+    <LoadingProgress.InGame.Label.GeneratingWorld>Генерация мира</LoadingProgress.InGame.Label.GeneratingWorld>
+    <LoadingProgress.InGame.Label.SettingUpMapGeneration>Подготовка к генерации карты</LoadingProgress.InGame.Label.SettingUpMapGeneration>
+    <LoadingProgress.InGame.Label.RunningMapComponents>Завершающая настройка карты</LoadingProgress.InGame.Label.RunningMapComponents>
+    <LoadingProgress.InGame.Label.MappingOutRooms>Разметка помещений</LoadingProgress.InGame.Label.MappingOutRooms>
+    <LoadingProgress.InGame.Label.SettingUpFogOfWar>Настройка тумана войны</LoadingProgress.InGame.Label.SettingUpFogOfWar>
+
+    <LoadingProgress.InGame.Label.ShapingTerrain>Формирование рельефа</LoadingProgress.InGame.Label.ShapingTerrain>
+    <LoadingProgress.InGame.Label.ApplyingMapFeatures>Применение особенностей карты</LoadingProgress.InGame.Label.ApplyingMapFeatures>
+    <LoadingProgress.InGame.Label.PlacingRockFormations>Размещение скальных образований</LoadingProgress.InGame.Label.PlacingRockFormations>
+    <LoadingProgress.InGame.Label.PlacingShrines>Размещение святилищ</LoadingProgress.InGame.Label.PlacingShrines>
+    <LoadingProgress.InGame.Label.PlacingRuins>Размещение руин</LoadingProgress.InGame.Label.PlacingRuins>
+    <LoadingProgress.InGame.Label.PlacingAncientBuildings>Размещение древних построек</LoadingProgress.InGame.Label.PlacingAncientBuildings>
+    <LoadingProgress.InGame.Label.ChoosingStartingSpot>Выбор начальной точки</LoadingProgress.InGame.Label.ChoosingStartingSpot>
+    <LoadingProgress.InGame.Label.ApplyingScenarioSettings>Применение настроек сценария</LoadingProgress.InGame.Label.ApplyingScenarioSettings>
+    <LoadingProgress.InGame.Label.PlacingSteamGeysers>Размещение паровых гейзеров</LoadingProgress.InGame.Label.PlacingSteamGeysers>
+    <LoadingProgress.InGame.Label.ScatteringRoadDebris>Разбрасывание дорожного мусора</LoadingProgress.InGame.Label.ScatteringRoadDebris>
+    <LoadingProgress.InGame.Label.ScatteringCaveDebris>Разбрасывание пещерного мусора</LoadingProgress.InGame.Label.ScatteringCaveDebris>
+    <LoadingProgress.InGame.Label.PlacingMechanoidRemains>Размещение останков механоидов</LoadingProgress.InGame.Label.PlacingMechanoidRemains>
+    <LoadingProgress.InGame.Label.PlacingAncientTurrets>Размещение древних турелей</LoadingProgress.InGame.Label.PlacingAncientTurrets>
+    <LoadingProgress.InGame.Label.PlacingAncientMechanoids>Размещение древних механоидов</LoadingProgress.InGame.Label.PlacingAncientMechanoids>
+    <LoadingProgress.InGame.Label.PlacingAncientLandingPad>Размещение древней посадочной площадки</LoadingProgress.InGame.Label.PlacingAncientLandingPad>
+    <LoadingProgress.InGame.Label.PlacingAncientFences>Размещение древних заграждений</LoadingProgress.InGame.Label.PlacingAncientFences>
+    <LoadingProgress.InGame.Label.PlacingAncientPipelines>Размещение древних трубопроводов</LoadingProgress.InGame.Label.PlacingAncientPipelines>
+    <LoadingProgress.InGame.Label.ScatteringAncientJunk>Разбрасывание древнего хлама</LoadingProgress.InGame.Label.ScatteringAncientJunk>
+    <LoadingProgress.InGame.Label.ScatteringPollutedJunk>Разбрасывание загрязнённого хлама</LoadingProgress.InGame.Label.ScatteringPollutedJunk>
+    <LoadingProgress.InGame.Label.PlacingRockChunks>Размещение каменных глыб</LoadingProgress.InGame.Label.PlacingRockChunks>
+    <LoadingProgress.InGame.Label.GrowingPoluxTrees>Выращивание полюксовых деревьев</LoadingProgress.InGame.Label.GrowingPoluxTrees>
+    <LoadingProgress.InGame.Label.PlacingInsectHives>Размещение ульев насекомых</LoadingProgress.InGame.Label.PlacingInsectHives>
+    <LoadingProgress.InGame.Label.PlacingAnimaTrees>Размещение деревьев анимы</LoadingProgress.InGame.Label.PlacingAnimaTrees>
+    <LoadingProgress.InGame.Label.PlacingExostriderRemains>Размещение останков древнего экзошагателя</LoadingProgress.InGame.Label.PlacingExostriderRemains>
+    <LoadingProgress.InGame.Label.PlacingVoidMonolith>Размещение монолита пустоты</LoadingProgress.InGame.Label.PlacingVoidMonolith>
+    <LoadingProgress.InGame.Label.PlacingAncientSites>Размещение древних поселений</LoadingProgress.InGame.Label.PlacingAncientSites>
+    <LoadingProgress.InGame.Label.PlacingAncientRoads>Размещение древних дорог</LoadingProgress.InGame.Label.PlacingAncientRoads>
+
+    <LoadingProgress.InGame.Label.DrawingStars>Отрисовка звёзд</LoadingProgress.InGame.Label.DrawingStars>
+    <LoadingProgress.InGame.Label.DrawingSunlight>Отрисовка солнечного света</LoadingProgress.InGame.Label.DrawingSunlight>
+    <LoadingProgress.InGame.Label.MarkingCurrentTile>Отметка текущего гекса</LoadingProgress.InGame.Label.MarkingCurrentTile>
+    <LoadingProgress.InGame.Label.MarkingSelectedTile>Отметка выбранного гекса</LoadingProgress.InGame.Label.MarkingSelectedTile>
+    <LoadingProgress.InGame.Label.MarkingSettlementTile>Отметка гекса поселения</LoadingProgress.InGame.Label.MarkingSettlementTile>
+    <LoadingProgress.InGame.Label.MarkingTileUnderCursor>Отметка гекса под курсором</LoadingProgress.InGame.Label.MarkingTileUnderCursor>
+    <LoadingProgress.InGame.Label.MarkingNearestTile>Отметка ближайшего гекса</LoadingProgress.InGame.Label.MarkingNearestTile>
+    <LoadingProgress.InGame.Label.DrawingUnexploredAreas>Отрисовка неизученных областей</LoadingProgress.InGame.Label.DrawingUnexploredAreas>
+    <LoadingProgress.InGame.Label.DrawingWorldObjects>Отрисовка объектов мира</LoadingProgress.InGame.Label.DrawingWorldObjects>
+    <LoadingProgress.InGame.Label.DrawingLandmarks>Отрисовка достопримечательностей</LoadingProgress.InGame.Label.DrawingLandmarks>
+    <LoadingProgress.InGame.Label.DrawingPlanetGlow>Отрисовка свечения планеты</LoadingProgress.InGame.Label.DrawingPlanetGlow>
+    <LoadingProgress.InGame.Label.DrawingHills>Отрисовка холмов</LoadingProgress.InGame.Label.DrawingHills>
+    <LoadingProgress.InGame.Label.DrawingPollution>Отрисовка загрязнения</LoadingProgress.InGame.Label.DrawingPollution>
+    <LoadingProgress.InGame.Label.DrawingRivers>Отрисовка рек</LoadingProgress.InGame.Label.DrawingRivers>
+    <LoadingProgress.InGame.Label.DrawingRoads>Отрисовка дорог</LoadingProgress.InGame.Label.DrawingRoads>
+    <LoadingProgress.InGame.Label.DrawingTerrain>Отрисовка рельефа</LoadingProgress.InGame.Label.DrawingTerrain>
+    <LoadingProgress.InGame.Label.DrawingClouds>Отрисовка облаков</LoadingProgress.InGame.Label.DrawingClouds>
 </LanguageData>
