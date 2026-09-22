@@ -19,9 +19,10 @@ internal static class FasterGameLoadingWindowLayout
         }
 
         var mainWindowBottom = mainWindowPosition.y + mainWindowSize.y;
-        var fitsBelow = mainWindowBottom + 10f + fasterGameLoadingWindowSize.y <= UI.screenHeight;
+        var fitsBelow =
+            mainWindowBottom + GenUI.Gap + fasterGameLoadingWindowSize.y <= UI.screenHeight;
 
-        return !fitsBelow && mainWindowPosition.y - 10f - fasterGameLoadingWindowSize.y >= 0f;
+        return !fitsBelow && mainWindowPosition.y - GenUI.Gap - fasterGameLoadingWindowSize.y >= 0f;
     }
 }
 
@@ -68,12 +69,13 @@ internal static class ExtraLongEventUIWindowLayout
             return null;
         }
 
-        var totalHeight = LongEventHandler.StatusRectSize.y + 17f + GameplayTipWindow.WindowSize.y;
+        var totalHeight =
+            LongEventHandler.StatusRectSize.y + GenUI.Gap + GameplayTipWindow.WindowSize.y;
         var width = GameplayTipWindow.WindowSize.x;
         if (Current.Game != null)
         {
             var modSummarySize = ModSummaryWindow.GetEffectiveSize();
-            totalHeight += 17f + modSummarySize.y;
+            totalHeight += GenUI.Gap + modSummarySize.y;
             width = Math.Max(width, modSummarySize.x);
         }
 
@@ -84,12 +86,12 @@ internal static class ExtraLongEventUIWindowLayout
         );
     }
 
-    // Pure: vanilla's own status box would normally occupy the top `statusBoxHeight + 17f` of
+    // Pure: vanilla's own status box would normally occupy the top `statusBoxHeight + GenUI.Gap` of
     // `reservedExtent`, but our AdjustStatusWindowRect patch always relocates it elsewhere, so
     // that strip is empty on screen; trims it off so avoidance logic doesn't treat it as occupied.
     internal static Rect TrimStatusBoxSpace(Rect reservedExtent, float statusBoxHeight)
     {
-        var padding = statusBoxHeight + 17f;
+        var padding = statusBoxHeight + GenUI.Gap;
         return new Rect(
             reservedExtent.x,
             reservedExtent.y + padding,
@@ -106,16 +108,17 @@ internal static class ExtraLongEventUIWindowLayout
             : null;
 
     // Pure: where `avoidanceExtent` (vanilla's trimmed tip/mod-summary block) needs to sit so
-    // that, stacked with a `ourCombinedHeight`-tall window directly below it (10px gap), the
-    // combined group is centered on `screenHeight` as a whole, instead of `avoidanceExtent`
-    // staying wherever vanilla's own (unrelated) centering originally put it.
+    // that, stacked with a `ourCombinedHeight`-tall window directly below it (17px gap, matching
+    // vanilla's own tip-window-to-mod-summary-window gap), the combined group is centered on
+    // `screenHeight` as a whole, instead of `avoidanceExtent` staying wherever vanilla's own
+    // (unrelated) centering originally put it.
     internal static Rect ComputeBalancedReservedExtent(
         Rect avoidanceExtent,
         float ourCombinedHeight,
         float screenHeight
     )
     {
-        var groupTop = (screenHeight - avoidanceExtent.height - 10f - ourCombinedHeight) / 2f;
+        var groupTop = (screenHeight - avoidanceExtent.height - GenUI.Gap - ourCombinedHeight) / 2f;
         return new Rect(avoidanceExtent.x, groupTop, avoidanceExtent.width, avoidanceExtent.height);
     }
 
@@ -151,7 +154,7 @@ internal static class ExtraLongEventUIWindowLayout
         // ComputeBalancedReservedExtent) puts the reserved extent, so the two form one centered
         // group instead of our own window being centered independently of it.
         var balanced = ComputeBalancedReservedExtent(reserved, combinedHeight, screenHeight);
-        return balanced.yMax + 10f;
+        return balanced.yMax + GenUI.Gap;
     }
 
     public static float ComputeMiddleYWithStatusBoxAbove(
@@ -170,7 +173,7 @@ internal static class ExtraLongEventUIWindowLayout
     // unlike ComputeMiddleY/MiddleInverted, where our own window (and status box) sit below the
     // reserved extent, here the whole reserved extent moves below our own window instead (see
     // ComputeReservedExtentBelowOurWindow), so our window sits at the very top of the centered
-    // group, `statusBoxHeight + 10f` below that top to leave room for the status box above it.
+    // group, `statusBoxHeight + GenUI.Gap` below that top to leave room for the status box above it.
     internal static float ComputeMiddleYWithStatusBoxAbove(
         Vector2 windowSize,
         Vector2 fasterGameLoadingWindowSize,
@@ -179,7 +182,7 @@ internal static class ExtraLongEventUIWindowLayout
         float screenHeight
     )
     {
-        var leadingHeight = statusBoxHeight + 10f;
+        var leadingHeight = statusBoxHeight + GenUI.Gap;
         var ourBlockHeight = leadingHeight + windowSize.y + fasterGameLoadingWindowSize.y;
         if (reservedExtent is not Rect reserved)
         {
@@ -195,9 +198,10 @@ internal static class ExtraLongEventUIWindowLayout
     }
 
     // Pure: where `avoidanceExtent` needs to sit so that, with a `ourBlockHeight`-tall window
-    // directly above it (10px gap), the combined group is centered on `screenHeight` as a whole -
-    // the mirror image of ComputeBalancedReservedExtent, for LoadingWindowPlacement.Middle, where
-    // our own window (and its status box) come first and the reserved extent follows below them.
+    // directly above it (17px gap, matching vanilla's own tip-window-to-mod-summary-window gap),
+    // the combined group is centered on `screenHeight` as a whole - the mirror image of
+    // ComputeBalancedReservedExtent, for LoadingWindowPlacement.Middle, where our own window (and
+    // its status box) come first and the reserved extent follows below them.
     internal static Rect ComputeReservedExtentBelowOurWindow(
         Rect avoidanceExtent,
         float ourBlockHeight,
@@ -211,7 +215,7 @@ internal static class ExtraLongEventUIWindowLayout
         ).y;
         return new Rect(
             avoidanceExtent.x,
-            groupTop + ourBlockHeight + 10f,
+            groupTop + ourBlockHeight + GenUI.Gap,
             avoidanceExtent.width,
             avoidanceExtent.height
         );
@@ -247,8 +251,8 @@ internal static class ExtraLongEventUIWindowLayout
             return position;
         }
 
-        var above = reserved.y - 10f - windowSize.y;
-        var below = reserved.yMax + 10f;
+        var above = reserved.y - GenUI.Gap - windowSize.y;
+        var below = reserved.yMax + GenUI.Gap;
         var fitsAbove = above >= 0f;
         var fitsBelow = below + windowSize.y <= screenHeight;
 
@@ -277,13 +281,17 @@ internal static class ExtraLongEventUIWindowLayout
     )
     {
         var top = fasterGameLoadingGoesAbove
-            ? mainWindowY - 10f - fasterGameLoadingWindowSize.y
+            ? mainWindowY - GenUI.Gap - fasterGameLoadingWindowSize.y
             : mainWindowY;
         var bottom = fasterGameLoadingGoesAbove
             ? mainWindowY + mainWindowSize.y
             : mainWindowY
                 + mainWindowSize.y
-                + (fasterGameLoadingWindowSize.y > 0 ? 10f + fasterGameLoadingWindowSize.y : 0f);
+                + (
+                    fasterGameLoadingWindowSize.y > 0
+                        ? GenUI.Gap + fasterGameLoadingWindowSize.y
+                        : 0f
+                );
         return (top, bottom);
     }
 
@@ -298,9 +306,9 @@ internal static class ExtraLongEventUIWindowLayout
     )
     {
         var fitsAbove =
-            blockTop >= aboveCandidate.height + 20f
+            blockTop >= aboveCandidate.height + (GenUI.Gap * 2)
             && (reservedExtent is not Rect reserved || !aboveCandidate.Overlaps(reserved));
-        return fitsAbove ? aboveCandidate.y : blockBottom + 10f;
+        return fitsAbove ? aboveCandidate.y : blockBottom + GenUI.Gap;
     }
 }
 
@@ -355,7 +363,7 @@ internal static class Verse_LongEventHandler_DrawOwnWindow_Patch
         {
             LoadingWindowPlacement.Top => new(
                 loadingProgressWindowCenteredX,
-                10f + LongEventHandler.StatusRectSize.y + 10f
+                GenUI.Gap + LongEventHandler.StatusRectSize.y + GenUI.Gap
             ),
             LoadingWindowPlacement.Middle => new(
                 loadingProgressWindowCenteredX,
@@ -376,8 +384,8 @@ internal static class Verse_LongEventHandler_DrawOwnWindow_Patch
                 UI.screenHeight
                     - loadingProgressWindowSize.y
                     - fasterGameLoadingProgressWindowSize.y
-                    - 10f
-                    - (fasterGameLoadingProgressWindowSize.y > 0 ? 10f : 0f)
+                    - GenUI.Gap
+                    - (fasterGameLoadingProgressWindowSize.y > 0 ? GenUI.Gap : 0f)
             ),
             LoadingWindowPlacement.Custom => ExtraLongEventUIWindowLayout.AvoidReservedExtent(
                 CustomPlacement.GetPosition(
@@ -416,8 +424,8 @@ internal static class Verse_LongEventHandler_DrawOwnWindow_Patch
         Vector2 fasterGameLoadingProgressWindowPosition = new(
             rect.x + ((rect.width - fasterGameLoadingProgressWindowSize.x) / 2f),
             fasterGameLoadingGoesAbove
-                ? rect.y - 10f - fasterGameLoadingProgressWindowSize.y
-                : rect.yMax + 10f
+                ? rect.y - GenUI.Gap - fasterGameLoadingProgressWindowSize.y
+                : rect.yMax + GenUI.Gap
         );
         rect = new(
             fasterGameLoadingProgressWindowPosition.x,
@@ -507,20 +515,20 @@ internal sealed class Verse_LongEventHandler_LongEventsOnGUI_Patch
             // helper rather than GetBalancedReservedExtent below.
             var ourBlockHeight =
                 LongEventHandler.StatusRectSize.y
-                + 10f
+                + GenUI.Gap
                 + loadingProgressWindowSize.y
                 + fasterGameLoadingWindowSize.y;
             return
                 ExtraLongEventUIWindowLayout.GetReservedExtentBelowOurWindow(ourBlockHeight)
                     is Rect relocated
-                ? relocated.y - (LongEventHandler.StatusRectSize.y + 17f)
+                ? relocated.y - (LongEventHandler.StatusRectSize.y + GenUI.Gap)
                 : num3;
         }
 
         var combinedHeight = loadingProgressWindowSize.y + fasterGameLoadingWindowSize.y;
         return
             ExtraLongEventUIWindowLayout.GetBalancedReservedExtent(combinedHeight) is Rect balanced
-            ? balanced.y - (LongEventHandler.StatusRectSize.y + 17f)
+            ? balanced.y - (LongEventHandler.StatusRectSize.y + GenUI.Gap)
             : num3;
     }
 
@@ -544,10 +552,10 @@ internal sealed class Verse_LongEventHandler_LongEventsOnGUI_Patch
         switch (LoadingProgressMod.Settings.LoadingWindowPlacement)
         {
             case LoadingWindowPlacement.Top:
-                statusRectTop = 10f;
+                statusRectTop = GenUI.Gap;
                 break;
             case LoadingWindowPlacement.Middle:
-                // Middle always reserves `statusRectSize.y + 10f` directly above our window (see
+                // Middle always reserves `statusRectSize.y + GenUI.Gap` directly above our window (see
                 // ComputeMiddleYWithStatusBoxAbove) for the status box, so it goes right there
                 // regardless of the reserved extent or the FasterGameLoading window.
                 statusRectTop =
@@ -555,7 +563,7 @@ internal sealed class Verse_LongEventHandler_LongEventsOnGUI_Patch
                         loadingProgressWindowSize,
                         fasterGameLoadingProgressWindowSize
                     )
-                    - 10f
+                    - GenUI.Gap
                     - statusRectSize.y;
                 break;
             case LoadingWindowPlacement.MiddleInverted:
@@ -585,7 +593,7 @@ internal sealed class Verse_LongEventHandler_LongEventsOnGUI_Patch
                     );
                 var middleAboveCandidate = new Rect(
                     r.x,
-                    middleBlockTop - statusRectSize.y - 10f,
+                    middleBlockTop - statusRectSize.y - GenUI.Gap,
                     r.width,
                     statusRectSize.y
                 );
@@ -601,10 +609,10 @@ internal sealed class Verse_LongEventHandler_LongEventsOnGUI_Patch
                     UI.screenHeight
                     - loadingProgressWindowSize.y
                     - fasterGameLoadingProgressWindowSize.y
-                    - 10f
-                    - (fasterGameLoadingProgressWindowSize.y > 0 ? 10f : 0f)
+                    - GenUI.Gap
+                    - (fasterGameLoadingProgressWindowSize.y > 0 ? GenUI.Gap : 0f)
                     - statusRectSize.y
-                    - 10f;
+                    - GenUI.Gap;
                 break;
             case LoadingWindowPlacement.Custom:
                 var avoidanceExtent = ExtraLongEventUIWindowLayout.GetAvoidanceExtent();
@@ -644,7 +652,7 @@ internal sealed class Verse_LongEventHandler_LongEventsOnGUI_Patch
                 );
                 var aboveCandidate = new Rect(
                     r.x,
-                    blockTop - statusRectSize.y - 10f,
+                    blockTop - statusRectSize.y - GenUI.Gap,
                     r.width,
                     statusRectSize.y
                 );

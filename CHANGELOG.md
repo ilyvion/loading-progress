@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - The Save button on the startup impact window wrote whichever session was on screen to 'StartupImpactData.xml'. Opening a stored session and pressing Save therefore replaced the latest report with an older run, which external tools such as RimSort go on to read as the most recent load. It now always writes the current session.
+- The spacing between the loading window, its status box and the FasterGameLoading window, and the gap toward the game's own tip/mod-summary panel, used a slightly narrower gap than the game itself uses between its own tip window and mod/DLC list, making everything look inconsistently spaced. All of it now uses the same gap the game does.
 
 ## [0.15.0] - 2026-09-14
 

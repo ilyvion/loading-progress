@@ -84,7 +84,7 @@ internal sealed class ExtraLongEventUIWindowLayoutTests
             screenHeight: 1080f
         );
         Expect.AreEqual(700f, position.x);
-        Expect.AreEqual(710f, position.y);
+        Expect.AreEqual(717f, position.y);
     }
 
     [Test]
@@ -98,7 +98,7 @@ internal sealed class ExtraLongEventUIWindowLayoutTests
             screenHeight: 1080f
         );
         Expect.AreEqual(700f, position.x);
-        Expect.AreEqual(90f, position.y);
+        Expect.AreEqual(83f, position.y);
     }
 
     [Test]
@@ -139,14 +139,14 @@ internal sealed class ExtraLongEventUIWindowLayoutTests
             reserved,
             screenHeight: 1200f
         );
-        Expect.AreEqual(555f, y);
+        Expect.AreEqual(558.5f, y);
     }
 
     [Test]
     public static void ComputeMiddleYWithStatusBoxAboveReturnsTheNaturalCenterWhenThereIsNoReservedExtent()
     {
         // With no reserved extent, the group (status box + gap + our window) is centered as a
-        // whole, so our window sits `statusBoxHeight + 10f` below that group's centered top.
+        // whole, so our window sits `statusBoxHeight + GenUI.Gap` below that group's centered top.
         var y = ExtraLongEventUIWindowLayout.ComputeMiddleYWithStatusBoxAbove(
             new Vector2(400f, 200f),
             new Vector2(0f, 0f),
@@ -154,9 +154,9 @@ internal sealed class ExtraLongEventUIWindowLayoutTests
             reservedExtent: null,
             screenHeight: 1000f
         );
-        // combinedHeight = 40f + 10f + 200f = 250f; group top = (1000f - 250f) / 2f = 375f;
-        // our window sits 50f (statusBoxHeight + 10f) below that.
-        Expect.AreEqual(425f, y);
+        // combinedHeight = 40f + 17f + 200f = 257f; group top = (1000f - 257f) / 2f = 371.5f;
+        // our window sits 57f (statusBoxHeight + 17f) below that.
+        Expect.AreEqual(428.5f, y);
     }
 
     [Test]
@@ -173,8 +173,8 @@ internal sealed class ExtraLongEventUIWindowLayoutTests
             reservedExtent: reserved,
             screenHeight: 1200f
         );
-        // ourBlockHeight = 40f + 10f + 300f = 350f; groupTop = (1200f - 200f - 10f - 350f) / 2f =
-        // 320f; our window sits 50f (statusBoxHeight + 10f) below that.
+        // ourBlockHeight = 40f + 17f + 300f = 357f; groupTop = (1200f - 200f - 17f - 357f) / 2f =
+        // 313f; our window sits 57f (statusBoxHeight + 17f) below that.
         Expect.AreEqual(370f, y);
     }
 
@@ -190,12 +190,12 @@ internal sealed class ExtraLongEventUIWindowLayoutTests
         Expect.AreEqual(50f, relocated.x);
         Expect.AreEqual(400f, relocated.width);
         Expect.AreEqual(200f, relocated.height);
-        // groupTop = (1200f - 200f - 10f - 300f) / 2f = 345f; relocated sits 300f + 10f below
+        // groupTop = (1200f - 200f - 17f - 300f) / 2f = 341.5f; relocated sits 300f + 17f below
         // that.
-        Expect.AreEqual(655f, relocated.y);
+        Expect.AreEqual(658.5f, relocated.y);
         // Top margin (above our window, which starts at groupTop) and bottom margin (below
-        // relocated) both come out to 345px - a centered group.
-        Expect.AreEqual(345f, 1200f - (relocated.y + 200f));
+        // relocated) both come out to 341.5px - a centered group.
+        Expect.AreEqual(341.5f, 1200f - (relocated.y + 200f));
     }
 
     [Test]
@@ -208,12 +208,12 @@ internal sealed class ExtraLongEventUIWindowLayoutTests
             screenHeight: 1200f
         );
         Expect.AreEqual(50f, balanced.x);
-        Expect.AreEqual(345f, balanced.y);
+        Expect.AreEqual(341.5f, balanced.y);
         Expect.AreEqual(400f, balanced.width);
         Expect.AreEqual(200f, balanced.height);
         // Top margin (above balanced.y) and bottom margin (below our own window, which sits
-        // balanced.height + 10px below balanced.y) both come out to 345px - a centered group.
-        Expect.AreEqual(balanced.y, 1200f - (balanced.y + 200f + 10f + 300f));
+        // balanced.height + 17px below balanced.y) both come out to 341.5px - a centered group.
+        Expect.AreEqual(balanced.y, 1200f - (balanced.y + 200f + GenUI.Gap + 300f));
     }
 
     [Test]
@@ -239,7 +239,7 @@ internal sealed class ExtraLongEventUIWindowLayoutTests
             fasterGameLoadingGoesAbove: false
         );
         Expect.AreEqual(100f, top);
-        Expect.AreEqual(340f, bottom);
+        Expect.AreEqual(347f, bottom);
     }
 
     [Test]
@@ -251,7 +251,7 @@ internal sealed class ExtraLongEventUIWindowLayoutTests
             fasterGameLoadingWindowSize: new Vector2(400f, 80f),
             fasterGameLoadingGoesAbove: true
         );
-        Expect.AreEqual(10f, top);
+        Expect.AreEqual(3f, top);
         Expect.AreEqual(250f, bottom);
     }
 
@@ -278,7 +278,7 @@ internal sealed class ExtraLongEventUIWindowLayoutTests
             aboveCandidate,
             reservedExtent: null
         );
-        Expect.AreEqual(510f, top);
+        Expect.AreEqual(517f, top);
     }
 
     [Test]
@@ -294,7 +294,7 @@ internal sealed class ExtraLongEventUIWindowLayoutTests
             aboveCandidate,
             reservedExtent: reserved
         );
-        Expect.AreEqual(510f, top);
+        Expect.AreEqual(517f, top);
     }
 
     [Test]
