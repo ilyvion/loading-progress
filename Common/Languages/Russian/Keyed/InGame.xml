@@ -13,16 +13,19 @@
 
     <LoadingProgress.InGame.Phase.PlanetRegeneration_RegeneratingLayers>Регенерация слоёв</LoadingProgress.InGame.Phase.PlanetRegeneration_RegeneratingLayers>
 
+    <LoadingProgress.InGame.Phase.NewGameMapGeneration_LoadingScene>Загрузка ассетов</LoadingProgress.InGame.Phase.NewGameMapGeneration_LoadingScene>
     <LoadingProgress.InGame.Phase.NewGameMapGeneration_SetUp>Подготовка карты</LoadingProgress.InGame.Phase.NewGameMapGeneration_SetUp>
     <LoadingProgress.InGame.Phase.NewGameMapGeneration_GenSteps>Генерация карты</LoadingProgress.InGame.Phase.NewGameMapGeneration_GenSteps>
     <LoadingProgress.InGame.Phase.NewGameMapGeneration_Finalize>Завершение карты</LoadingProgress.InGame.Phase.NewGameMapGeneration_Finalize>
     <LoadingProgress.InGame.Phase.NewGameMapGeneration_PostInit>Завершение</LoadingProgress.InGame.Phase.NewGameMapGeneration_PostInit>
     <LoadingProgress.InGame.Phase.NewGameMapGeneration_Deferred>Регенерация рендера</LoadingProgress.InGame.Phase.NewGameMapGeneration_Deferred>
 
+    <LoadingProgress.InGame.Phase.SaveLoading_LoadingScene>Загрузка ассетов</LoadingProgress.InGame.Phase.SaveLoading_LoadingScene>
     <LoadingProgress.InGame.Phase.SaveLoading_ReadingFile>Чтение файла</LoadingProgress.InGame.Phase.SaveLoading_ReadingFile>
     <LoadingProgress.InGame.Phase.SaveLoading_World>Загрузка мира</LoadingProgress.InGame.Phase.SaveLoading_World>
     <LoadingProgress.InGame.Phase.SaveLoading_Maps>Загрузка карт</LoadingProgress.InGame.Phase.SaveLoading_Maps>
-    <LoadingProgress.InGame.Phase.SaveLoading_Initializing>Инициализация игры</LoadingProgress.InGame.Phase.SaveLoading_Initializing>
+    <LoadingProgress.InGame.Phase.SaveLoading_ResolvingCrossReferences>Разрешение ссылок</LoadingProgress.InGame.Phase.SaveLoading_ResolvingCrossReferences>
+    <LoadingProgress.InGame.Phase.SaveLoading_PostLoadInits>Инициализация игры</LoadingProgress.InGame.Phase.SaveLoading_PostLoadInits>
     <LoadingProgress.InGame.Phase.SaveLoading_Spawning>Создание объектов</LoadingProgress.InGame.Phase.SaveLoading_Spawning>
     <LoadingProgress.InGame.Phase.SaveLoading_Finishing>Завершение</LoadingProgress.InGame.Phase.SaveLoading_Finishing>
     <LoadingProgress.InGame.Phase.SaveLoading_Deferred>Регенерация рендера</LoadingProgress.InGame.Phase.SaveLoading_Deferred>

@@ -760,6 +760,32 @@ internal sealed class InGameLoadingSessionTests
         Expect.AreEqual(InGameSessionPhase.SaveLoading_Finishing, phase);
     }
 
+    // Regression coverage for the backward-jump bug: ResolveAllCrossReferences() and
+    // DoAllPostLoadInits() used to share one SaveLoading_Initializing phase and one small
+    // progress bar, so the second loop starting reset the bar the first loop had just filled,
+    // pulling the main bar backward. Each now gets its own dedicated phase instead.
+    [Test]
+    public static void DeterminePhaseFromLabelAdvancesSaveLoadingToResolvingCrossReferencesOnItsLabel()
+    {
+        var phase = InGameLoadingSession.DeterminePhaseFromLabel(
+            InGameSessionKind.SaveLoading,
+            InGameSessionPhase.SaveLoading_Maps,
+            "ResolveAllCrossReferences()"
+        );
+        Expect.AreEqual(InGameSessionPhase.SaveLoading_ResolvingCrossReferences, phase);
+    }
+
+    [Test]
+    public static void DeterminePhaseFromLabelAdvancesSaveLoadingToPostLoadInitsOnItsLabel()
+    {
+        var phase = InGameLoadingSession.DeterminePhaseFromLabel(
+            InGameSessionKind.SaveLoading,
+            InGameSessionPhase.SaveLoading_ResolvingCrossReferences,
+            "DoAllPostLoadInits()"
+        );
+        Expect.AreEqual(InGameSessionPhase.SaveLoading_PostLoadInits, phase);
+    }
+
     [Test]
     public static void DeterminePhaseFromLabelKeepsSaveLoadingPhaseForUnrelatedLabels()
     {
@@ -823,7 +849,7 @@ internal sealed class InGameLoadingSessionTests
             InGameLoadingSession.DetermineSaveLoadingPhaseFromEventTextCallOrder(2)
         );
         Expect.AreEqual(
-            InGameSessionPhase.SaveLoading_Initializing,
+            InGameSessionPhase.SaveLoading_ResolvingCrossReferences,
             InGameLoadingSession.DetermineSaveLoadingPhaseFromEventTextCallOrder(3)
         );
         Expect.AreEqual(
@@ -859,9 +885,12 @@ internal sealed class InGameLoadingSessionTests
         );
     }
 
+    // Thing.PostMapInit() (and the spawn loop before it) runs once per map rather than once
+    // globally, so unlike the two loops above it must not reset the small bar between maps; its
+    // count is accumulated instead (see OnThingPostMapInit).
     [Test]
-    public static void IsSaveLoadingSubProgressResetLabelIsTrueForThingPostMapInit() =>
-        Expect.IsTrue(
+    public static void IsSaveLoadingSubProgressResetLabelIsFalseForThingPostMapInit() =>
+        Expect.IsFalse(
             InGameLoadingSession.IsSaveLoadingSubProgressResetLabel("Thing.PostMapInit()")
         );
 
@@ -1005,6 +1034,22 @@ internal sealed class InGameLoadingSessionTests
     public static void AdvanceProgressCurrentClampsAtMax() =>
         Expect.AreEqual(5, InGameLoadingSession.AdvanceProgressCurrent(5, 5));
 
+    // Regression coverage for a backward jump within the Spawning phase: once a map's spawn loop
+    // fills its bar (current == max), adding that same map's Thing.PostMapInit() count on top used
+    // to leave current unchanged while max grew, more than halving the displayed fraction. Rescaling
+    // current to the same fraction at the new max keeps the bar exactly where it was instead.
+    [Test]
+    public static void RescaleCurrentForGrownMaxPreservesFractionWhenMaxGrows() =>
+        Expect.AreEqual(84, InGameLoadingSession.RescaleCurrentForGrownMax(42, 42, 84));
+
+    [Test]
+    public static void RescaleCurrentForGrownMaxPreservesAPartialFraction() =>
+        Expect.AreEqual(50, InGameLoadingSession.RescaleCurrentForGrownMax(25, 50, 100));
+
+    [Test]
+    public static void RescaleCurrentForGrownMaxKeepsCurrentWhenOldMaxIsZero() =>
+        Expect.AreEqual(0, InGameLoadingSession.RescaleCurrentForGrownMax(0, 0, 100));
+
     [Test]
     public static void CountDirtyVisibleLayersCountsOnlyLayersThatAreBothDirtyAndVisible()
     {
@@ -1110,6 +1155,130 @@ internal sealed class InGameLoadingSessionTests
         );
 
         Expect.AreEqual(1, InGameLoadingSession.CountThingsAcrossMaps(doc.DocumentElement));
+    }
+
+    [Test]
+    public static void DetermineStartPhaseIsTheSceneLoadPhaseWhenTheSessionOpensOnTheSceneLoad()
+    {
+        Expect.AreEqual(
+            InGameSessionPhase.SaveLoading_LoadingScene,
+            InGameLoadingSession.DetermineStartPhase(
+                InGameSessionKind.SaveLoading,
+                InGameLoadingSession.PlayLevelName
+            )
+        );
+        Expect.AreEqual(
+            InGameSessionPhase.NewGameMapGeneration_LoadingScene,
+            InGameLoadingSession.DetermineStartPhase(
+                InGameSessionKind.NewGameMapGeneration,
+                InGameLoadingSession.PlayLevelName
+            )
+        );
+    }
+
+    [Test]
+    public static void DetermineStartPhaseSkipsTheSceneLoadPhaseWhenTheSceneIsAlreadyLoaded()
+    {
+        Expect.AreEqual(
+            InGameSessionPhase.SaveLoading_ReadingFile,
+            InGameLoadingSession.DetermineStartPhase(InGameSessionKind.SaveLoading, null)
+        );
+        Expect.AreEqual(
+            InGameSessionPhase.NewGameMapGeneration_SetUp,
+            InGameLoadingSession.DetermineStartPhase(InGameSessionKind.NewGameMapGeneration, null)
+        );
+    }
+
+    [Test]
+    public static void DetermineStartPhaseIsTheFirstPhaseForKindsThatNeverLoadAScene()
+    {
+        Expect.AreEqual(
+            InGameSessionPhase.WorldGeneration_SetupSteps,
+            InGameLoadingSession.DetermineStartPhase(InGameSessionKind.WorldGeneration, null)
+        );
+        Expect.AreEqual(
+            InGameSessionPhase.EncounterMapGeneration_SetUp,
+            InGameLoadingSession.DetermineStartPhase(
+                InGameSessionKind.EncounterMapGeneration,
+                InGameLoadingSession.PlayLevelName
+            )
+        );
+    }
+
+    [Test]
+    public static void NextPhaseLeavesTheSceneLoadPhaseForThePhaseThatFollowsIt()
+    {
+        Expect.AreEqual(
+            InGameSessionPhase.SaveLoading_ReadingFile,
+            InGameLoadingSession.NextPhase(
+                InGameLoadingSession.PhasesFor(InGameSessionKind.SaveLoading),
+                InGameSessionPhase.SaveLoading_LoadingScene
+            )
+        );
+        Expect.AreEqual(
+            InGameSessionPhase.NewGameMapGeneration_SetUp,
+            InGameLoadingSession.NextPhase(
+                InGameLoadingSession.PhasesFor(InGameSessionKind.NewGameMapGeneration),
+                InGameSessionPhase.NewGameMapGeneration_LoadingScene
+            )
+        );
+    }
+
+    [Test]
+    public static void NextPhaseStaysPutOnTheLastPhaseOfTheKind() =>
+        Expect.AreEqual(
+            InGameSessionPhase.SaveLoading_Deferred,
+            InGameLoadingSession.NextPhase(
+                InGameLoadingSession.PhasesFor(InGameSessionKind.SaveLoading),
+                InGameSessionPhase.SaveLoading_Deferred
+            )
+        );
+
+    [Test]
+    public static void OnlyTheSceneLoadingKindsOpenWithASceneLoadPhase()
+    {
+        foreach (InGameSessionKind kind in Enum.GetValues(typeof(InGameSessionKind)))
+        {
+            if (kind == InGameSessionKind.None)
+            {
+                continue;
+            }
+            var opensWithSceneLoad = InGameLoadingSession.IsSceneLoadPhase(
+                InGameLoadingSession.PhasesFor(kind)[0]
+            );
+            Expect.AreEqual(
+                kind is InGameSessionKind.SaveLoading or InGameSessionKind.NewGameMapGeneration,
+                opensWithSceneLoad
+            );
+        }
+    }
+
+    // The outer bar is PhaseIndex/PhaseCount plus the current phase's own fraction, so the
+    // hand-off only stays monotonic if a finished scene load is worth no more than entering the
+    // phase after it.
+    [Test]
+    public static void LeavingTheSceneLoadPhaseNeverLowersTheOuterBar()
+    {
+        foreach (
+            var kind in new[]
+            {
+                InGameSessionKind.SaveLoading,
+                InGameSessionKind.NewGameMapGeneration,
+            }
+        )
+        {
+            var count = InGameLoadingSession.PhasesFor(kind).Length;
+            var sceneLoadFinished =
+                (
+                    0
+                    + Widgets_Progressbar.MainBarBonusFraction(
+                        InGameLoadingSession.SceneLoadProgressResolution,
+                        InGameLoadingSession.SceneLoadProgressResolution
+                    )
+                ) / count;
+            var nextPhaseStarted = 1f / count;
+            Expect.IsTrue(nextPhaseStarted >= sceneLoadFinished);
+        }
     }
 
     // XmlDocument.LoadXml(string) resolves external entities by default (XXE risk); these

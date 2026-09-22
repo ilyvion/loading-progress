@@ -24,6 +24,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The Save button on the startup impact window wrote whichever session was on screen to 'StartupImpactData.xml'. Opening a stored session and pressing Save therefore replaced the latest report with an older run, which external tools such as RimSort go on to read as the most recent load. It now always writes the current session.
 - The spacing between the loading window, its status box and the FasterGameLoading window, and the gap toward the game's own tip/mod-summary panel, used a slightly narrower gap than the game itself uses between its own tip window and mod/DLC list, making everything look inconsistently spaced. All of it now uses the same gap the game does.
+- The main progress bar sometimes visibly jumped backward instead of only ever moving forward, whenever the current stage's inner progress went further than expected. It now always advances, or at worst stands still, never backward.
+- The in-game loading window (shown during in-game world generation, map generation and save loading, when the setting for it is on) could flicker backward for a single frame right as it moved from one stage to the next, since the stage and its progress bar were briefly readable in a mismatched combination. They are now always updated together, so this can no longer happen.
+- Loading a save or starting a new game filled the in-game loading window's bar with the game's asset loading progress and then dropped it back to empty once the assets were loaded, since that progress was being shown as part of the stage that follows it rather than as a stage of its own. Loading assets is now its own stage, listed ahead of reading the file or setting up the map, so the bar carries straight on from it instead of falling back.
 
 ## [0.15.0] - 2026-09-14
 

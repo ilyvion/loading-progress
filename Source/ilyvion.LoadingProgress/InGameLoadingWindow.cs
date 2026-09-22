@@ -77,23 +77,7 @@ internal static class InGameLoadingWindow
         var phaseIndex = InGameLoadingSession.PhaseIndex;
         var phaseCount = InGameLoadingSession.PhaseCount;
 
-        // The Unity scene-load percentage (between the worker thread finishing and the "Play"
-        // scene finishing activation) is the only progress vanilla itself ever computes; show it
-        // in place of whatever the current phase's own inner bar would otherwise be.
-        var levelLoadOp = LongEventHandler.levelLoadOp;
-        if (levelLoadOp != null)
-        {
-            Widgets_Progressbar.DrawHorizontalProgressBar(
-                progressRect,
-                phaseIndex,
-                phaseCount,
-                levelLoadOp.isDone ? 1f : levelLoadOp.progress,
-                1f,
-                barColor,
-                smallBarColor
-            );
-        }
-        else if (InGameLoadingSession.Progress is (float current, float max))
+        if (InGameLoadingSession.Progress is (float current, float max))
         {
             Widgets_Progressbar.DrawHorizontalProgressBar(
                 progressRect,

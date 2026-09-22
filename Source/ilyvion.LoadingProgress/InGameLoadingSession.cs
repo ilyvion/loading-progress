@@ -25,16 +25,19 @@ internal enum InGameSessionPhase
 
     PlanetRegeneration_RegeneratingLayers,
 
+    NewGameMapGeneration_LoadingScene,
     NewGameMapGeneration_SetUp,
     NewGameMapGeneration_GenSteps,
     NewGameMapGeneration_Finalize,
     NewGameMapGeneration_PostInit,
     NewGameMapGeneration_Deferred,
 
+    SaveLoading_LoadingScene,
     SaveLoading_ReadingFile,
     SaveLoading_World,
     SaveLoading_Maps,
-    SaveLoading_Initializing,
+    SaveLoading_ResolvingCrossReferences,
+    SaveLoading_PostLoadInits,
     SaveLoading_Spawning,
     SaveLoading_Finishing,
     SaveLoading_Deferred,
@@ -164,6 +167,7 @@ internal static class InGameLoadingSession
         ],
         [InGameSessionKind.NewGameMapGeneration] =
         [
+            InGameSessionPhase.NewGameMapGeneration_LoadingScene,
             InGameSessionPhase.NewGameMapGeneration_SetUp,
             InGameSessionPhase.NewGameMapGeneration_GenSteps,
             InGameSessionPhase.NewGameMapGeneration_Finalize,
@@ -172,10 +176,12 @@ internal static class InGameLoadingSession
         ],
         [InGameSessionKind.SaveLoading] =
         [
+            InGameSessionPhase.SaveLoading_LoadingScene,
             InGameSessionPhase.SaveLoading_ReadingFile,
             InGameSessionPhase.SaveLoading_World,
             InGameSessionPhase.SaveLoading_Maps,
-            InGameSessionPhase.SaveLoading_Initializing,
+            InGameSessionPhase.SaveLoading_ResolvingCrossReferences,
+            InGameSessionPhase.SaveLoading_PostLoadInits,
             InGameSessionPhase.SaveLoading_Spawning,
             InGameSessionPhase.SaveLoading_Finishing,
             InGameSessionPhase.SaveLoading_Deferred,
@@ -195,8 +201,10 @@ internal static class InGameLoadingSession
         ],
     };
 
-    internal static InGameSessionPhase[] CurrentKindPhases =>
-        PhasesByKind.GetValueOrDefault(Kind, []);
+    internal static InGameSessionPhase[] PhasesFor(InGameSessionKind kind) =>
+        PhasesByKind.GetValueOrDefault(kind, []);
+
+    internal static InGameSessionPhase[] CurrentKindPhases => PhasesFor(Kind);
 
     // Only the kinds whose ExecuteWhenFinished closure InGameDeferredActionReplacement knows how
     // to chunk (a finished map's mapDrawer.RegenerateEverythingNow(), or world gen's
@@ -217,6 +225,50 @@ internal static class InGameLoadingSession
 
     internal static InGameSessionPhase? DetermineDeferredPhase(InGameSessionKind kind) =>
         DeferredPhaseByKind.TryGetValue(kind, out var phase) ? phase : null;
+
+    // The levelToLoad every scene-loading long event carries; SceneLoadPhases' kinds are exactly
+    // the ones whose session opens with such an event (GameDataSaveLoader.LoadGame and
+    // PageUtility.InitGameStart both queue theirs with it, and Root_Play.Start then queues the
+    // event that does the work the rest of the phases describe).
+    internal const string PlayLevelName = "Play";
+
+    // Vanilla's asynchronous scene load is a stage of its own, running before the first of the
+    // phases the loading thread reports on: it is the only part of the session whose progress
+    // comes from Unity rather than from a DeepProfiler label, and it is over before the file is
+    // read or the map is generated.
+    private static readonly HashSet<InGameSessionPhase> SceneLoadPhases =
+    [
+        InGameSessionPhase.SaveLoading_LoadingScene,
+        InGameSessionPhase.NewGameMapGeneration_LoadingScene,
+    ];
+
+    internal static bool IsSceneLoadPhase(InGameSessionPhase phase) =>
+        SceneLoadPhases.Contains(phase);
+
+    // A session that begins on the scene-loading event starts in that phase; one picked up after
+    // the scene is already loaded (Root_Play.Start's event recognized on its own) starts at the
+    // phase after it, so the bar accounts for a scene load that has demonstrably already happened.
+    internal static InGameSessionPhase DetermineStartPhase(
+        InGameSessionKind kind,
+        string? levelToLoad
+    )
+    {
+        var phases = PhasesByKind[kind];
+        return !IsSceneLoadPhase(phases[0]) || levelToLoad == PlayLevelName ? phases[0] : phases[1];
+    }
+
+    // The scene load reports a float; it is published against a fixed max so the snapshot keeps
+    // holding a whole (phase, current, max) triple like every other phase's does.
+    internal const int SceneLoadProgressResolution = 1000;
+
+    internal static InGameSessionPhase NextPhase(
+        InGameSessionPhase[] phases,
+        InGameSessionPhase phase
+    )
+    {
+        var index = Array.IndexOf(phases, phase);
+        return index >= 0 && index + 1 < phases.Length ? phases[index + 1] : phase;
+    }
 
     internal static int PhaseIndex => Math.Max(Array.IndexOf(CurrentKindPhases, Phase), 0);
     internal static int PhaseCount => Math.Max(CurrentKindPhases.Length, 1);
@@ -253,9 +305,18 @@ internal static class InGameLoadingSession
                     InGameSessionPhase.EncounterMapGeneration_PostInit,
                 _ => currentPhase,
             },
-            InGameSessionKind.SaveLoading => label == "Game.FinalizeInit"
-                ? InGameSessionPhase.SaveLoading_Finishing
-                : currentPhase,
+            // ResolveAllCrossReferences() and DoAllPostLoadInits() are each called exactly once,
+            // globally, in this fixed order, from ScribeLoader.FinalizeLoading (never per map, so
+            // unlike the spawning/PostMapInit loops below, splitting them into their own phases
+            // can't reintroduce a same-phase reset for multi-map saves).
+            InGameSessionKind.SaveLoading => label switch
+            {
+                "ResolveAllCrossReferences()" =>
+                    InGameSessionPhase.SaveLoading_ResolvingCrossReferences,
+                "DoAllPostLoadInits()" => InGameSessionPhase.SaveLoading_PostLoadInits,
+                "Game.FinalizeInit" => InGameSessionPhase.SaveLoading_Finishing,
+                _ => currentPhase,
+            },
             InGameSessionKind.WorldGeneration
             or InGameSessionKind.PlanetRegeneration
             or InGameSessionKind.EncounterMapGenerationStatic
@@ -273,23 +334,23 @@ internal static class InGameLoadingSession
         {
             1 => InGameSessionPhase.SaveLoading_World,
             2 => InGameSessionPhase.SaveLoading_Maps,
-            3 => InGameSessionPhase.SaveLoading_Initializing,
+            3 => InGameSessionPhase.SaveLoading_ResolvingCrossReferences,
             >= 4 => InGameSessionPhase.SaveLoading_Spawning,
             _ => InGameSessionPhase.SaveLoading_ReadingFile,
         };
 
     // CrossRefHandler.ResolveAllCrossReferences() and PostLoadIniter.DoAllPostLoadInits() each
     // emit one DeepProfiler label around their whole loop (per-item progress instead comes from a
-    // transpiler tick inside each loop, via OnInitializingSubProgressItemProcessed); Thing.PostMapInit()
-    // marks the same kind of boundary inside the Spawning phase, where Map.FinalizeInit's own
-    // per-item loop runs after the spawn loop above it, so all three reset the sub-progress bar to
-    // start counting a new, differently-sized loop.
+    // transpiler tick inside each loop, via OnInitializingSubProgressItemProcessed); each one also
+    // marks the entry into its own dedicated phase (see DeterminePhaseFromLabel), so this reset is
+    // just that phase's own starting point, not a reset within an already-running phase.
+    // Thing.PostMapInit() is deliberately not included here: unlike these two, it (and the spawn
+    // loop before it) runs once per map rather than once globally, so its own progress is
+    // accumulated across maps instead (see OnThingPostMapInit) rather than reset per map.
     internal static bool IsSaveLoadingSubProgressResetLabel(string label) =>
-        label is "ResolveAllCrossReferences()" or "DoAllPostLoadInits()" or "Thing.PostMapInit()";
+        label is "ResolveAllCrossReferences()" or "DoAllPostLoadInits()";
 
-    // The two Initializing-phase loops' totals are known upfront from live collection counts;
-    // Thing.PostMapInit()'s total isn't (it's set later, from the first postfix call that has a
-    // Map instance to read map.listerThings.AllThings.Count from), so it starts at 0.
+    // The two loops' totals are known upfront from live collection counts.
     internal static int DetermineInitializingSubPhaseTotal(
         string label,
         int crossReferencingExposablesCount,
@@ -339,6 +400,13 @@ internal static class InGameLoadingSession
         : label;
 
     internal static int AdvanceProgressCurrent(int current, int max) => Math.Min(current + 1, max);
+
+    // A map's own item counts only become known once that map's loop actually starts, so growing
+    // max mid-phase (see OnMapFinalizeLoadingStarted/OnCompressedThingsCounted/OnThingPostMapInit)
+    // is unavoidable; rescaling current to the same fraction at the new max keeps the bar exactly
+    // where it already was instead of letting the added capacity make it drop.
+    internal static int RescaleCurrentForGrownMax(int current, int oldMax, int newMax) =>
+        oldMax > 0 ? (int)Math.Round((double)current * newMax / oldMax) : current;
 
     // GeneratingMap and SpawningColonists (Settle/SetupCamp's two-event chain) are distinct
     // QueuedLongEvent objects, so unlike the map-generation phase boundaries above, this
@@ -397,14 +465,42 @@ internal static class InGameLoadingSession
 
     internal static InGameSessionKind Kind { get; private set; } = InGameSessionKind.None;
     internal static bool IsActive => Kind != InGameSessionKind.None;
-    internal static InGameSessionPhase Phase { get; private set; }
+    internal static InGameSessionPhase Phase => _snapshot.Phase;
     internal static string Label { get; private set; } = string.Empty;
     internal static string DisplayLabel => StripKnownLabelPrefix(Label);
 
-    private static volatile int _progressCurrent;
-    private static volatile int _progressMax;
-    internal static (float current, float max)? Progress =>
-        _progressMax > 0 ? (_progressCurrent, _progressMax) : null;
+    // Phase and (current, max) are only self-consistent when read together off one instance: the
+    // loading thread (separate from the main thread that renders InGameLoadingWindow) publishes
+    // every change via a single atomic reference swap in SetProgress, so a frame drawn mid-update
+    // always observes either the whole old or the whole new (phase, current, max) triple, never a
+    // new phase paired with the other's stale current/max (or vice versa).
+    private sealed class ProgressSnapshot(InGameSessionPhase phase, int current, int max)
+    {
+        internal InGameSessionPhase Phase { get; } = phase;
+        internal int Current { get; } = current;
+        internal int Max { get; } = max;
+    }
+
+    private static volatile ProgressSnapshot _snapshot = new(
+        InGameSessionPhase.WorldGeneration_SetupSteps,
+        0,
+        0
+    );
+
+    internal static (float current, float max)? Progress
+    {
+        get
+        {
+            var snapshot = _snapshot;
+            return snapshot.Max > 0 ? (snapshot.Current, snapshot.Max) : null;
+        }
+    }
+
+    private static void SetProgress(int current, int max) =>
+        SetProgress(_snapshot.Phase, current, max);
+
+    private static void SetProgress(InGameSessionPhase phase, int current, int max) =>
+        _snapshot = new ProgressSnapshot(phase, current, max);
 
     private static int _saveLoadingEventTextCallIndex;
 
@@ -465,12 +561,15 @@ internal static class InGameLoadingSession
 
         if (newKind == Kind)
         {
+            if (IsSceneLoadPhase(Phase))
+            {
+                UpdateSceneLoadPhase(levelToLoad, hasCurrentEvent);
+                return;
+            }
             if (ShouldEnterSpawningColonistsPhase(newKind, eventChanged, eventTextKey))
             {
-                Phase = InGameSessionPhase.EncounterMapGeneration_SpawningColonists;
                 Label = string.Empty;
-                _progressCurrent = 0;
-                _progressMax = 0;
+                SetProgress(InGameSessionPhase.EncounterMapGeneration_SpawningColonists, 0, 0);
             }
             return;
         }
@@ -482,19 +581,47 @@ internal static class InGameLoadingSession
         else
         {
             Kind = newKind;
-            Phase = PhasesByKind[newKind][0];
             Label = string.Empty;
-            _progressCurrent = 0;
             // RegenerateLayersIfDirtyInLongEvent's prefix runs a frame before the GeneratingPlanet
             // event it just queued becomes the current event, so the layer count it captured has
             // to be picked up here rather than starting this session's max at 0 like every other
             // kind's.
-            _progressMax =
+            SetProgress(
+                DetermineStartPhase(newKind, levelToLoad),
+                0,
                 newKind == InGameSessionKind.PlanetRegeneration
                     ? _pendingPlanetRegenerationLayerCount
-                    : 0;
+                    : 0
+            );
             _saveLoadingEventTextCallIndex = 0;
+            _postMapInitCountedMap = null;
             _stopwatch = Stopwatch.StartNew();
+        }
+    }
+
+    // levelLoadOp exists only while the scene-loading event is the current one: vanilla creates it
+    // once that event's worker thread has finished and clears it together with the event itself, so
+    // the op being absent while the event still carries the level means the scene load has not
+    // begun yet, and the phase is over as soon as a different event is current.
+    private static void UpdateSceneLoadPhase(string? levelToLoad, bool hasCurrentEvent)
+    {
+        if (levelToLoad == PlayLevelName)
+        {
+            var levelLoadOp = LongEventHandler.levelLoadOp;
+            var progress =
+                levelLoadOp == null ? 0f
+                : levelLoadOp.isDone ? 1f
+                : levelLoadOp.progress;
+            SetProgress(
+                Phase,
+                (int)(progress * SceneLoadProgressResolution),
+                SceneLoadProgressResolution
+            );
+        }
+        else if (hasCurrentEvent)
+        {
+            Label = string.Empty;
+            SetProgress(NextPhase(CurrentKindPhases, Phase), 0, 0);
         }
     }
 
@@ -502,8 +629,8 @@ internal static class InGameLoadingSession
     {
         Kind = InGameSessionKind.None;
         Label = string.Empty;
-        _progressCurrent = 0;
-        _progressMax = 0;
+        SetProgress(0, 0);
+        _postMapInitCountedMap = null;
         _stopwatch = null;
     }
 
@@ -531,7 +658,11 @@ internal static class InGameLoadingSession
                 }
                 if (label.StartsWith(WorldGenStepLabelPrefix, StringComparison.Ordinal))
                 {
-                    _progressCurrent = AdvanceProgressCurrent(_progressCurrent, _progressMax);
+                    var snapshot = _snapshot;
+                    SetProgress(
+                        AdvanceProgressCurrent(snapshot.Current, snapshot.Max),
+                        snapshot.Max
+                    );
                 }
                 break;
 
@@ -539,20 +670,16 @@ internal static class InGameLoadingSession
                 var mapGenPhase = DeterminePhaseFromLabel(Kind, Phase, label);
                 if (mapGenPhase != Phase)
                 {
-                    Phase = mapGenPhase;
-                    _progressCurrent = 0;
-                    _progressMax = 0;
+                    SetProgress(mapGenPhase, 0, 0);
                 }
                 if (
                     Phase == InGameSessionPhase.NewGameMapGeneration_GenSteps
                     && label.StartsWith(GenStepLabelPrefix, StringComparison.Ordinal)
                 )
                 {
-                    if (_progressMax == 0)
-                    {
-                        _progressMax = MapGenerator.tmpGenSteps.Count;
-                    }
-                    _progressCurrent = AdvanceProgressCurrent(_progressCurrent, _progressMax);
+                    var snapshot = _snapshot;
+                    var max = snapshot.Max == 0 ? MapGenerator.tmpGenSteps.Count : snapshot.Max;
+                    SetProgress(AdvanceProgressCurrent(snapshot.Current, max), max);
                 }
                 break;
 
@@ -560,33 +687,37 @@ internal static class InGameLoadingSession
                 var encounterMapGenPhase = DeterminePhaseFromLabel(Kind, Phase, label);
                 if (encounterMapGenPhase != Phase)
                 {
-                    Phase = encounterMapGenPhase;
-                    _progressCurrent = 0;
-                    _progressMax = 0;
+                    SetProgress(encounterMapGenPhase, 0, 0);
                 }
                 if (
                     Phase == InGameSessionPhase.EncounterMapGeneration_GenSteps
                     && label.StartsWith(GenStepLabelPrefix, StringComparison.Ordinal)
                 )
                 {
-                    if (_progressMax == 0)
-                    {
-                        _progressMax = MapGenerator.tmpGenSteps.Count;
-                    }
-                    _progressCurrent = AdvanceProgressCurrent(_progressCurrent, _progressMax);
+                    var snapshot = _snapshot;
+                    var max = snapshot.Max == 0 ? MapGenerator.tmpGenSteps.Count : snapshot.Max;
+                    SetProgress(AdvanceProgressCurrent(snapshot.Current, max), max);
                 }
                 break;
 
             case InGameSessionKind.SaveLoading:
-                Phase = DeterminePhaseFromLabel(Kind, Phase, label);
+                var saveLoadingPhase = DeterminePhaseFromLabel(Kind, Phase, label);
                 if (IsSaveLoadingSubProgressResetLabel(label))
                 {
-                    _progressCurrent = 0;
-                    _progressMax = DetermineInitializingSubPhaseTotal(
-                        label,
-                        Scribe.loader.crossRefs.crossReferencingExposables.Count,
-                        Scribe.loader.initer.saveablesToPostLoad.Count
+                    SetProgress(
+                        saveLoadingPhase,
+                        0,
+                        DetermineInitializingSubPhaseTotal(
+                            label,
+                            Scribe.loader.crossRefs.crossReferencingExposables.Count,
+                            Scribe.loader.initer.saveablesToPostLoad.Count
+                        )
                     );
+                }
+                else if (saveLoadingPhase != Phase)
+                {
+                    var snapshot = _snapshot;
+                    SetProgress(saveLoadingPhase, snapshot.Current, snapshot.Max);
                 }
                 break;
 
@@ -627,10 +758,8 @@ internal static class InGameLoadingSession
         {
             return;
         }
-        Phase = InGameSessionPhase.WorldGeneration_LayerSteps;
         Label = def.LabelCap.ToString();
-        _progressCurrent = 0;
-        _progressMax = def.GenStepsInOrder.Count;
+        SetProgress(InGameSessionPhase.WorldGeneration_LayerSteps, 0, def.GenStepsInOrder.Count);
     }
 
     private static volatile int _pendingPlanetRegenerationLayerCount;
@@ -667,7 +796,8 @@ internal static class InGameLoadingSession
             return;
         }
         Label = layer.GetType().Name;
-        _progressCurrent = AdvanceProgressCurrent(_progressCurrent, _progressMax);
+        var snapshot = _snapshot;
+        SetProgress(AdvanceProgressCurrent(snapshot.Current, snapshot.Max), snapshot.Max);
     }
 
     // Entered from InGameDeferredActionReplacement right before it starts chunking a finished
@@ -684,10 +814,8 @@ internal static class InGameLoadingSession
         {
             return;
         }
-        Phase = phase;
         Label = string.Empty;
-        _progressCurrent = 0;
-        _progressMax = totalUnits;
+        SetProgress(phase, 0, totalUnits);
     }
 
     // Only the map-section replacement calls this directly; the world-layer replacement's
@@ -705,7 +833,8 @@ internal static class InGameLoadingSession
             return;
         }
         Label = $"Section {sectionX},{sectionZ}";
-        _progressCurrent = AdvanceProgressCurrent(_progressCurrent, _progressMax);
+        var snapshot = _snapshot;
+        SetProgress(AdvanceProgressCurrent(snapshot.Current, snapshot.Max), snapshot.Max);
     }
 
     internal static void OnSetCurrentEventText()
@@ -724,14 +853,13 @@ internal static class InGameLoadingSession
             return;
         }
 
-        Phase = newPhase;
-        _progressCurrent = 0;
-        _progressMax = 0;
-
-        if (newPhase == InGameSessionPhase.SaveLoading_Maps)
-        {
-            _progressMax = CountThingsAcrossMaps(Scribe.loader.curXmlParent);
-        }
+        SetProgress(
+            newPhase,
+            0,
+            newPhase == InGameSessionPhase.SaveLoading_Maps
+                ? CountThingsAcrossMaps(Scribe.loader.curXmlParent)
+                : 0
+        );
     }
 
     internal static void OnThingExposeData()
@@ -748,26 +876,33 @@ internal static class InGameLoadingSession
             return;
         }
 
-        _progressCurrent = AdvanceProgressCurrent(_progressCurrent, _progressMax);
+        var snapshot = _snapshot;
+        SetProgress(AdvanceProgressCurrent(snapshot.Current, snapshot.Max), snapshot.Max);
     }
 
     // Called from a transpiler tick inserted after each ExposeData() call inside
     // CrossRefHandler.ResolveAllCrossReferences()'s and PostLoadIniter.DoAllPostLoadInits()'s
-    // loops; which of the two loops is currently running doesn't matter here, since OnProfilerLabel
-    // has already set _progressMax to that loop's own total when its label started.
+    // loops; which of the two loops (and so which of the two phases) is currently running doesn't
+    // matter here, since OnProfilerLabel has already set the max to that loop's own total when its
+    // label started.
     internal static void OnInitializingSubProgressItemProcessed()
     {
         if (
             !IsActive
             || Kind != InGameSessionKind.SaveLoading
-            || Phase != InGameSessionPhase.SaveLoading_Initializing
+            || Phase
+                is not (
+                    InGameSessionPhase.SaveLoading_ResolvingCrossReferences
+                    or InGameSessionPhase.SaveLoading_PostLoadInits
+                )
             || !IsFromSessionThread()
         )
         {
             return;
         }
 
-        _progressCurrent = AdvanceProgressCurrent(_progressCurrent, _progressMax);
+        var snapshot = _snapshot;
+        SetProgress(AdvanceProgressCurrent(snapshot.Current, snapshot.Max), snapshot.Max);
     }
 
     // Map.FinalizeLoading's non-compressed things (already deserialized) and the compressed things
@@ -786,7 +921,9 @@ internal static class InGameLoadingSession
             return;
         }
 
-        _progressMax += nonCompressedThingCount;
+        var snapshot = _snapshot;
+        var newMax = snapshot.Max + nonCompressedThingCount;
+        SetProgress(RescaleCurrentForGrownMax(snapshot.Current, snapshot.Max, newMax), newMax);
     }
 
     internal static void OnCompressedThingsCounted(int compressedThingCount)
@@ -801,7 +938,9 @@ internal static class InGameLoadingSession
             return;
         }
 
-        _progressMax += compressedThingCount;
+        var snapshot = _snapshot;
+        var newMax = snapshot.Max + compressedThingCount;
+        SetProgress(RescaleCurrentForGrownMax(snapshot.Current, snapshot.Max, newMax), newMax);
     }
 
     // GenSpawn.Spawn's respawningAfterLoad overload and SpawnBuildingAsPossible are also called,
@@ -820,13 +959,27 @@ internal static class InGameLoadingSession
             return;
         }
 
-        _progressCurrent = AdvanceProgressCurrent(_progressCurrent, _progressMax);
+        var snapshot = _snapshot;
+        SetProgress(AdvanceProgressCurrent(snapshot.Current, snapshot.Max), snapshot.Max);
     }
+
+    // Map.FinalizeInit() (whose loop this tracks) runs once per map, immediately after that same
+    // map's own spawn loop (see Map.FinalizeLoading), so for a multi-map save the two loops
+    // interleave map-by-map rather than running as two separate global passes; unlike
+    // ResolveAllCrossReferences()/DoAllPostLoadInits() above, that rules out a dedicated phase per
+    // loop; giving PostMapInit's own phase would require leaving and re-entering it once per map,
+    // which is exactly the kind of same-phase-worth backward jump this is meant to avoid. Instead,
+    // each map's count is added to the running Spawning-phase total the first time that map is
+    // seen here, the same way the spawn loop's own totals already accumulate in
+    // OnMapFinalizeLoadingStarted/OnCompressedThingsCounted, so the bar keeps climbing continuously
+    // across every map's spawn-then-PostMapInit pair instead of resetting between them.
+    private static Map? _postMapInitCountedMap;
 
     // Thing.PostMapInit() is virtual with an empty base implementation, and overrides aren't
     // required to call base, so the count this drives (and the map.listerThings.AllThings.Count
-    // total it's compared against, taken from whichever map instance the first call in the loop
-    // happens to carry) is approximate rather than exact.
+    // total it's compared against, taken from the map instance the first call for that map
+    // carries) is approximate rather than exact; RescaleCurrentForGrownMax keeps the bar from
+    // dropping when that approximate total is added on top of the spawn loop's already-full count.
     internal static void OnThingPostMapInit(Map? map)
     {
         if (!IsActive || !IsFromSessionThread())
@@ -839,11 +992,17 @@ internal static class InGameLoadingSession
             return;
         }
 
-        if (_progressMax == 0 && map != null)
+        var snapshot = _snapshot;
+        var max = snapshot.Max;
+        var current = snapshot.Current;
+        if (map != null && !ReferenceEquals(map, _postMapInitCountedMap))
         {
-            _progressMax = map.listerThings.AllThings.Count;
+            _postMapInitCountedMap = map;
+            var newMax = max + map.listerThings.AllThings.Count;
+            current = RescaleCurrentForGrownMax(current, max, newMax);
+            max = newMax;
         }
-        _progressCurrent = AdvanceProgressCurrent(_progressCurrent, _progressMax);
+        SetProgress(AdvanceProgressCurrent(current, max), max);
     }
 
     private static readonly object _unmatchedEventKeysLock = new();
