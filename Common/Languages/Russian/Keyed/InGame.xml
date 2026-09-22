@@ -38,4 +38,20 @@
     <LoadingProgress.InGame.Phase.EncounterMapGeneration_Deferred>Регенерация рендера</LoadingProgress.InGame.Phase.EncounterMapGeneration_Deferred>
 
     <LoadingProgress.InGame.Phase.EncounterMapGenerationStatic_Generating>Генерация карты</LoadingProgress.InGame.Phase.EncounterMapGenerationStatic_Generating>
+
+    <LoadingProgress.InGame.Label.ReadingSaveFile>Чтение файла сохранения</LoadingProgress.InGame.Label.ReadingSaveFile>
+    <LoadingProgress.InGame.Label.SettingUpWorld>Подготовка мира</LoadingProgress.InGame.Label.SettingUpWorld>
+    <LoadingProgress.InGame.Label.LoadingItems>Загрузка объектов</LoadingProgress.InGame.Label.LoadingItems>
+    <LoadingProgress.InGame.Label.FinishingSaveData>Завершение обработки сохранения</LoadingProgress.InGame.Label.FinishingSaveData>
+    <LoadingProgress.InGame.Label.ResolvingReferences>Разрешение ссылок</LoadingProgress.InGame.Label.ResolvingReferences>
+    <LoadingProgress.InGame.Label.InitializingObjects>Инициализация загруженных объектов</LoadingProgress.InGame.Label.InitializingObjects>
+    <LoadingProgress.InGame.Label.FinalizingMaps>Завершение обработки карт</LoadingProgress.InGame.Label.FinalizingMaps>
+    <LoadingProgress.InGame.Label.CombiningItems>Объединение загруженных объектов</LoadingProgress.InGame.Label.CombiningItems>
+    <LoadingProgress.InGame.Label.FinalizingMapLayout>Завершение построения карты</LoadingProgress.InGame.Label.FinalizingMapLayout>
+    <LoadingProgress.InGame.Label.InitializingMapObjects>Инициализация объектов карты</LoadingProgress.InGame.Label.InitializingMapObjects>
+    <LoadingProgress.InGame.Label.CheckingHomeAreaMess>Проверка загрязнения домашней зоны</LoadingProgress.InGame.Label.CheckingHomeAreaMess>
+    <LoadingProgress.InGame.Label.CountingResources>Подсчёт ресурсов</LoadingProgress.InGame.Label.CountingResources>
+    <LoadingProgress.InGame.Label.CalculatingWealth>Расчёт благосостояния колонии</LoadingProgress.InGame.Label.CalculatingWealth>
+    <LoadingProgress.InGame.Label.FinishingUp>Завершение</LoadingProgress.InGame.Label.FinishingUp>
+    <LoadingProgress.InGame.Label.RedrawingMapChunk>Перерисовка карты (участок {0} из {1})</LoadingProgress.InGame.Label.RedrawingMapChunk>
 </LanguageData>

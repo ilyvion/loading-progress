@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The main progress bar sometimes visibly jumped backward instead of only ever moving forward, whenever the current stage's inner progress went further than expected. It now always advances, or at worst stands still, never backward.
 - The in-game loading window (shown during in-game world generation, map generation and save loading, when the setting for it is on) could flicker backward for a single frame right as it moved from one stage to the next, since the stage and its progress bar were briefly readable in a mismatched combination. They are now always updated together, so this can no longer happen.
 - Loading a save or starting a new game filled the in-game loading window's bar with the game's asset loading progress and then dropped it back to empty once the assets were loaded, since that progress was being shown as part of the stage that follows it rather than as a stage of its own. Loading assets is now its own stage, listed ahead of reading the file or setting up the map, so the bar carries straight on from it instead of falling back.
+- The in-game loading window's activity line sometimes showed internal, code-like text (such as 'Scribe.loader.FinalizeLoading' or 'listerFilthInHomeArea.RebuildAll()') instead of something a player could make sense of.
 
 ## [0.15.0] - 2026-09-14
 

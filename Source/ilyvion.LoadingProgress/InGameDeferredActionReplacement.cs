@@ -172,7 +172,7 @@ internal static class InGameDeferredActionReplacement
                 {
                     Log.Error($"Could not regenerate map section ({x}, {z}): {ex}");
                 }
-                InGameLoadingSession.OnMapDrawerSectionRegenerated(x, z);
+                InGameLoadingSession.OnMapDrawerSectionRegenerated();
                 yield return null;
             }
         }

@@ -38,4 +38,20 @@
     <LoadingProgress.InGame.Phase.EncounterMapGeneration_Deferred>Regenerating renderer</LoadingProgress.InGame.Phase.EncounterMapGeneration_Deferred>
 
     <LoadingProgress.InGame.Phase.EncounterMapGenerationStatic_Generating>Generating map</LoadingProgress.InGame.Phase.EncounterMapGenerationStatic_Generating>
+
+    <LoadingProgress.InGame.Label.ReadingSaveFile>Reading save file</LoadingProgress.InGame.Label.ReadingSaveFile>
+    <LoadingProgress.InGame.Label.SettingUpWorld>Setting up world</LoadingProgress.InGame.Label.SettingUpWorld>
+    <LoadingProgress.InGame.Label.LoadingItems>Loading items</LoadingProgress.InGame.Label.LoadingItems>
+    <LoadingProgress.InGame.Label.FinishingSaveData>Finishing up save data</LoadingProgress.InGame.Label.FinishingSaveData>
+    <LoadingProgress.InGame.Label.ResolvingReferences>Resolving references</LoadingProgress.InGame.Label.ResolvingReferences>
+    <LoadingProgress.InGame.Label.InitializingObjects>Initializing loaded objects</LoadingProgress.InGame.Label.InitializingObjects>
+    <LoadingProgress.InGame.Label.FinalizingMaps>Finalizing maps</LoadingProgress.InGame.Label.FinalizingMaps>
+    <LoadingProgress.InGame.Label.CombiningItems>Combining loaded items</LoadingProgress.InGame.Label.CombiningItems>
+    <LoadingProgress.InGame.Label.FinalizingMapLayout>Finalizing map layout</LoadingProgress.InGame.Label.FinalizingMapLayout>
+    <LoadingProgress.InGame.Label.InitializingMapObjects>Initializing map objects</LoadingProgress.InGame.Label.InitializingMapObjects>
+    <LoadingProgress.InGame.Label.CheckingHomeAreaMess>Checking for mess in home area</LoadingProgress.InGame.Label.CheckingHomeAreaMess>
+    <LoadingProgress.InGame.Label.CountingResources>Counting resources</LoadingProgress.InGame.Label.CountingResources>
+    <LoadingProgress.InGame.Label.CalculatingWealth>Calculating colony wealth</LoadingProgress.InGame.Label.CalculatingWealth>
+    <LoadingProgress.InGame.Label.FinishingUp>Finishing up</LoadingProgress.InGame.Label.FinishingUp>
+    <LoadingProgress.InGame.Label.RedrawingMapChunk>Redrawing map (chunk {0} of {1})</LoadingProgress.InGame.Label.RedrawingMapChunk>
 </LanguageData>

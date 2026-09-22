@@ -399,6 +399,37 @@ internal static class InGameLoadingSession
             ? label[WorldGenStepLabelPrefix.Length..]
         : label;
 
+    // Some DeepProfiler labels emitted during save loading read like the internal method/field
+    // names they're taken from (e.g. "Scribe.loader.FinalizeLoading",
+    // "listerFilthInHomeArea.RebuildAll()") rather than something a non-technical player would
+    // recognize; this maps the known offenders to a translation key with friendlier wording.
+    // Labels not in this table (e.g. "Loading game from file {0}", "Spawn everything into the
+    // map") already read naturally and are shown as-is.
+    private static readonly Dictionary<string, string> KnownLabelTranslationKeys = new()
+    {
+        ["InitLoading (read file)"] = "LoadingProgress.InGame.Label.ReadingSaveFile",
+        ["World.FinalizeInit"] = "LoadingProgress.InGame.Label.SettingUpWorld",
+        ["Load compressed things"] = "LoadingProgress.InGame.Label.LoadingItems",
+        ["Load non-compressed things"] = "LoadingProgress.InGame.Label.LoadingItems",
+        ["Scribe.loader.FinalizeLoading"] = "LoadingProgress.InGame.Label.FinishingSaveData",
+        ["ResolveAllCrossReferences()"] = "LoadingProgress.InGame.Label.ResolvingReferences",
+        ["DoAllPostLoadInits()"] = "LoadingProgress.InGame.Label.InitializingObjects",
+        ["maps.FinalizeLoading"] = "LoadingProgress.InGame.Label.FinalizingMaps",
+        ["Merge compressed and non-compressed thing lists"] =
+            "LoadingProgress.InGame.Label.CombiningItems",
+        ["Finalize geometry"] = "LoadingProgress.InGame.Label.FinalizingMapLayout",
+        ["Thing.PostMapInit()"] = "LoadingProgress.InGame.Label.InitializingMapObjects",
+        ["listerFilthInHomeArea.RebuildAll()"] =
+            "LoadingProgress.InGame.Label.CheckingHomeAreaMess",
+        ["resourceCounter.UpdateResourceCounts()"] =
+            "LoadingProgress.InGame.Label.CountingResources",
+        ["wealthWatcher.ForceRecount()"] = "LoadingProgress.InGame.Label.CalculatingWealth",
+        ["Game.FinalizeInit"] = "LoadingProgress.InGame.Label.FinishingUp",
+    };
+
+    internal static string? TranslationKeyForKnownLabel(string label) =>
+        KnownLabelTranslationKeys.TryGetValue(label, out var key) ? key : null;
+
     internal static int AdvanceProgressCurrent(int current, int max) => Math.Min(current + 1, max);
 
     // A map's own item counts only become known once that map's loop actually starts, so growing
@@ -467,7 +498,14 @@ internal static class InGameLoadingSession
     internal static bool IsActive => Kind != InGameSessionKind.None;
     internal static InGameSessionPhase Phase => _snapshot.Phase;
     internal static string Label { get; private set; } = string.Empty;
-    internal static string DisplayLabel => StripKnownLabelPrefix(Label);
+    internal static string DisplayLabel
+    {
+        get
+        {
+            var stripped = StripKnownLabelPrefix(Label);
+            return TranslationKeyForKnownLabel(stripped) is { } key ? key.Translate() : stripped;
+        }
+    }
 
     // Phase and (current, max) are only self-consistent when read together off one instance: the
     // loading thread (separate from the main thread that renders InGameLoadingWindow) publishes
@@ -814,14 +852,16 @@ internal static class InGameLoadingSession
         {
             return;
         }
-        Label = string.Empty;
+        // Label is deliberately left as whatever it already was: the first unit's own
+        // OnMapDrawerSectionRegenerated/OnWorldDrawLayerRegenerationStarted call is only a
+        // frame or two away, and showing a stale label briefly reads better than a blank one.
         SetProgress(phase, 0, totalUnits);
     }
 
     // Only the map-section replacement calls this directly; the world-layer replacement's
     // progress instead comes from OnWorldDrawLayerRegenerationStarted, since
     // WorldDrawLayerBase.Regenerate() is already patched there.
-    internal static void OnMapDrawerSectionRegenerated(int sectionX, int sectionZ)
+    internal static void OnMapDrawerSectionRegenerated()
     {
         if (
             !IsActive
@@ -832,8 +872,13 @@ internal static class InGameLoadingSession
         {
             return;
         }
-        Label = $"Section {sectionX},{sectionZ}";
         var snapshot = _snapshot;
+        // The section's own grid coordinates are meaningless to a player; a 1-based running
+        // count against the known total reads naturally instead.
+        Label = "LoadingProgress.InGame.Label.RedrawingMapChunk".Translate(
+            snapshot.Current + 1,
+            snapshot.Max
+        );
         SetProgress(AdvanceProgressCurrent(snapshot.Current, snapshot.Max), snapshot.Max);
     }
 

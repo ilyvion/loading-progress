@@ -1089,6 +1089,37 @@ internal sealed class InGameLoadingSessionTests
         );
 
     [Test]
+    public static void TranslationKeyForKnownLabelMapsTechnicalLabelsToATranslationKey() =>
+        Expect.AreEqual(
+            "LoadingProgress.InGame.Label.ResolvingReferences",
+            InGameLoadingSession.TranslationKeyForKnownLabel("ResolveAllCrossReferences()")
+        );
+
+    // "Load compressed things" and "Load non-compressed things" both describe the same thing to
+    // a player, so they deliberately share one translation key instead of getting two.
+    [Test]
+    public static void TranslationKeyForKnownLabelMapsBothThingListLabelsToTheSameKey() =>
+        Expect.AreEqual(
+            InGameLoadingSession.TranslationKeyForKnownLabel("Load compressed things"),
+            InGameLoadingSession.TranslationKeyForKnownLabel("Load non-compressed things")
+        );
+
+    // Labels that already read naturally to a non-technical player (e.g. the save file name
+    // vanilla itself reports, or "Spawn everything into the map") are left untranslated.
+    [Test]
+    public static void TranslationKeyForKnownLabelIsNullForLabelsThatAlreadyReadNaturally()
+    {
+        Expect.IsTrue(
+            InGameLoadingSession.TranslationKeyForKnownLabel("Loading game from file New Arrivals6")
+                == null
+        );
+        Expect.IsTrue(
+            InGameLoadingSession.TranslationKeyForKnownLabel("Spawn everything into the map")
+                == null
+        );
+    }
+
+    [Test]
     public static void IsSuppressedWorldGenLayerLabelDetectsTheLayerBoundaryLabel() =>
         Expect.IsTrue(
             InGameLoadingSession.IsSuppressedWorldGenLayerLabel(
