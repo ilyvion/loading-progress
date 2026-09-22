@@ -30,16 +30,22 @@ internal static class FasterGameLoadingWindowLayout
 // variables computed before our AdjustStatusWindowRect transpile point runs — moving the status
 // box there doesn't move them, so the space vanilla reserved for it at the top of that block ends
 // up empty on screen; GetAvoidanceExtent trims that off so it isn't treated as occupied.
-// LoadingWindowPlacement.Middle also centers our own window on screen; since vanilla centers the
-// tip/mod-summary block independently of that, the two would either land on top of each other or,
-// even clear of each other, read as one lopsided group instead of a single centered one.
-// AdjustReservedBlockCenter (see the transpiler below) patches vanilla's own centering of that
-// block instead of leaving it fixed, using ComputeBalancedReservedExtent to work out where it
-// belongs so that, together with our own window placed directly below it via ComputeMiddleY, the
-// combined group is what's centered on screen. LoadingWindowPlacement.Custom lets the window go
-// anywhere the user drags it, including on top of that same (unmoved) block, so it uses
-// AvoidReservedExtent below to nudge clear of it instead; the status box that follows it around
-// uses ComputeStatusBoxTop to avoid landing on that block too.
+// LoadingWindowPlacement.Middle/MiddleInverted also center our own window on screen; since
+// vanilla centers the tip/mod-summary block independently of that, the two would either land on
+// top of each other or, even clear of each other, read as one lopsided group instead of a single
+// centered one. AdjustReservedBlockCenter (see the transpiler below) patches vanilla's own
+// centering of that block instead of leaving it fixed, so that, together with our own window, the
+// combined group is what's centered on screen. The two placements put the reserved block and our
+// window (with its status box) on opposite sides of each other: MiddleInverted keeps the reserved
+// block on top and places our window directly below it (ComputeBalancedReservedExtent /
+// ComputeMiddleY), with the status box wherever ComputeStatusBoxTop finds room around our window;
+// Middle instead puts our window (status box above it, via ComputeMiddleYWithStatusBoxAbove) on
+// top and moves the reserved block below it instead (ComputeReservedExtentBelowOurWindow), so the
+// on-screen order is status box, our window, then vanilla's own tip/mod-summary block.
+// LoadingWindowPlacement.Custom lets the window go anywhere the user drags it, including on top
+// of that same (unmoved) block, so it uses AvoidReservedExtent below to nudge clear of it instead;
+// the status box that follows it around uses ComputeStatusBoxTop to avoid landing on that block
+// too.
 internal static class ExtraLongEventUIWindowLayout
 {
     // Pure: centers a `width`x`height` block on `screenSize`, mirroring how vanilla centers the
@@ -147,6 +153,74 @@ internal static class ExtraLongEventUIWindowLayout
         var balanced = ComputeBalancedReservedExtent(reserved, combinedHeight, screenHeight);
         return balanced.yMax + 10f;
     }
+
+    public static float ComputeMiddleYWithStatusBoxAbove(
+        Vector2 windowSize,
+        Vector2 fasterGameLoadingWindowSize
+    ) =>
+        ComputeMiddleYWithStatusBoxAbove(
+            windowSize,
+            fasterGameLoadingWindowSize,
+            LongEventHandler.StatusRectSize.y,
+            GetAvoidanceExtent(),
+            UI.screenHeight
+        );
+
+    // Pure core of ComputeMiddleYWithStatusBoxAbove above, for LoadingWindowPlacement.Middle:
+    // unlike ComputeMiddleY/MiddleInverted, where our own window (and status box) sit below the
+    // reserved extent, here the whole reserved extent moves below our own window instead (see
+    // ComputeReservedExtentBelowOurWindow), so our window sits at the very top of the centered
+    // group, `statusBoxHeight + 10f` below that top to leave room for the status box above it.
+    internal static float ComputeMiddleYWithStatusBoxAbove(
+        Vector2 windowSize,
+        Vector2 fasterGameLoadingWindowSize,
+        float statusBoxHeight,
+        Rect? reservedExtent,
+        float screenHeight
+    )
+    {
+        var leadingHeight = statusBoxHeight + 10f;
+        var ourBlockHeight = leadingHeight + windowSize.y + fasterGameLoadingWindowSize.y;
+        if (reservedExtent is not Rect reserved)
+        {
+            return ((screenHeight - ourBlockHeight) / 2f) + leadingHeight;
+        }
+
+        // ComputeBalancedReservedExtent's own `.y` is the top of the whole centered group
+        // regardless of which element it's computing a position for; here that's our own
+        // block's top rather than the reserved extent's, since the reserved extent now goes
+        // below us instead of above.
+        var groupTop = ComputeBalancedReservedExtent(reserved, ourBlockHeight, screenHeight).y;
+        return groupTop + leadingHeight;
+    }
+
+    // Pure: where `avoidanceExtent` needs to sit so that, with a `ourBlockHeight`-tall window
+    // directly above it (10px gap), the combined group is centered on `screenHeight` as a whole -
+    // the mirror image of ComputeBalancedReservedExtent, for LoadingWindowPlacement.Middle, where
+    // our own window (and its status box) come first and the reserved extent follows below them.
+    internal static Rect ComputeReservedExtentBelowOurWindow(
+        Rect avoidanceExtent,
+        float ourBlockHeight,
+        float screenHeight
+    )
+    {
+        var groupTop = ComputeBalancedReservedExtent(
+            avoidanceExtent,
+            ourBlockHeight,
+            screenHeight
+        ).y;
+        return new Rect(
+            avoidanceExtent.x,
+            groupTop + ourBlockHeight + 10f,
+            avoidanceExtent.width,
+            avoidanceExtent.height
+        );
+    }
+
+    public static Rect? GetReservedExtentBelowOurWindow(float ourBlockHeight) =>
+        GetAvoidanceExtent() is Rect avoidanceExtent
+            ? ComputeReservedExtentBelowOurWindow(avoidanceExtent, ourBlockHeight, UI.screenHeight)
+            : null;
 
     public static Vector2 AvoidReservedExtent(Vector2 position, Vector2 windowSize) =>
         AvoidReservedExtent(position, windowSize, GetAvoidanceExtent(), UI.screenHeight);
@@ -285,6 +359,13 @@ internal static class Verse_LongEventHandler_DrawOwnWindow_Patch
             ),
             LoadingWindowPlacement.Middle => new(
                 loadingProgressWindowCenteredX,
+                ExtraLongEventUIWindowLayout.ComputeMiddleYWithStatusBoxAbove(
+                    loadingProgressWindowSize,
+                    fasterGameLoadingProgressWindowSize
+                )
+            ),
+            LoadingWindowPlacement.MiddleInverted => new(
+                loadingProgressWindowCenteredX,
                 ExtraLongEventUIWindowLayout.ComputeMiddleY(
                     loadingProgressWindowSize,
                     fasterGameLoadingProgressWindowSize
@@ -392,11 +473,16 @@ internal sealed class Verse_LongEventHandler_LongEventsOnGUI_Patch
     // Vanilla computes this (its local num3) as half of screenHeight minus the full
     // tip/mod-summary block height, to center that block on screen; the transpiler below
     // replaces it with ComputeBalancedReservedExtent's chosen top instead, for
-    // LoadingWindowPlacement.Middle, so the block moves to make room for our own window below it
-    // instead of staying wherever vanilla's own centering put it.
+    // LoadingWindowPlacement.Middle/MiddleInverted, so the block moves to make room for our own
+    // window (and, for Middle, the status box stacked above it) instead of staying wherever
+    // vanilla's own centering put it.
     private static float AdjustReservedBlockCenter(float num3)
     {
-        if (LoadingProgressMod.Settings.LoadingWindowPlacement != LoadingWindowPlacement.Middle)
+        var placement = LoadingProgressMod.Settings.LoadingWindowPlacement;
+        if (
+            placement
+            is not (LoadingWindowPlacement.Middle or LoadingWindowPlacement.MiddleInverted)
+        )
         {
             return num3;
         }
@@ -412,8 +498,26 @@ internal sealed class Verse_LongEventHandler_LongEventsOnGUI_Patch
         var loadingProgressWindowSize = useInGameWindow
             ? InGameLoadingWindow.WindowSize
             : LoadingProgressWindow.WindowSize;
-        var combinedHeight =
-            loadingProgressWindowSize.y + FasterGameLoadingProgressWindow.WindowSize.y;
+        var fasterGameLoadingWindowSize = FasterGameLoadingProgressWindow.WindowSize;
+
+        if (placement == LoadingWindowPlacement.Middle)
+        {
+            // Middle puts our own window (and its status box) at the top of the centered group
+            // and moves the reserved extent below them instead, so it takes the mirror-image
+            // helper rather than GetBalancedReservedExtent below.
+            var ourBlockHeight =
+                LongEventHandler.StatusRectSize.y
+                + 10f
+                + loadingProgressWindowSize.y
+                + fasterGameLoadingWindowSize.y;
+            return
+                ExtraLongEventUIWindowLayout.GetReservedExtentBelowOurWindow(ourBlockHeight)
+                    is Rect relocated
+                ? relocated.y - (LongEventHandler.StatusRectSize.y + 17f)
+                : num3;
+        }
+
+        var combinedHeight = loadingProgressWindowSize.y + fasterGameLoadingWindowSize.y;
         return
             ExtraLongEventUIWindowLayout.GetBalancedReservedExtent(combinedHeight) is Rect balanced
             ? balanced.y - (LongEventHandler.StatusRectSize.y + 17f)
@@ -443,6 +547,18 @@ internal sealed class Verse_LongEventHandler_LongEventsOnGUI_Patch
                 statusRectTop = 10f;
                 break;
             case LoadingWindowPlacement.Middle:
+                // Middle always reserves `statusRectSize.y + 10f` directly above our window (see
+                // ComputeMiddleYWithStatusBoxAbove) for the status box, so it goes right there
+                // regardless of the reserved extent or the FasterGameLoading window.
+                statusRectTop =
+                    ExtraLongEventUIWindowLayout.ComputeMiddleYWithStatusBoxAbove(
+                        loadingProgressWindowSize,
+                        fasterGameLoadingProgressWindowSize
+                    )
+                    - 10f
+                    - statusRectSize.y;
+                break;
+            case LoadingWindowPlacement.MiddleInverted:
                 var middleCombinedHeight =
                     loadingProgressWindowSize.y + fasterGameLoadingProgressWindowSize.y;
                 var middleAvoidanceExtent = ExtraLongEventUIWindowLayout.GetBalancedReservedExtent(
@@ -452,7 +568,7 @@ internal sealed class Verse_LongEventHandler_LongEventsOnGUI_Patch
                     loadingProgressWindowSize,
                     fasterGameLoadingProgressWindowSize
                 );
-                // Middle now places our window flush against the (also relocated) reserved
+                // MiddleInverted places our window flush against the (also relocated) reserved
                 // extent, leaving no room for the status box on its usual side directly above the
                 // main window; put it below instead.
                 var middleFasterGoesAbove = FasterGameLoadingWindowLayout.GoesAboveMainWindow(

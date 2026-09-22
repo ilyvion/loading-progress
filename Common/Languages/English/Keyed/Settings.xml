@@ -38,6 +38,7 @@
     <LoadingProgress.LoadingWindowPlacement>Loading window placement</LoadingProgress.LoadingWindowPlacement>
     <LoadingProgress.Top>Top</LoadingProgress.Top>
     <LoadingProgress.Middle>Middle</LoadingProgress.Middle>
+    <LoadingProgress.MiddleInverted>Middle (inverted)</LoadingProgress.MiddleInverted>
     <LoadingProgress.Bottom>Bottom</LoadingProgress.Bottom>
     <LoadingProgress.Custom>Custom</LoadingProgress.Custom>
     <LoadingProgress.EditCustomPlacement>Set custom position...</LoadingProgress.EditCustomPlacement>

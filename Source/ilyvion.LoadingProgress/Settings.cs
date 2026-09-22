@@ -476,6 +476,10 @@ internal sealed class Settings : ModSettings
                     () => _loadingWindowPlacement = LoadingWindowPlacement.Middle
                 ),
                 new FloatMenuOption(
+                    "LoadingProgress.MiddleInverted".Translate(),
+                    () => _loadingWindowPlacement = LoadingWindowPlacement.MiddleInverted
+                ),
+                new FloatMenuOption(
                     "LoadingProgress.Bottom".Translate(),
                     () => _loadingWindowPlacement = LoadingWindowPlacement.Bottom
                 ),
@@ -550,6 +554,7 @@ internal enum LoadingWindowPlacement
 {
     Top,
     Middle,
+    MiddleInverted,
     Bottom,
     Custom,
 }

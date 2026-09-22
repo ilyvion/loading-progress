@@ -143,6 +143,62 @@ internal sealed class ExtraLongEventUIWindowLayoutTests
     }
 
     [Test]
+    public static void ComputeMiddleYWithStatusBoxAboveReturnsTheNaturalCenterWhenThereIsNoReservedExtent()
+    {
+        // With no reserved extent, the group (status box + gap + our window) is centered as a
+        // whole, so our window sits `statusBoxHeight + 10f` below that group's centered top.
+        var y = ExtraLongEventUIWindowLayout.ComputeMiddleYWithStatusBoxAbove(
+            new Vector2(400f, 200f),
+            new Vector2(0f, 0f),
+            statusBoxHeight: 40f,
+            reservedExtent: null,
+            screenHeight: 1000f
+        );
+        // combinedHeight = 40f + 10f + 200f = 250f; group top = (1000f - 250f) / 2f = 375f;
+        // our window sits 50f (statusBoxHeight + 10f) below that.
+        Expect.AreEqual(425f, y);
+    }
+
+    [Test]
+    public static void ComputeMiddleYWithStatusBoxAbovePlacesTheWindowAtTheTopOfTheCenteredGroupWhenThereIsAReservedExtent()
+    {
+        // Unlike ComputeMiddleY, the reserved extent moves below our window here (see
+        // ComputeReservedExtentBelowOurWindow), so only its height (not its own position) feeds
+        // into where our window ends up.
+        var reserved = new Rect(0f, 999f, 100f, 200f);
+        var y = ExtraLongEventUIWindowLayout.ComputeMiddleYWithStatusBoxAbove(
+            new Vector2(400f, 300f),
+            new Vector2(0f, 0f),
+            statusBoxHeight: 40f,
+            reservedExtent: reserved,
+            screenHeight: 1200f
+        );
+        // ourBlockHeight = 40f + 10f + 300f = 350f; groupTop = (1200f - 200f - 10f - 350f) / 2f =
+        // 320f; our window sits 50f (statusBoxHeight + 10f) below that.
+        Expect.AreEqual(370f, y);
+    }
+
+    [Test]
+    public static void ComputeReservedExtentBelowOurWindowCentersTheCombinedGroupOnScreen()
+    {
+        var avoidanceExtent = new Rect(50f, 0f, 400f, 200f);
+        var relocated = ExtraLongEventUIWindowLayout.ComputeReservedExtentBelowOurWindow(
+            avoidanceExtent,
+            ourBlockHeight: 300f,
+            screenHeight: 1200f
+        );
+        Expect.AreEqual(50f, relocated.x);
+        Expect.AreEqual(400f, relocated.width);
+        Expect.AreEqual(200f, relocated.height);
+        // groupTop = (1200f - 200f - 10f - 300f) / 2f = 345f; relocated sits 300f + 10f below
+        // that.
+        Expect.AreEqual(655f, relocated.y);
+        // Top margin (above our window, which starts at groupTop) and bottom margin (below
+        // relocated) both come out to 345px - a centered group.
+        Expect.AreEqual(345f, 1200f - (relocated.y + 200f));
+    }
+
+    [Test]
     public static void ComputeBalancedReservedExtentCentersTheCombinedGroupOnScreen()
     {
         var avoidanceExtent = new Rect(50f, 0f, 400f, 200f);

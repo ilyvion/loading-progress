@@ -38,6 +38,7 @@
     <LoadingProgress.LoadingWindowPlacement>Расположение окна загрузки</LoadingProgress.LoadingWindowPlacement>
     <LoadingProgress.Top>Сверху</LoadingProgress.Top>
     <LoadingProgress.Middle>По центру</LoadingProgress.Middle>
+    <LoadingProgress.MiddleInverted>По центру (инвертировано)</LoadingProgress.MiddleInverted>
     <LoadingProgress.Bottom>Снизу</LoadingProgress.Bottom>
     <LoadingProgress.Custom>Пользовательское</LoadingProgress.Custom>
     <LoadingProgress.EditCustomPlacement>Задать позицию...</LoadingProgress.EditCustomPlacement>
