@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Removed the Russian translation. It had gone unmaintained apart from machine translation for a while and I'm tired of the maintenance burden. If someone wants to pick it back up, releasing it as a standalone translation mod is the way to go.
+
 ## [0.16.0] - 2026-09-22
 
 ### Added

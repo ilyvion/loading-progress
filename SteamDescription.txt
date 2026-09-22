@@ -23,7 +23,6 @@ The mod is now fully translatable! Since we're loading very early on, we can't u
 
 [h2]Available translations[/h2]
 [list]
-[*] Russian (built-in) originally by [url=https://steamcommunity.com/id/aks_kun/]Aks[/url], since maintained by machine translation. If someone's willing to move it into a separate mod and take ownership, I'd appreciate it.
 [*] [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3542771983]Chinese[/url] by [url=https://steamcommunity.com/profiles/76561198293334177]大番薯之怒[/url]
 [*] [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3775645721]Polish[/url] by [url=https://steamcommunity.com/id/drizztgaming4life]Drizzt[/url]
 [/list]

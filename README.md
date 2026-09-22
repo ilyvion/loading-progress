@@ -27,7 +27,6 @@ The mod is fully translatable. Since it loads very early on, it can't use the ga
 
 ### Available translations
 
-- Russian (built-in), originally by [Aks](https://steamcommunity.com/id/aks_kun/), since maintained by machine translation.
 - [Chinese](https://steamcommunity.com/sharedfiles/filedetails/?id=3542771983) by [大番薯之怒](https://steamcommunity.com/profiles/76561198293334177)
 - [Polish](https://steamcommunity.com/sharedfiles/filedetails/?id=3775645721) by [Drizzt](https://steamcommunity.com/id/drizztgaming4life)
 

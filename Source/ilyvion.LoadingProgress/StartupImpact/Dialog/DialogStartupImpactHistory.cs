@@ -96,9 +96,9 @@ internal sealed class DialogStartupImpactHistory : Window
 
         _currentModListHash = StartupImpactSessionData.CurrentModListHash();
         _entries = StartupImpactSessionStorage.LoadIndex();
-        // The two action columns are sized for the longest label any language gives them:
-        // Russian's "Закрепить" and "Открепить" are wider than an English "Unpin", and a
-        // label wider than its button is clipped at both ends rather than spilling.
+        // The two action columns are sized wider than the English labels need, since a
+        // translation's Pin/Unpin labels can render wider, and a label wider than its
+        // button is clipped at both ends rather than spilling.
         _table = new UiTable(0, RowHeight, [-14f, -140f, -70f, -55f, -85f, 1f, -80f, -80f, -30f]);
         RebuildRows();
     }
