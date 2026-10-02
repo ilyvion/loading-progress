@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Removed the Russian translation. It had gone unmaintained apart from machine translation for a while and I'm tired of the maintenance burden. If someone wants to pick it back up, releasing it as a standalone translation mod is the way to go.
+- The loading window no longer forces an immediate repaint on every loading stage change and before every step of reloading a mod's content, since all that repainting slowed loading down. The label shown can lag behind a slow step by a moment as a result. The old behavior can be turned back on with the new 'Repaint the loading window immediately on stage changes and content reload steps' setting.
 - The loading time shown in the bottom-right corner of the main menu, in the pause menu and in the mod settings is now how long this launch took to load. It used to show the same averaged estimate the loading window counts down from.
 
 ### Fixed

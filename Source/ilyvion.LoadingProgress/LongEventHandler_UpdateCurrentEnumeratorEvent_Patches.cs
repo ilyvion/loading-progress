@@ -23,10 +23,15 @@ namespace ilyvion.LoadingProgress;
 // "LoadingProgress." textKey prefix - see the QueueLongEvent calls in
 // StaticConstructorOnStartupUtilityReplacement and LongEventHandler_ExecuteToExecuteWhenFinished_Patches),
 // so every other enumerator-based long event keeps unmodified vanilla timing.
+//
+// Only applied when the ForceImmediateRepaints setting is on, since the extra repaints slow
+// down asset loading.
 [HarmonyPatch(typeof(LongEventHandler), nameof(LongEventHandler.UpdateCurrentEnumeratorEvent))]
 internal static class LongEventHandler_UpdateCurrentEnumeratorEvent_Patches
 {
     private static bool _repaintRequested;
+
+    internal static bool Prepare() => LoadingProgressMod.Settings.ForceImmediateRepaints;
 
     internal static void RequestImmediateRepaint() => _repaintRequested = true;
 

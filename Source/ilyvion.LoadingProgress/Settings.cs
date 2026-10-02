@@ -18,6 +18,13 @@ internal sealed class Settings : ModSettings
         set => _patchReloadContent = value;
     }
 
+    private bool _forceImmediateRepaints;
+    public bool ForceImmediateRepaints
+    {
+        get => _forceImmediateRepaints;
+        set => _forceImmediateRepaints = value;
+    }
+
     private bool _showInGameLoadingProgress = true;
     public bool ShowInGameLoadingProgress
     {
@@ -210,6 +217,7 @@ internal sealed class Settings : ModSettings
 
         Scribe_Values.Look(ref _patchInitialization, "patchInitialization", true);
         Scribe_Values.Look(ref _patchReloadContent, "patchReloadContent", true);
+        Scribe_Values.Look(ref _forceImmediateRepaints, "forceImmediateRepaints", false);
         Scribe_Values.Look(ref _showInGameLoadingProgress, "showInGameLoadingProgress", true);
         Scribe_Values.Look(ref _patchInGameDeferredRepaint, "patchInGameDeferredRepaint", true);
         Scribe_Values.Look(
@@ -347,6 +355,12 @@ internal sealed class Settings : ModSettings
             "LoadingProgress.PatchReloadContent".Translate(),
             ref _patchReloadContent,
             "LoadingProgress.PatchReloadContent.Tip".Translate()
+        );
+
+        listingStandard.CheckboxLabeled(
+            "LoadingProgress.ForceImmediateRepaints".Translate(),
+            ref _forceImmediateRepaints,
+            "LoadingProgress.ForceImmediateRepaints.Tip".Translate()
         );
 
         listingStandard.CheckboxLabeled(

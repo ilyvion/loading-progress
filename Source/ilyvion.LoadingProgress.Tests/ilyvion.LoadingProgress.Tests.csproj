@@ -17,6 +17,9 @@
         in a shipped release.
     -->
     <ItemGroup>
+        <Publicize Include="Assembly-CSharp:Verse.LongEventHandler.UpdateCurrentEnumeratorEvent" />
+    </ItemGroup>
+    <ItemGroup>
         <ProjectReference Include="..\ilyvion.LoadingProgress\ilyvion.LoadingProgress.csproj">
             <CopyLocal>False</CopyLocal>
             <Private>false</Private>
