@@ -57,13 +57,21 @@
         <Publicize Include="0Harmony:HarmonyLib.MethodCreatorConfig.prefixes" />
         <Publicize Include="0Harmony:HarmonyLib.MethodCreatorConfig.postfixes" />
         <Publicize Include="0Harmony:HarmonyLib.MethodCreatorConfig.finalizers" />
-        <Publicize Include="0Harmony:HarmonyLib.FaultBlockRewriter" />
-        <Publicize Include="0Harmony:HarmonyLib.FaultBlockRewriter.Rewrite" />
         <Publicize Include="0Harmony:HarmonyLib.PatchProcessor.locker" />
         <Publicize Include="0Harmony:HarmonyLib.HarmonySharedState" />
         <Publicize Include="0Harmony:HarmonyLib.HarmonySharedState.GetPatchInfo" />
-        <Publicize Include="0Harmony:HarmonyLib.HarmonySharedState.UpdatePatchInfo" />
         <Publicize Include="0Harmony:HarmonyLib.PatchFunctions" />
         <Publicize Include="0Harmony:HarmonyLib.PatchFunctions.UpdateWrapper" />
+    </ItemGroup>
+    <ItemGroup Condition="'$(RimWorldVersion)' != '1.7'">
+        <Publicize Include="0Harmony:HarmonyLib.FaultBlockRewriter" />
+        <Publicize Include="0Harmony:HarmonyLib.FaultBlockRewriter.Rewrite" />
+        <Publicize Include="0Harmony:HarmonyLib.HarmonySharedState.UpdatePatchInfo" />
+    </ItemGroup>
+    <ItemGroup Condition="'$(RimWorldVersion)' == '1.7'">
+        <Publicize Include="0Harmony:HarmonyLib.PatchCall" />
+        <Publicize Include="0Harmony:HarmonyLib.PatchCall.method" />
+        <Publicize Include="0Harmony:HarmonyLib.MethodCreatorTools" />
+        <Publicize Include="0Harmony:HarmonyLib.MethodCreatorTools.EmitCodes" />
     </ItemGroup>
 </Project>

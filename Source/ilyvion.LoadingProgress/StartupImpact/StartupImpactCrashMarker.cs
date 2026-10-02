@@ -38,7 +38,7 @@ internal static class StartupImpactCrashMarker
     }
 
     private static volatile bool _isActive;
-    private static readonly object _lock = new();
+    private static readonly Lock _lock = new();
     private static long _startedAtUtcTicks;
     private static int _modListHash;
     private static string _stage = "";

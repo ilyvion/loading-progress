@@ -14,7 +14,7 @@ internal sealed class CompilerGeneratedTests
         var captured = 0;
         Action action = () => captured++;
 
-        Expect.IsTrue(CompilerGenerated.Is(action.Target.GetType()));
+        Expect.IsTrue(action.Target is { } target && CompilerGenerated.Is(target.GetType()));
     }
 
     [Test]
@@ -22,7 +22,7 @@ internal sealed class CompilerGeneratedTests
     {
         Action action = () => { };
 
-        Expect.IsTrue(CompilerGenerated.Is(action.Target.GetType()));
+        Expect.IsTrue(action.Target is { } target && CompilerGenerated.Is(target.GetType()));
     }
 
     [Test]

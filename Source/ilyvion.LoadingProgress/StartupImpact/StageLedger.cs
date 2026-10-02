@@ -13,7 +13,7 @@ internal sealed class StageLedger
 {
     private readonly List<StageLedgerEntry> _entries = [];
 
-    private readonly object _lock = new();
+    private readonly Lock _lock = new();
     private bool _closed;
 
     public StageLedger(string initialStage)

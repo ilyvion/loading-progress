@@ -517,13 +517,29 @@ internal static class PostLoadTracker
         }
     }
 
-    // The engine's focus event is only referenced from these two, so a missing one fails when
+    // The engine's focus hooks are only referenced from these two, so a missing one fails when
     // they are called rather than when their callers are compiled.
+#if v1_7
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void WatchFocus() =>
+        Waylith.EngineApplication.Instance.PrePollEvents += OnEngineLoopPass;
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void UnwatchFocus() =>
+        Waylith.EngineApplication.Instance.PrePollEvents -= OnEngineLoopPass;
+
+    // The engine has no focus event. This runs on every pass of its loop, including the passes
+    // it idles through without a frame while in the background, and sees the focus the pass
+    // before it found.
+    private static void OnEngineLoopPass(Waylith.EngineApplication _) =>
+        OnFocusChanged(Waylith.EngineWindow.IsFocused);
+#else
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static void WatchFocus() => Application.focusChanged += OnFocusChanged;
 
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static void UnwatchFocus() => Application.focusChanged -= OnFocusChanged;
+#endif
 
     private static void OnFocusChanged(bool focused)
     {

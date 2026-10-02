@@ -27,6 +27,7 @@ jobs:
       artifact_suffix: ${{ github.sha }}
       rw_versions: |-
         1.6
+        1.7
       license_files: |-
         LICENSE
         LICENSE.Apache-2.0

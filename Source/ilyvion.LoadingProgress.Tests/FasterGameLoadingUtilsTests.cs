@@ -1,4 +1,3 @@
-using System.Runtime.Serialization;
 using DevTools.Testing;
 using ilyvion.LoadingProgress.FasterGameLoading;
 
@@ -44,7 +43,7 @@ internal sealed class FasterGameLoadingUtilsTests
     // fields set here are all the package id getters read.
     private static ModMetaData ModWithId(string packageId, bool steamPostfix)
     {
-        var mod = (ModMetaData)FormatterServices.GetUninitializedObject(typeof(ModMetaData));
+        var mod = AccessTools.CreateInstance<ModMetaData>();
         mod.packageIdLowerCase = packageId;
         mod.appendPackageIdSteamPostfix = steamPostfix;
         return mod;

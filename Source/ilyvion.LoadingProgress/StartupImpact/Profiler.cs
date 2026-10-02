@@ -8,6 +8,10 @@ internal sealed class Profiler(string measurementTarget) : IDisposable
         new ProfilerStopwatch(measurementTarget)
     );
 
+    private SingleThreadedProfiler ThreadProfiler =>
+        _threadLocalProfiler.Value
+        ?? throw new InvalidOperationException("The thread's profiler was not created.");
+
     public ConcurrentDictionary<string, float> Metrics { get; } = [];
     public float TotalImpact { get; private set; }
 
@@ -69,7 +73,7 @@ internal sealed class Profiler(string measurementTarget) : IDisposable
             // now is its own: one on another timer, then one on this timer. Both are recorded
             // before this one is opened, which is the last step.
             below?.PauseOpen();
-            var profiler = _threadLocalProfiler.Value;
+            var profiler = ThreadProfiler;
             var ms = profiler.Interrupt(out var interrupted);
             if (interrupted != null)
             {
@@ -79,7 +83,7 @@ internal sealed class Profiler(string measurementTarget) : IDisposable
         }
         catch
         {
-            below?._threadLocalProfiler.Value.Resume();
+            below?.ThreadProfiler.Resume();
             throw;
         }
         open.Add(this);
@@ -102,7 +106,7 @@ internal sealed class Profiler(string measurementTarget) : IDisposable
         _busy++;
         try
         {
-            var ms = _threadLocalProfiler.Value.Stop(category, out var actualCategory);
+            var ms = ThreadProfiler.Stop(category, out var actualCategory);
             try
             {
                 Record(actualCategory, ms);
@@ -136,12 +140,9 @@ internal sealed class Profiler(string measurementTarget) : IDisposable
         _busy++;
         try
         {
-            var ms = _threadLocalProfiler.Value.Stop(category, out var actualCategory);
+            var ms = ThreadProfiler.Stop(category, out var actualCategory);
             Release();
-            if (
-                _openOnThread is { Count: > 0 } open
-                && open[^1]._threadLocalProfiler.Value.Open is { } below
-            )
+            if (_openOnThread is { Count: > 0 } open && open[^1].ThreadProfiler.Open is { } below)
             {
                 open[^1].Record(StartupImpactProfilerUtil.ReplacedBy(below, replacer), ms);
             }
@@ -161,7 +162,7 @@ internal sealed class Profiler(string measurementTarget) : IDisposable
     // category on another timer starting inside it.
     private void PauseOpen()
     {
-        var ms = _threadLocalProfiler.Value.Pause(out var paused);
+        var ms = ThreadProfiler.Pause(out var paused);
         if (paused != null)
         {
             Record(paused, ms);
@@ -185,8 +186,8 @@ internal sealed class Profiler(string measurementTarget) : IDisposable
         }
         if (open.Count > 0 && !ReferenceEquals(open[^1], this))
         {
-            _ = _threadLocalProfiler.Value.Pause(out _);
-            open[^1]._threadLocalProfiler.Value.Resume();
+            _ = ThreadProfiler.Pause(out _);
+            open[^1].ThreadProfiler.Resume();
         }
     }
 

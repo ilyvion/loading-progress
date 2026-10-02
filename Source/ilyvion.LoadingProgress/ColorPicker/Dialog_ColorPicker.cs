@@ -392,6 +392,8 @@ internal sealed class Dialog_ColorPicker : Window
     private void CreateAlphaPickerBG()
     {
         var tex = new Texture2D(1, _pickerSize);
+        Object.Destroy(_alphaPickerBG);
+        _alphaPickerBG = tex;
 
         var h = _pickerSize;
         var hu = 1f / h;
@@ -403,8 +405,6 @@ internal sealed class Dialog_ColorPicker : Window
         }
 
         tex.Apply();
-
-        SwapTexture(ref _alphaPickerBG, tex);
     }
 
     [MemberNotNull(nameof(_ColorPickerBG))]
@@ -418,6 +418,8 @@ internal sealed class Dialog_ColorPicker : Window
         var hu = UnitsPerPixel;
 
         var tex = new Texture2D(w, h);
+        Object.Destroy(_ColorPickerBG);
+        _ColorPickerBG = tex;
 
         // HSV Colors, H in slider, S horizontal, V vertical.
         for (var x = 0; x < w; x++)
@@ -431,14 +433,14 @@ internal sealed class Dialog_ColorPicker : Window
         }
 
         tex.Apply();
-
-        SwapTexture(ref _ColorPickerBG, tex);
     }
 
     [MemberNotNull(nameof(_huePickerBG))]
     private void CreateHuePickerBG()
     {
         var tex = new Texture2D(1, _pickerSize);
+        Object.Destroy(_huePickerBG);
+        _huePickerBG = tex;
 
         var h = _pickerSize;
         var hu = 1f / h;
@@ -450,8 +452,6 @@ internal sealed class Dialog_ColorPicker : Window
         }
 
         tex.Apply();
-
-        SwapTexture(ref _huePickerBG, tex);
     }
 
     public static void CreatePreviewBG([NotNull] ref Texture2D? bg, Color col) =>

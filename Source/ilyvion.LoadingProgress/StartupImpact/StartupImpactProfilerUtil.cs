@@ -34,8 +34,7 @@ internal static class StartupImpactProfilerUtil
         var owner = assembly == null ? null : Utilities.FindModByAssembly(assembly);
         isBaseGame =
             owner == null
-            && assembly != null
-            && assembly.FullName.StartsWith("Assembly-CSharp", StringComparison.Ordinal);
+            && assembly?.FullName?.StartsWith("Assembly-CSharp", StringComparison.Ordinal) == true;
         return owner;
     }
 

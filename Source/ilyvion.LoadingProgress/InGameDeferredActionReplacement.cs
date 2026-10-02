@@ -98,7 +98,7 @@ internal static class InGameDeferredActionReplacement
             else
             {
                 DeepProfiler.Start(
-                    action.Method.DeclaringType.ToString() + " -> " + action.Method.ToString()
+                    action.Method.DeclaringType?.ToString() + " -> " + action.Method.ToString()
                 );
                 try
                 {

@@ -294,7 +294,7 @@ internal sealed partial class LoadingProgressWindow
                         LoadingStage.LoadingDefs,
                         $"WithDef",
                         def.modContentPack?.Name ?? "[unknown mod]",
-                        def.GetType().FullName,
+                        def.GetType().FullName ?? def.GetType().Name,
                         def.defName
                     )
                     : null
@@ -799,7 +799,7 @@ internal sealed partial class LoadingProgressWindow
 
     internal static (float currentValue, float maxValue)? StageProgress { get; set; }
 
-    private static readonly object _unmatchedStageActivitiesLock = new();
+    private static readonly Lock _unmatchedStageActivitiesLock = new();
     private static readonly Dictionary<
         string,
         (int, HashSet<LoadingStage>)

@@ -22,8 +22,8 @@ namespace ilyvion.LoadingProgress.StartupImpact;
 /// Everything here runs inside every other mod's patching, so none of it may fail into
 /// Harmony. Only <see cref="Internals"/> names Harmony's internal members; each of its methods
 /// is called inside a try block, so a Harmony without them fails there, at compile time of
-/// that method. Timing starts only for Harmony 2 with the internal methods shaped as expected,
-/// and only after a self-test on this thread passes. Any later failure turns timing off for
+/// that method. Timing starts only for the major version of Harmony this was built against, with
+/// the internal methods shaped as expected, and only after a self-test on this thread passes. Any later failure turns timing off for
 /// good. A replacement that fails to build after its hooks were redirected is built again
 /// without them, and timing only counts as failed when that second build succeeds.
 /// </para>
@@ -34,12 +34,18 @@ internal static class HookTiming
     internal const string HarmonyId = "ilyvion.LoadingProgress.HookTiming";
     private const string SelfTestOpen = "LoadingProgress.StartupImpact.HookTimingSelfTest";
 
+#if v1_7
+    private const int HarmonyMajor = 3;
+#else
+    private const int HarmonyMajor = 2;
+#endif
+
     // The operands of the nops Harmony puts around the original method's body.
     private const string OriginalStart = "start original";
     private const string OriginalEnd = "end original";
 
     private static readonly Harmony _harmony = new(HarmonyId);
-    private static readonly object _lock = new();
+    private static readonly Lock _lock = new();
     private static readonly Dictionary<
         (MethodBase Original, MethodInfo Hook),
         DynamicMethod?
@@ -243,17 +249,29 @@ internal static class HookTiming
         MethodInfo? createReplacement,
         MethodInfo? rewrite
     ) =>
-        version?.Major != 2 ? $"this only works with Harmony 2, and Harmony {version} is running."
+        version?.Major != HarmonyMajor
+            ? $"this only works with Harmony {HarmonyMajor}, and Harmony {version} is running."
         : createReplacement is not { IsStatic: false }
         || createReplacement.GetParameters().Length != 0
         || createReplacement.ReturnType != typeof((MethodInfo, Dictionary<int, CodeInstruction>))
             ? $"Harmony {version} builds patched methods differently from what this expects."
-        : rewrite is not { IsStatic: true }
-        || rewrite.ReturnType != typeof(List<CodeInstruction>)
-        || rewrite.GetParameters() is not [{ Name: "instructions" } instructions, ..]
-        || instructions.ParameterType != typeof(List<CodeInstruction>)
+        : !IsRewrite(rewrite)
             ? $"Harmony {version} rewrites patched methods differently from what this expects."
         : null;
+
+    // Whether rewrite takes the finished instructions of a replacement as RewritePrefix expects.
+    private static bool IsRewrite(MethodInfo? rewrite) =>
+#if v1_7
+        rewrite is { IsStatic: true }
+        && rewrite.ReturnType == typeof(void)
+        && rewrite.GetParameters() is [_, _, { Name: "codeInstructions" } instructions]
+        && instructions.ParameterType == typeof(List<CodeInstruction>);
+#else
+        rewrite is { IsStatic: true }
+        && rewrite.ReturnType == typeof(List<CodeInstruction>)
+        && rewrite.GetParameters() is [{ Name: "instructions" } instructions, ..]
+        && instructions.ParameterType == typeof(List<CodeInstruction>);
+#endif
 
     /// <summary>
     /// Turns timing off for good and warns once with <paramref name="message"/>.
@@ -309,9 +327,28 @@ internal static class HookTiming
         return null;
     }
 
+#if v1_7
+    // Harmony also emits the helper method of each infix here, each under a creator of its own.
+    private static void RewritePrefix(object __0, List<CodeInstruction> codeInstructions)
+    {
+        if (_building is { } building && building.Creator == __0)
+        {
+            RedirectHookCalls(building, codeInstructions);
+        }
+    }
+#else
     private static void RewritePrefix(List<CodeInstruction> instructions)
     {
-        if (!Timing || _buildingUntimed || _building is not { } building)
+        if (_building is { } building)
+        {
+            RedirectHookCalls(building, instructions);
+        }
+    }
+#endif
+
+    private static void RedirectHookCalls(Building building, List<CodeInstruction> instructions)
+    {
+        if (!Timing || _buildingUntimed)
         {
             return;
         }
@@ -565,7 +602,7 @@ internal static class HookTiming
 
     // Patches two methods of this class with one hook of each shape a generated method has,
     // calls them inside a category of Loading Progress's own, and checks that the hooks ran
-    // as Harmony 2 runs them and their time was recorded, then removes the patches and the
+    // as Harmony runs them and their time was recorded, then removes the patches and the
     // records. Returns what went wrong, or null.
     private static string? SelfTest(ModContentPack ownMod)
     {
@@ -659,6 +696,29 @@ internal static class HookTiming
         internal static MethodInfo? CreateReplacement() =>
             AccessTools.Method(typeof(MethodCreator), nameof(MethodCreator.CreateReplacement));
 
+#if v1_7
+        // Emits the finished instructions of a replacement, and of each infix's helper method.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        internal static MethodInfo? Rewrite() =>
+            AccessTools.Method(typeof(MethodCreatorTools), nameof(MethodCreatorTools.EmitCodes));
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        internal static (
+            MethodBase Original,
+            List<MethodInfo> Prefixes,
+            List<MethodInfo> Postfixes,
+            List<MethodInfo> Finalizers
+        ) Hooks(object creator)
+        {
+            var config = ((MethodCreator)creator).config;
+            return (
+                config.original,
+                config.prefixes.ConvertAll(call => call.method),
+                config.postfixes.ConvertAll(call => call.method),
+                config.finalizers.ConvertAll(call => call.method)
+            );
+        }
+#else
         [MethodImpl(MethodImplOptions.NoInlining)]
         internal static MethodInfo? Rewrite() =>
             AccessTools.Method(typeof(FaultBlockRewriter), nameof(FaultBlockRewriter.Rewrite));
@@ -674,6 +734,7 @@ internal static class HookTiming
             var config = ((MethodCreator)creator).config;
             return (config.original, config.prefixes, config.postfixes, config.finalizers);
         }
+#endif
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         internal static (MethodInfo, Dictionary<int, CodeInstruction>) CreateReplacementAgain(
@@ -685,6 +746,16 @@ internal static class HookTiming
         [MethodImpl(MethodImplOptions.NoInlining)]
         internal static void Rebuild(MethodBase original)
         {
+#if v1_7
+            // UpdateWrapper records the patch info itself once the replacement is in place.
+            lock (PatchProcessor.locker)
+            {
+                if (HarmonySharedState.GetPatchInfo(original) is { } patchInfo)
+                {
+                    _ = PatchFunctions.UpdateWrapper(original, patchInfo);
+                }
+            }
+#else
             lock (PatchProcessor.locker)
             {
                 if (HarmonySharedState.GetPatchInfo(original) is { } patchInfo)
@@ -693,6 +764,7 @@ internal static class HookTiming
                     HarmonySharedState.UpdatePatchInfo(original, replacement, patchInfo);
                 }
             }
+#endif
         }
     }
 }

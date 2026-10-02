@@ -14,6 +14,7 @@ jobs:
       mod_name: "ilyvion.LoadingProgress"
       rw_versions: |-
         1.6
+        1.7
       artifact_suffix: Release
       license_files: |-
         LICENSE
@@ -29,3 +30,4 @@ jobs:
       mod_name: "ilyvion.LoadingProgress"
       rw_versions: |-
         1.6
+        1.7

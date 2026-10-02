@@ -220,10 +220,7 @@ internal sealed class StartupImpactSessionIndexEntry : IExposable
     /// </summary>
     internal void UpdateFrom(StartupImpactSessionData data)
     {
-        if (data is null)
-        {
-            throw new ArgumentNullException(nameof(data));
-        }
+        ArgumentNullException.ThrowIfNull(data);
 
         loadingTime = StartupImpactSessionViewData.Span(data);
         modsLoaded = data.ModsLoaded ?? data.Mods.Count;

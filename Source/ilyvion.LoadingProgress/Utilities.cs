@@ -114,7 +114,10 @@ internal static class Utilities
             {
                 var sb = new StringBuilder();
                 _ = sb.Append("These patches may not work as expected because ")
-                    .Append($"Loading Progress replaces {method.DeclaringType}:{method}.\n");
+                    .Append(
+                        CultureInfo.InvariantCulture,
+                        $"Loading Progress replaces {method.DeclaringType}:{method}.\n"
+                    );
 
                 if (stillCallsOriginal)
                 {
@@ -166,8 +169,8 @@ internal static class Utilities
     {
         if ((warnFlags & warnCheckedFlag) != 0 && methods != null && methods.Count > 0)
         {
-            _ = sb.Append($"Potentially problematic {label} ");
-            _ = sb.Append($"({methods.Count}):\n  - ")
+            _ = sb.Append(CultureInfo.InvariantCulture, $"Potentially problematic {label} ");
+            _ = sb.Append(CultureInfo.InvariantCulture, $"({methods.Count}):\n  - ")
                 .Append(string.Join("\n  - ", methods.Select(m => $"{m.DeclaringType}:{m}")))
                 .Append('\n');
         }
@@ -188,8 +191,10 @@ internal static class Utilities
             foreach (var patch in patchesEnumerable)
             {
                 if (
-                    ignoredAssemblySet.Contains(patch.PatchMethod.DeclaringType.Assembly)
-                    || ignoredMethodsSet.Contains(patch.PatchMethod)
+                    (
+                        patch.PatchMethod.DeclaringType is { } declaringType
+                        && ignoredAssemblySet.Contains(declaringType.Assembly)
+                    ) || ignoredMethodsSet.Contains(patch.PatchMethod)
                 )
                 {
                     continue; // Skip ignored assemblies and methods

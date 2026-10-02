@@ -27,8 +27,9 @@ internal static class LoadedModManager_LoadingDataTracker_Patches
             return;
         }
 
-        var total = xmls.Where(x => x?.xmlDoc?.DocumentElement != null)
-            .SelectMany(x => x.xmlDoc.DocumentElement.ChildNodes.Cast<XmlNode>())
+        var total = xmls.Select(x => x?.xmlDoc?.DocumentElement)
+            .OfType<XmlElement>()
+            .SelectMany(e => e.ChildNodes.Cast<XmlNode>())
             .Count();
         LoadingProgressWindow.StageProgress = (0, total);
     }
@@ -252,7 +253,10 @@ internal static partial class DirectXmlCrossRefLoader_ResolveAllWantedCrossRefer
             // Find all possible candidates, both from the wrapping type and all nested types.
             var candidates = Utilities.FindInTypeAndInnerTypeMethods(
                 typeof(DirectXmlCrossRefLoader),
-                m => !m.IsGenericMethod && !m.IsAbstract && !m.DeclaringType.IsGenericType
+                m =>
+                    !m.IsGenericMethod
+                    && !m.IsAbstract
+                    && m.DeclaringType is { IsGenericType: false }
             );
 
             //check all candidates for the target instructions, return those that match.
@@ -386,8 +390,8 @@ internal static class ShortHashGiver_LoadingDataTracker_Patches
         foreach (var defType in GenDefDatabase.AllDefTypesWithDatabases())
         {
             var databaseType = typeof(DefDatabase<>).MakeGenericType(defType);
-            var allDefs = (IList)databaseType.GetProperty("AllDefsListForReading").GetValue(null);
-            total += allDefs.Count;
+            var allDefs = (IList?)databaseType.GetProperty("AllDefsListForReading")?.GetValue(null);
+            total += allDefs?.Count ?? 0;
         }
         return total;
     }

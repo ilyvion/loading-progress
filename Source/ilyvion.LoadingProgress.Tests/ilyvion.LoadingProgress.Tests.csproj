@@ -23,8 +23,14 @@
         <Publicize Include="Assembly-CSharp:Verse.LongEventHandler+QueuedLongEvent" />
         <Publicize Include="Assembly-CSharp:Verse.LongEventHandler.toExecuteWhenFinished" />
         <Publicize Include="Assembly-CSharp:Verse.ModContentPack.ReloadContentInt" />
+    </ItemGroup>
+    <ItemGroup Condition="'$(RimWorldVersion)' != '1.7'">
         <Publicize Include="0Harmony:HarmonyLib.FaultBlockRewriter" />
         <Publicize Include="0Harmony:HarmonyLib.FaultBlockRewriter.Rewrite" />
+    </ItemGroup>
+    <ItemGroup Condition="'$(RimWorldVersion)' == '1.7'">
+        <Publicize Include="0Harmony:HarmonyLib.MethodCreatorTools" />
+        <Publicize Include="0Harmony:HarmonyLib.MethodCreatorTools.EmitCodes" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\ilyvion.LoadingProgress\ilyvion.LoadingProgress.csproj">
@@ -33,13 +39,13 @@
         </ProjectReference>
     </ItemGroup>
     <!--
-        DevTools' own OutDir is relative to its clone location, so it's redirected to this mod's
-        1.6/Assemblies folder.
+        DevTools supports RimWorld 1.6 and 1.7. Its own OutDir is relative to its clone location,
+        so it's redirected to this mod's <version>/Assemblies folder.
     -->
-    <ItemGroup>
+    <ItemGroup Condition="'$(RimWorldVersion)' == '1.6' Or '$(RimWorldVersion)' == '1.7'">
         <ProjectReference
             Include="$(ProjectDependenciesBasePath)\Third-Party\DevTools\DevTools\DevTools.csproj"
-            AdditionalProperties="OutDir=$(MSBuildThisFileDirectory)..\..\1.6\Assemblies\"
+            AdditionalProperties="RimWorldVersion=$(RimWorldVersion);OutDir=$(MSBuildThisFileDirectory)..\..\$(RimWorldVersion)\Assemblies\"
         >
             <CopyLocal>False</CopyLocal>
             <Private>false</Private>

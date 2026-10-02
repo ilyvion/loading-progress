@@ -1122,7 +1122,7 @@ internal static class InGameLoadingSession
         SetProgress(AdvanceProgressCurrent(current, max), max);
     }
 
-    private static readonly object _unmatchedEventKeysLock = new();
+    private static readonly Lock _unmatchedEventKeysLock = new();
     private static readonly HashSet<string> _unmatchedEventKeys = [];
 
     private static void LogUnrecognizedKeyIfNeeded(string eventTextKey)

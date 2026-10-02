@@ -2,7 +2,7 @@
 
 internal abstract class SingleThreadedProfiler(string measurementTarget)
 {
-    private readonly object _modificationLock = new();
+    private readonly Lock _modificationLock = new();
     private readonly List<string> _categories = [];
 
     public float Total { get; private set; }

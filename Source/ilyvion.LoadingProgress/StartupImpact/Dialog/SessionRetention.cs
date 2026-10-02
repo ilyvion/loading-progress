@@ -46,18 +46,9 @@ internal static class SessionRetention
         Func<T, bool> isBaseline
     )
     {
-        if (newestFirst is null)
-        {
-            throw new ArgumentNullException(nameof(newestFirst));
-        }
-        if (isPinned is null)
-        {
-            throw new ArgumentNullException(nameof(isPinned));
-        }
-        if (isBaseline is null)
-        {
-            throw new ArgumentNullException(nameof(isBaseline));
-        }
+        ArgumentNullException.ThrowIfNull(newestFirst);
+        ArgumentNullException.ThrowIfNull(isPinned);
+        ArgumentNullException.ThrowIfNull(isBaseline);
 
         var limit = Math.Max(sessionsToKeep, MinimumSessionsToKeep);
 

@@ -10,13 +10,24 @@ namespace ilyvion.LoadingProgress.Tests;
 [WarningsAllowed(TestStartup.OtherModsWarnings)]
 internal sealed class HookTimingTests
 {
-    private const string TestHarmonyId = "ilyvion.LoadingProgress.Tests.HookTiming";
-    private const string HookCategory =
-        $"{HookTiming.Category}|{nameof(HookTimingTests)}.{nameof(Target)}";
-
     // The method under test, with a body for Harmony to patch.
     [MethodImpl(MethodImplOptions.NoInlining)]
     public static void Target() => _ = Stopwatch.GetTimestamp();
+
+    private static MethodInfo TargetMethod =>
+        AccessTools.Method(typeof(HookTimingTests), nameof(Target));
+
+    // The Harmony method hook timing redirects hook calls in, which a postfix can fail after.
+    private static MethodInfo RewriteMethod =>
+#if v1_7
+        AccessTools.Method(typeof(MethodCreatorTools), nameof(MethodCreatorTools.EmitCodes));
+#else
+        AccessTools.Method(typeof(FaultBlockRewriter), nameof(FaultBlockRewriter.Rewrite));
+#endif
+
+    private const string TestHarmonyId = "ilyvion.LoadingProgress.Tests.HookTiming";
+    private const string HookCategory =
+        $"{HookTiming.Category}|{nameof(HookTimingTests)}.{nameof(Target)}";
 
     // Spins for a few milliseconds, as a hook with real work would.
     [MethodImpl(MethodImplOptions.NoInlining)]
@@ -85,9 +96,6 @@ internal sealed class HookTimingTests
         _ = ConditionalPrefix();
     }
 
-    private static MethodInfo TargetMethod =>
-        AccessTools.Method(typeof(HookTimingTests), nameof(Target));
-
     [Test]
     public static void TimingAcceptsTheRunningHarmony() =>
         Expect.IsNull(HookTiming.UnsupportedHarmony(typeof(Harmony).Assembly.GetName().Version));
@@ -95,7 +103,9 @@ internal sealed class HookTimingTests
     [Test]
     public static void TimingRefusesAnotherMajorVersionOfHarmony()
     {
-        Expect.IsNotNull(HookTiming.UnsupportedHarmony(new Version(3, 0, 0, 0)));
+        var running = typeof(Harmony).Assembly.GetName().Version!.Major;
+        Expect.IsNotNull(HookTiming.UnsupportedHarmony(new Version(running - 1, 0, 0, 0)));
+        Expect.IsNotNull(HookTiming.UnsupportedHarmony(new Version(running + 1, 0, 0, 0)));
         Expect.IsNotNull(HookTiming.UnsupportedHarmony(null));
     }
 
@@ -148,7 +158,7 @@ internal sealed class HookTimingTests
         try
         {
             _ = harmony.Patch(
-                AccessTools.Method(typeof(FaultBlockRewriter), nameof(FaultBlockRewriter.Rewrite)),
+                RewriteMethod,
                 postfix: new HarmonyMethod(typeof(HookTimingTests), nameof(FailingRewritePostfix))
             );
             _rewritesToFail = 1;
@@ -196,7 +206,7 @@ internal sealed class HookTimingTests
         try
         {
             _ = harmony.Patch(
-                AccessTools.Method(typeof(FaultBlockRewriter), nameof(FaultBlockRewriter.Rewrite)),
+                RewriteMethod,
                 postfix: new HarmonyMethod(typeof(HookTimingTests), nameof(FailingRewritePostfix))
             );
             _rewritesToFail = 2;

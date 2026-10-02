@@ -249,8 +249,9 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
                 patchReloadContent
                 && toExecuteWhenFinished is { } action
                 && action.Method == reloadContentIntMethod
-                && action.Target.GetType() == reloadContentIntMethod.DeclaringType
-                && reloadContentIntmodContentPackField is not null
+                && action.Target?.GetType() == reloadContentIntMethod.DeclaringType
+                && reloadContentIntmodContentPackField?.GetValue(action.Target)
+                    is ModContentPack modContentPack
             )
             {
                 // Pause Faster Game Loading's content loader; we're taking over now.
@@ -273,8 +274,6 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
                     _hasWarnedAboutReloadIntPatches = true;
                 }
 
-                var modContentPack = (ModContentPack)
-                    reloadContentIntmodContentPackField.GetValue(action.Target);
                 ModContentPack_ReloadContentInt_Patch.CurrentModContentPack = modContentPack;
                 if (fasterGameLoadingLoadedMods is not null)
                 {
@@ -338,11 +337,11 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
             {
                 LoadingProgressMod.Error(
                     "ReloadContentInt was called with target being "
-                        + action2.Target.GetType().FullName
+                        + action2.Target?.GetType().FullName
                         + ":"
                         + action2.Target
                         + ", but we expected it to be "
-                        + reloadContentIntMethod.DeclaringType.FullName
+                        + reloadContentIntMethod.DeclaringType?.FullName
                         + ":"
                         + reloadContentIntMethod
                 );

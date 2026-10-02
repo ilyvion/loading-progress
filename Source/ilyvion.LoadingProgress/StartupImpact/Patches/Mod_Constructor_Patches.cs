@@ -34,7 +34,7 @@ internal static class Mod_Constructor_Patches
         out bool __state
     )
     {
-        _currentModAssembly = __originalMethod.DeclaringType.Assembly;
+        _currentModAssembly = __originalMethod.DeclaringType?.Assembly;
         StartupImpactProfilerUtil.StartModProfiler(
             modContentPack,
             "LoadingProgress.StartupImpact.ModConstructor"
@@ -124,10 +124,10 @@ internal static class Harmony_Patches
         if (Mod_Constructor_Patches._currentModAssembly != assembly)
         {
             if (
-                Mod_Constructor_Patches._currentModAssembly.FullName.StartsWith(
+                Mod_Constructor_Patches._currentModAssembly.FullName?.StartsWith(
                     "HugsLib",
                     StringComparison.Ordinal
-                )
+                ) == true
             )
             {
                 // HugsLib runs patches on behalf of other mods; we can ignore this warning for it.
