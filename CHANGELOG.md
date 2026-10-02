@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Removed the Russian translation. It had gone unmaintained apart from machine translation for a while and I'm tired of the maintenance burden. If someone wants to pick it back up, releasing it as a standalone translation mod is the way to go.
+- The loading time shown in the bottom-right corner of the main menu, in the pause menu and in the mod settings is now how long this launch took to load. It used to show the same averaged estimate the loading window counts down from.
+
+### Fixed
+
+- The startup time in the startup impact window now covers the whole load, including the final cleanup the game does right before the main menu appears. It used to stop just short of it, so it came out lower than the loading time shown on the main menu.
 
 ## [0.16.0] - 2026-09-22
 

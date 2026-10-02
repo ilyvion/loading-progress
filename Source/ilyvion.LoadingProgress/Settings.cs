@@ -274,8 +274,6 @@ internal sealed class Settings : ModSettings
         Scribe_Values.Look(ref _smallBarColor, "smallBarColor", Widgets_Progressbar.SmallBarColor);
     }
 
-    private static TimeSpan? _loadingTime;
-
     private Vector2 _settingsScrollPosition;
 
     /// <summary>
@@ -501,12 +499,10 @@ internal sealed class Settings : ModSettings
 
         listingStandard.Gap();
 
-        var avgLoadingTime = LoadingProgressMod.Settings.AverageLoadingTime;
-        if (avgLoadingTime.HasValue)
+        if (LoadingProgressWindow.CurrentLoadingTime is { } loadingTime)
         {
-            _loadingTime ??= TimeSpan.FromSeconds(avgLoadingTime.Value);
             string text = "LoadingProgress.LoadingTime".Translate(
-                Utilities.FormatDuration(_loadingTime.Value)
+                Utilities.FormatDuration(loadingTime)
             );
             if (
                 listingStandard.ButtonTextLabeled(

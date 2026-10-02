@@ -48,6 +48,13 @@ internal static class DeepProfiler_Start_Patches
             {
                 LoadingProgressWindow.CurrentLoadingActivity = label;
             }
+            if (
+                label == LoadingProgressWindow.LoadingFinishedLabel
+                && LoadingProgressMod.instance.StartupImpact.WasTrackingEnabledAtStartup
+            )
+            {
+                LoadingProgressMod.instance.StartupImpact.FinishLoading();
+            }
             InGameLoadingSession.OnProfilerLabel(label);
         }
         DeepProfilerLabelStack.Labels.Push(label);

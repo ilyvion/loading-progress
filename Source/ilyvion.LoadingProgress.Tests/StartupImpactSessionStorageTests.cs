@@ -30,7 +30,7 @@ internal sealed class StartupImpactSessionStorageTests
     private static StartupImpactSessionIndexEntry Find(
         List<StartupImpactSessionIndexEntry> entries,
         string id
-    ) => entries.Find(entry => entry.Id == id);
+    ) => entries.First(entry => entry.Id == id);
 
     [Test]
     public static void SettingABaselineTakesItFromTheSessionThatHeldIt()

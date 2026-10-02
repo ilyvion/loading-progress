@@ -1301,7 +1301,11 @@ internal sealed class InGameLoadingSessionTests
     [Test]
     public static void OnlyTheSceneLoadingKindsOpenWithASceneLoadPhase()
     {
+#if v1_7
+        foreach (var kind in Enum.GetValues<InGameSessionKind>())
+#else
         foreach (InGameSessionKind kind in Enum.GetValues(typeof(InGameSessionKind)))
+#endif
         {
             if (kind == InGameSessionKind.None)
             {

@@ -88,8 +88,8 @@ internal sealed class StartupImpact
                 "StartupImpact"
             );
 
-            // FinishLoading can run off the main thread, and Scribe.saver is global state also
-            // used from the main thread; defer both of these.
+            // FinishLoading runs from inside the InitializingInterface long event; defer both of
+            // these until it has finished.
             if (PreviousUnfinishedBoot is not null)
             {
                 LongEventHandler.ExecuteWhenFinished(static () =>

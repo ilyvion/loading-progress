@@ -601,14 +601,15 @@ internal sealed partial class LoadingProgressWindow
         ),
         new(
             value =>
-                CurrentStage <= LoadingStage.GarbageCollection
-                && value == "Misc Init (InitializingInterface)",
+                CurrentStage <= LoadingStage.GarbageCollection && value == LoadingFinishedLabel,
             value =>
             {
                 CurrentStage = LoadingStage.Finished;
                 if (_loadingStopwatch is { } loadingStopwatch)
                 {
-                    var elapsedSeconds = (float)loadingStopwatch.Elapsed.TotalSeconds;
+                    var elapsed = loadingStopwatch.Elapsed;
+                    CurrentLoadingTime = elapsed;
+                    var elapsedSeconds = (float)elapsed.TotalSeconds;
                     var settings = LoadingProgressMod.Settings;
 
                     // Mod list changed: the existing list served as the estimate this load,

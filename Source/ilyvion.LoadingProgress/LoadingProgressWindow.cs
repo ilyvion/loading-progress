@@ -30,9 +30,20 @@ internal sealed partial class LoadingProgressWindow
         _lastLoadingTime.HasValue
         && _currentModHash != LoadingProgressMod.Settings.LastLoadingModHash;
 
+    /// <summary>
+    /// The DeepProfiler label Root.Start's InitializingInterface event opens with, which runs
+    /// after the loading event and every ExecuteWhenFinished action it queued.
+    /// </summary>
+    internal const string LoadingFinishedLabel = "Misc Init (InitializingInterface)";
+
     internal static Stopwatch? _loadingStopwatch;
     internal static TimeSpan? _lastLoadingTime;
     internal static int _currentModHash;
+
+    /// <summary>
+    /// How long this launch took to load, set once loading finishes.
+    /// </summary>
+    internal static TimeSpan? CurrentLoadingTime { get; private set; }
 
     internal static void DrawContents(Rect rect)
     {

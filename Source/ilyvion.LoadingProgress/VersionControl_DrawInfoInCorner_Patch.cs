@@ -5,8 +5,6 @@ namespace ilyvion.LoadingProgress;
 [HarmonyPatch(typeof(VersionControl), "DrawInfoInCorner")]
 internal static class VersionControl_DrawInfoInCorner_Patch
 {
-    private static TimeSpan? _loadingTime;
-
     internal static void Finalizer()
     {
         if (!LoadingProgressMod.Settings.ShowLastLoadingTimeInCorner)
@@ -20,21 +18,20 @@ internal static class VersionControl_DrawInfoInCorner_Patch
             return;
         }
 
-        if (LoadingProgressMod.Settings.AverageLoadingTime is not { } averageLoadingTime)
+        if (LoadingProgressWindow.CurrentLoadingTime is not { } loadingTime)
         {
-            // No loading time has been recorded yet
+            // This launch's loading time wasn't recorded
             return;
         }
 
         var rect = new Rect(UI.screenWidth - 10f, UI.screenHeight - 10f, 0, 0);
-        DrawLoadingTime(rect, averageLoadingTime);
+        DrawLoadingTime(rect, loadingTime);
     }
 
-    internal static void DrawLoadingTime(Rect rect, float averageLoadingTime)
+    internal static void DrawLoadingTime(Rect rect, TimeSpan loadingTime)
     {
-        _loadingTime ??= TimeSpan.FromSeconds(averageLoadingTime);
         string text = "LoadingProgress.LoadingTime".Translate(
-            Utilities.FormatDuration(_loadingTime.Value)
+            Utilities.FormatDuration(loadingTime)
         );
         Text.Font = GameFont.Small;
         var vector = Text.CalcSize(text);
