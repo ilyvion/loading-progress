@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - The startup time in the startup impact window now covers the whole load, including the final cleanup the game does right before the main menu appears. It used to stop just short of it, so it came out lower than the loading time shown on the main menu.
+- When viewing a saved run in the startup impact window, the 'Saved run from' caption overlapped the 'Use logarithmic scale' checkbox. It is now shown at the bottom left, beside the buttons, and gives way to status messages while they are showing.
 
 ## [0.16.0] - 2026-09-22
 

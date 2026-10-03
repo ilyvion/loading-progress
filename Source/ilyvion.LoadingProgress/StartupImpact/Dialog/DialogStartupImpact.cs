@@ -462,7 +462,6 @@ internal sealed class DialogStartupImpact : Window
                 ProfilerBar.TimeText(_sessionData.LoadingTime)
             )
         );
-        DrawStoredSessionCaption(titleRect);
         y += titleRect.height;
 
         Rect profileRect = new(0, y, area.width, BarHeight);
@@ -736,9 +735,14 @@ internal sealed class DialogStartupImpact : Window
             {
                 StatusText = "";
             }
-            else if (!string.IsNullOrEmpty(StatusText))
+
+            var statusRect = new Rect(0, yBtn, buttonsStartX - OuterSpacing, ButtonHeight);
+            if (string.IsNullOrEmpty(StatusText))
             {
-                var statusRect = new Rect(0, yBtn, buttonsStartX - OuterSpacing, ButtonHeight);
+                DrawStoredSessionCaption(statusRect);
+            }
+            else
+            {
                 Text.Anchor = TextAnchor.MiddleRight;
                 Widgets.Label(statusRect, (TaggedString)StatusText);
                 if (_exportedPath != null)
@@ -764,7 +768,7 @@ internal sealed class DialogStartupImpact : Window
         !_wasTrackingEnabledAtStartup && ReferenceEquals(_sessionData, _currentSessionData);
 
     /// <summary>
-    /// Says which stored run is on screen, at the right-hand end of the title
+    /// Says which stored run is on screen, at the left-hand end of the button
     /// row.
     /// </summary>
     /// <remarks>
@@ -772,11 +776,12 @@ internal sealed class DialogStartupImpact : Window
     /// figure here, so without this the only thing telling one run from another
     /// is the number the player remembers seeing a moment ago. Nothing is drawn
     /// for this startup's own session, which is what the window has always
-    /// shown.
+    /// shown. It shares its space with the status text, so it is only drawn
+    /// while no status is showing.
     ///
     /// Its own method to keep DoWindowContents off its class coupling limit.
     /// </remarks>
-    private void DrawStoredSessionCaption(Rect titleRect)
+    private void DrawStoredSessionCaption(Rect rect)
     {
         if (
             ReferenceEquals(_sessionData, _currentSessionData)
@@ -786,18 +791,15 @@ internal sealed class DialogStartupImpact : Window
             return;
         }
 
-        Text.Font = GameFont.Small;
-        Text.Anchor = TextAnchor.MiddleRight;
+        Text.Anchor = TextAnchor.MiddleLeft;
         GUI.color = DefaultColor;
         Widgets.Label(
-            titleRect,
+            rect,
             "LoadingProgress.StartupImpact.ShowingSaved".Translate(
                 StartupImpactSessionIndexEntry.FormatTimestamp(_sessionData.SavedAtUtc)
             )
         );
         GUI.color = Color.white;
-        Text.Anchor = TextAnchor.MiddleLeft;
-        Text.Font = GameFont.Medium;
     }
 
     /// <summary>
