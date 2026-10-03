@@ -189,6 +189,9 @@ internal static class StartupImpactHtmlExporter
         }
         _ = sb.Append("],");
 
+        AppendPhases(sb, viewData, modCategoryColors, defaultColor);
+        _ = sb.Append(',');
+
         AppendString(
             sb,
             "generatedAt",
@@ -200,6 +203,65 @@ internal static class StartupImpactHtmlExporter
 
         _ = sb.Append('}');
         return sb.ToString();
+    }
+
+    /// <summary>
+    /// Appends every mod's time per loading phase, as <c>[modIndex, onThreadMs, offThreadMs]</c>
+    /// entries indexing into <c>mods</c>, so the report can sum only the mods that are neither
+    /// hidden nor filtered out.
+    /// </summary>
+    private static void AppendPhases(
+        StringBuilder sb,
+        StartupImpactSessionViewData viewData,
+        IReadOnlyDictionary<string, Color> modCategoryColors,
+        Color defaultColor
+    )
+    {
+        Dictionary<StartupImpactSessionModData, int> modIndices = [];
+        for (var i = 0; i < viewData.ModViewData.Count; i++)
+        {
+            modIndices[viewData.ModViewData[i].ModData] = i;
+        }
+
+        _ = sb.Append("\"phases\":[");
+        var firstPhase = true;
+        foreach (var phase in StartupImpactPhaseViewData.FromMods(modIndices.Keys))
+        {
+            if (!firstPhase)
+            {
+                _ = sb.Append(',');
+            }
+            firstPhase = false;
+
+            _ = sb.Append('{');
+            AppendString(sb, "label", phase.Label);
+            _ = sb.Append(',');
+            AppendString(
+                sb,
+                "color",
+                ColorToHex(modCategoryColors.TryGetValue(phase.Key, out var c) ? c : defaultColor)
+            );
+            _ = sb.Append(',');
+            _ = sb.Append("\"mods\":[");
+            for (var i = 0; i < phase.Mods.Count; i++)
+            {
+                if (i > 0)
+                {
+                    _ = sb.Append(',');
+                }
+                _ = sb.Append('[')
+                    .Append(modIndices[phase.Mods[i]].ToString(CultureInfo.InvariantCulture))
+                    .Append(',')
+                    .Append(phase.Metrics[i].ToString("0.###", CultureInfo.InvariantCulture))
+                    .Append(',')
+                    .Append(
+                        phase.OffThreadMetrics[i].ToString("0.###", CultureInfo.InvariantCulture)
+                    )
+                    .Append(']');
+            }
+            _ = sb.Append("]}");
+        }
+        _ = sb.Append(']');
     }
 
     private static void AppendStrings(StringBuilder sb)
@@ -264,6 +326,14 @@ internal static class StartupImpactHtmlExporter
         AppendString(sb, "columnMod", "LoadingProgress.StartupImpact.ColumnName".Translate());
         _ = sb.Append(',');
         AppendString(sb, "columnImpact", "LoadingProgress.StartupImpact.ColumnImpact".Translate());
+        _ = sb.Append(',');
+        AppendString(sb, "columnPhase", "LoadingProgress.StartupImpact.ColumnPhase".Translate());
+        _ = sb.Append(',');
+        AppendString(sb, "groupByMod", "LoadingProgress.StartupImpact.GroupByMod".Translate());
+        _ = sb.Append(',');
+        AppendString(sb, "groupByPhase", "LoadingProgress.StartupImpact.GroupByPhase".Translate());
+        _ = sb.Append(',');
+        AppendString(sb, "groupingTip", "LoadingProgress.StartupImpact.Grouping.Tip".Translate());
         _ = sb.Append(',');
         AppendString(sb, "footer", "LoadingProgress.StartupImpact.HtmlReport.Footer".Translate());
         _ = sb.Append(',');
@@ -484,6 +554,17 @@ internal static class StartupImpactHtmlExporter
     border-radius: 3px;
     font-size: 13px;
   }
+  .filter-row .group-toggle {
+    background: var(--button-bg);
+    border: 1px solid var(--button-border);
+    color: var(--text);
+    padding: 5px 10px;
+    border-radius: 3px;
+    font-size: 13px;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .filter-row .group-toggle:hover { background: var(--button-bg-hover); }
   .table-header {
     display: grid;
     grid-template-columns: 40px 30fr 80px 38fr;
@@ -535,6 +616,12 @@ internal static class StartupImpactHtmlExporter
     line-height: 1;
   }
   .row .eye:hover { background: rgba(255, 255, 255, 0.08); }
+  .row .swatch {
+    width: 20px;
+    height: 20px;
+    margin: 0 auto;
+    background: var(--seg-color);
+  }
   .row .mod-name {
     overflow: hidden;
     text-overflow: ellipsis;
@@ -631,6 +718,7 @@ internal static class StartupImpactHtmlExporter
   <div class="filter-row">
     <label for="filterInput" id="filterLabelText"></label>
     <input type="text" id="filterInput">
+    <button type="button" class="group-toggle" id="groupToggle"></button>
   </div>
   <div class="table-header" id="tableHeader">
     <div></div>
@@ -656,6 +744,7 @@ internal static class StartupImpactHtmlExporter
   document.getElementById("logScaleLabelText").textContent = DATA.strings.logScaleLabel;
   document.getElementById("filterLabelText").textContent = DATA.strings.filterLabel;
   document.getElementById("filterInput").setAttribute("placeholder", DATA.strings.filterPlaceholder);
+  document.getElementById("groupToggle").setAttribute("data-tip", DATA.strings.groupingTip);
 
   var state = {
     useLog: false,
@@ -663,7 +752,10 @@ internal static class StartupImpactHtmlExporter
     filter: "",
     hidden: new Set(),
     sortColumn: "impact",
-    sortAscending: false
+    sortAscending: false,
+    groupByPhase: false,
+    phaseSortColumn: "impact",
+    phaseSortAscending: false
   };
 
   var tooltipEl = document.getElementById("tooltip");
@@ -898,31 +990,138 @@ internal static class StartupImpactHtmlExporter
     return state.sortAscending ? cmp : -cmp;
   }
 
+  function matchesFilter(mod) {
+    var filter = state.filter.trim().toLowerCase();
+    return (
+      !filter
+      || mod.name.toLowerCase().indexOf(filter) >= 0
+      || mod.packageId.toLowerCase().indexOf(filter) >= 0
+    );
+  }
+
   function renderModsTable() {
     var container = document.getElementById("modsTable");
     container.innerHTML = "";
     var sessionMaxImpact = computeSessionMaxImpact();
-    var filter = state.filter.trim().toLowerCase();
     DATA.mods
-      .filter(function (mod) {
-        return (
-          !filter
-          || mod.name.toLowerCase().indexOf(filter) >= 0
-          || mod.packageId.toLowerCase().indexOf(filter) >= 0
-        );
-      })
+      .filter(matchesFilter)
       .sort(compareMods)
       .forEach(function (mod) {
         container.appendChild(renderModRow(mod, sessionMaxImpact));
       });
   }
 
+  // Sums each phase over the mods that are neither hidden nor filtered out.
+  function computePhaseRows() {
+    var rows = [];
+    DATA.phases.forEach(function (phase) {
+      var segments = [];
+      var offThreadSegments = [];
+      var total = 0;
+      var offThreadTotal = 0;
+      phase.mods.forEach(function (entry) {
+        var mod = DATA.mods[entry[0]];
+        if (state.hidden.has(mod) || !matchesFilter(mod)) {
+          return;
+        }
+        segments.push({ label: mod.name, color: mod.color, valueMs: entry[1] });
+        offThreadSegments.push({ label: mod.name, color: mod.color, valueMs: entry[2] });
+        total += entry[1];
+        offThreadTotal += entry[2];
+      });
+      if (total > 0 || offThreadTotal > 0) {
+        rows.push({
+          label: phase.label,
+          color: phase.color,
+          totalImpactMs: total,
+          offThreadTotalImpactMs: offThreadTotal,
+          segments: segments,
+          offThreadSegments: offThreadSegments
+        });
+      }
+    });
+    return rows;
+  }
+
+  function comparePhases(a, b) {
+    var cmp;
+    if (state.phaseSortColumn === "name") {
+      var aLabel = a.label.toLowerCase();
+      var bLabel = b.label.toLowerCase();
+      cmp = aLabel < bLabel ? -1 : aLabel > bLabel ? 1 : 0;
+    } else {
+      cmp = a.totalImpactMs - b.totalImpactMs;
+    }
+    return state.phaseSortAscending ? cmp : -cmp;
+  }
+
+  function renderPhaseRow(phase, maxImpact) {
+    var row = document.createElement("div");
+    row.className = "row";
+
+    var swatch = document.createElement("div");
+    swatch.className = "swatch";
+    swatch.style.setProperty("--seg-color", phase.color);
+    row.appendChild(swatch);
+
+    var name = document.createElement("div");
+    name.className = "mod-name";
+    name.textContent = phase.label;
+    name.title = phase.label;
+    row.appendChild(name);
+
+    var time = document.createElement("div");
+    time.className = "mod-time";
+    time.textContent = timeText(phase.totalImpactMs);
+    row.appendChild(time);
+
+    var barCell = document.createElement("div");
+    barCell.className = "mod-bar-cell";
+    if (phase.offThreadTotalImpactMs > 1) {
+      var offBar = document.createElement("div");
+      offBar.className = "bar";
+      renderBar(offBar, phase.offThreadSegments, maxImpact);
+      barCell.appendChild(offBar);
+    }
+    var mainBar = document.createElement("div");
+    mainBar.className = "bar";
+    renderBar(mainBar, phase.segments, maxImpact);
+    barCell.appendChild(mainBar);
+    row.appendChild(barCell);
+
+    return row;
+  }
+
+  function renderPhasesTable() {
+    var container = document.getElementById("modsTable");
+    container.innerHTML = "";
+    var rows = computePhaseRows();
+    var maxImpact = rows.reduce(function (max, phase) {
+      return Math.max(max, phase.totalImpactMs, phase.offThreadTotalImpactMs);
+    }, 0);
+    rows.sort(comparePhases).forEach(function (phase) {
+      container.appendChild(renderPhaseRow(phase, maxImpact));
+    });
+  }
+
+  function renderTable() {
+    if (state.groupByPhase) {
+      renderPhasesTable();
+    } else {
+      renderModsTable();
+    }
+  }
+
   function updateSortHeader() {
+    var sortColumn = state.groupByPhase ? state.phaseSortColumn : state.sortColumn;
+    var sortAscending = state.groupByPhase ? state.phaseSortAscending : state.sortAscending;
     document.querySelectorAll(".sort-col").forEach(function (el) {
       var col = el.getAttribute("data-col");
-      var label = col === "name" ? DATA.strings.columnMod : DATA.strings.columnImpact;
-      if (state.sortColumn === col) {
-        label += " " + (state.sortAscending ? "▲" : "▼");
+      var label = col !== "name"
+        ? DATA.strings.columnImpact
+        : state.groupByPhase ? DATA.strings.columnPhase : DATA.strings.columnMod;
+      if (sortColumn === col) {
+        label += " " + (sortAscending ? "▲" : "▼");
       }
       el.textContent = label;
     });
@@ -931,17 +1130,31 @@ internal static class StartupImpactHtmlExporter
   document.querySelectorAll(".sort-col").forEach(function (el) {
     el.addEventListener("click", function () {
       var col = el.getAttribute("data-col");
-      if (state.sortColumn === col) {
-        state.sortAscending = !state.sortAscending;
+      var columnKey = state.groupByPhase ? "phaseSortColumn" : "sortColumn";
+      var ascendingKey = state.groupByPhase ? "phaseSortAscending" : "sortAscending";
+      if (state[columnKey] === col) {
+        state[ascendingKey] = !state[ascendingKey];
       } else {
-        state.sortColumn = col;
-        state.sortAscending = col === "name";
+        state[columnKey] = col;
+        state[ascendingKey] = col === "name";
       }
       updateSortHeader();
-      renderModsTable();
+      renderTable();
     });
   });
   updateSortHeader();
+
+  var groupToggle = document.getElementById("groupToggle");
+  function updateGroupToggle() {
+    groupToggle.textContent = state.groupByPhase ? DATA.strings.groupByPhase : DATA.strings.groupByMod;
+  }
+  updateGroupToggle();
+  groupToggle.addEventListener("click", function () {
+    state.groupByPhase = !state.groupByPhase;
+    updateGroupToggle();
+    updateSortHeader();
+    renderTable();
+  });
 
   function renderBaseGameBar() {
     var container = document.getElementById("baseGameBar");
@@ -973,7 +1186,7 @@ internal static class StartupImpactHtmlExporter
     renderTotalBar();
     renderBaseGameBar();
     renderModsBar();
-    renderModsTable();
+    renderTable();
   }
 
   document.getElementById("title").textContent =
@@ -1015,7 +1228,7 @@ internal static class StartupImpactHtmlExporter
   });
   filterInput.addEventListener("input", function () {
     state.filter = filterInput.value;
-    renderModsTable();
+    renderTable();
   });
 
   renderAll();

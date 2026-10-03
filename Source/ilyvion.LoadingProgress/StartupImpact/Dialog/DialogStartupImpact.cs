@@ -213,6 +213,13 @@ internal sealed class DialogStartupImpact : Window
     private List<StartupImpactSessionModViewData> _filteredModViewData = [];
     private SortColumn _sortColumn = SortColumn.Impact;
     private bool _sortAscending;
+    private bool _groupByPhase;
+    private UiTable _phaseTable;
+    private List<StartupImpactPhaseViewData> _phaseViewData = [];
+    private readonly Dictionary<string, Color> _phaseModColors = [];
+    private float _phaseMaxImpact;
+    private SortColumn _phaseSortColumn = SortColumn.Impact;
+    private bool _phaseSortAscending;
 
     // Set window width to 800 and height to the lesser of 800 or 75% of the screen height
     public override Vector2 InitialSize => new(800f, Math.Min(800f, UI.screenHeight * 0.75f));
@@ -313,26 +320,24 @@ internal sealed class DialogStartupImpact : Window
         _sessionData = _currentSessionData;
     }
 
-    [MemberNotNull([nameof(_sessionViewData), nameof(_table)])]
+    [MemberNotNull([nameof(_sessionViewData), nameof(_table), nameof(_phaseTable)])]
     private void Initialize()
     {
         _sessionViewData = new StartupImpactSessionViewData(_sessionData);
         _table = new UiTable(_sessionData.Mods.Count, 40, [-40, 30, -80, 38]);
+        _phaseTable = new UiTable(0, 40, [-40, 30, -80, 38]);
         _modFilter = "";
         ApplyModFilter();
     }
 
+    private bool MatchesModFilter(StartupImpactSessionModData modData) =>
+        string.IsNullOrWhiteSpace(_modFilter)
+        || modData.ModName.Contains(_modFilter, StringComparison.OrdinalIgnoreCase)
+        || modData.ModPackageId.Contains(_modFilter, StringComparison.OrdinalIgnoreCase);
+
     private void ApplyModFilter()
     {
-        var filtered = string.IsNullOrWhiteSpace(_modFilter)
-            ? _sessionViewData.ModViewData
-            : _sessionViewData.ModViewData.Where(info =>
-                info.ModData.ModName.Contains(_modFilter, StringComparison.OrdinalIgnoreCase)
-                || info.ModData.ModPackageId.Contains(
-                    _modFilter,
-                    StringComparison.OrdinalIgnoreCase
-                )
-            );
+        var filtered = _sessionViewData.ModViewData.Where(info => MatchesModFilter(info.ModData));
 
         filtered = _sortColumn switch
         {
@@ -350,22 +355,69 @@ internal sealed class DialogStartupImpact : Window
 
         _filteredModViewData = [.. filtered];
         _table.RowCount = _filteredModViewData.Count;
+
+        ApplyPhaseGrouping();
+    }
+
+    /// <summary>
+    /// Sums the time the mods that are neither hidden nor filtered out spent in each loading
+    /// phase.
+    /// </summary>
+    private void ApplyPhaseGrouping()
+    {
+        var mods = _sessionViewData
+            .ModViewData.Where(info => !info.HideInUi && MatchesModFilter(info.ModData))
+            .Select(info => info.ModData)
+            .ToList();
+        foreach (var mod in mods)
+        {
+            _phaseModColors[mod.ModName] = StartupImpactProfilerUtil.HashColor(mod.ModPackageId);
+        }
+
+        var phases = StartupImpactPhaseViewData.FromMods(mods);
+        _phaseMaxImpact =
+            phases.Count == 0
+                ? 0f
+                : phases.Max(phase => Math.Max(phase.TotalImpact, phase.OffThreadTotalImpact));
+
+        IEnumerable<StartupImpactPhaseViewData> sorted = _phaseSortColumn switch
+        {
+            SortColumn.Name => _phaseSortAscending
+                ? phases.OrderBy(phase => phase.Label, StringComparer.OrdinalIgnoreCase)
+                : phases.OrderByDescending(phase => phase.Label, StringComparer.OrdinalIgnoreCase),
+            SortColumn.Impact => _phaseSortAscending
+                ? phases.OrderBy(phase => phase.TotalImpact)
+                : phases.OrderByDescending(phase => phase.TotalImpact),
+            _ => throw new ArgumentOutOfRangeException(nameof(_phaseSortColumn)),
+        };
+
+        _phaseViewData = [.. sorted];
+        _phaseTable.RowCount = _phaseViewData.Count;
     }
 
     private void SetSort(SortColumn column)
     {
-        if (_sortColumn == column)
+        if (_groupByPhase)
         {
-            _sortAscending = !_sortAscending;
+            (_phaseSortColumn, _phaseSortAscending) = NextSort(
+                _phaseSortColumn,
+                _phaseSortAscending,
+                column
+            );
         }
         else
         {
-            _sortColumn = column;
-            // Impact starts high-to-low (matches the previous fixed ordering);
-            // Name starts A-to-Z.
-            _sortAscending = column == SortColumn.Name;
+            (_sortColumn, _sortAscending) = NextSort(_sortColumn, _sortAscending, column);
         }
         ApplyModFilter();
+
+        // Impact starts high-to-low; Name starts A-to-Z.
+        static (SortColumn, bool) NextSort(SortColumn current, bool ascending, SortColumn clicked)
+        {
+            return current == clicked
+                ? (current, !ascending)
+                : (clicked, clicked == SortColumn.Name);
+        }
     }
 
     private void DrawTableHeaderColumn(int column, Rect rect)
@@ -382,17 +434,140 @@ internal sealed class DialogStartupImpact : Window
         }
 
         var label =
-            resolvedColumn == SortColumn.Name
-                ? "LoadingProgress.StartupImpact.ColumnName".Translate()
-                : "LoadingProgress.StartupImpact.ColumnImpact".Translate();
-        if (_sortColumn == resolvedColumn)
+            resolvedColumn == SortColumn.Impact
+                ? "LoadingProgress.StartupImpact.ColumnImpact".Translate()
+            : _groupByPhase ? "LoadingProgress.StartupImpact.ColumnPhase".Translate()
+            : "LoadingProgress.StartupImpact.ColumnName".Translate();
+        var (currentColumn, ascending) = _groupByPhase
+            ? (_phaseSortColumn, _phaseSortAscending)
+            : (_sortColumn, _sortAscending);
+        if (currentColumn == resolvedColumn)
         {
-            label = $"{label} {(_sortAscending ? "▲" : "▼")}";
+            label = $"{label} {(ascending ? "▲" : "▼")}";
         }
 
         if (Widgets.ButtonText(rect, label, drawBackground: false))
         {
             SetSort(resolvedColumn);
+        }
+    }
+
+    /// <summary>
+    /// Draws the button that switches the table between mods and loading phases, at the right
+    /// end of the row at <paramref name="y"/>, and returns its width.
+    /// </summary>
+    private float DrawGroupingToggle(float y, float areaWidth)
+    {
+        var label = (
+            _groupByPhase
+                ? "LoadingProgress.StartupImpact.GroupByPhase"
+                : "LoadingProgress.StartupImpact.GroupByMod"
+        ).Translate();
+        var width = Text.CalcSize(label).x + (OuterSpacing * 2);
+        var rect = new Rect(areaWidth - width, y, width, CheckboxHeight);
+        if (Widgets.ButtonText(rect, label))
+        {
+            _groupByPhase = !_groupByPhase;
+        }
+        TooltipHandler.TipRegion(rect, "LoadingProgress.StartupImpact.Grouping.Tip".Translate());
+        return width;
+    }
+
+    private void DrawModTable(ProfilerBar profilerBar)
+    {
+        var row = 0;
+        foreach (var info in _filteredModViewData)
+        {
+            if (_table.IsRowVisible(row))
+            {
+                if (
+                    Widgets.ButtonImage(
+                        _table.Cell(0, row),
+                        Textures.Eye,
+                        info.HideInUi ? Color.white : Color.grey,
+                        tooltip: "LoadingProgress.StartupImpact.ToggleModVisibility.Tip".Translate()
+                    )
+                )
+                {
+                    info.HideInUi = !info.HideInUi;
+                    _sessionViewData.CalculateBaseGameStats();
+                    _sessionViewData.CalculateModStats();
+                    ApplyPhaseGrouping();
+                }
+
+                GUI.color = info.HideInUi ? Color.grey : Color.white;
+
+                _table.TruncatedLabel(1, row, info.ModData.ModName);
+
+                _table.TruncatedLabel(2, row, ProfilerBar.TimeText(info.ModData.TotalImpact));
+
+                var rect = _table.Cell(3, row);
+                var rect2 = rect;
+                if (info.ModData.OffThreadTotalImpact > 1f)
+                {
+                    rect2.yMin += rect.height / 2;
+                    rect.yMax -= rect.height / 2;
+                    profilerBar.Draw(
+                        rect2,
+                        info.OffThreadMetrics,
+                        _sessionViewData.Categories,
+                        Math.Max(_sessionViewData.MaxImpact, info.ModData.OffThreadTotalImpact),
+                        CategoryColors
+                    );
+                }
+                profilerBar.Draw(
+                    rect,
+                    info.Metrics,
+                    _sessionViewData.Categories,
+                    Math.Max(_sessionViewData.MaxImpact, info.ModData.TotalImpact),
+                    CategoryColors
+                );
+            }
+            row++;
+        }
+    }
+
+    private void DrawPhaseTable(ProfilerBar profilerBar)
+    {
+        var row = 0;
+        foreach (var phase in _phaseViewData)
+        {
+            if (_phaseTable.IsRowVisible(row))
+            {
+                Widgets.DrawBoxSolid(
+                    _phaseTable.Cell(0, row).ContractedBy(10f),
+                    CategoryColors.TryGetValue(phase.Key, out var color) ? color : DefaultColor
+                );
+
+                _phaseTable.TruncatedLabel(1, row, phase.Label);
+
+                _phaseTable.TruncatedLabel(2, row, ProfilerBar.TimeText(phase.TotalImpact));
+
+                var rect = _phaseTable.Cell(3, row);
+                var rect2 = rect;
+                if (phase.OffThreadTotalImpact > 1f)
+                {
+                    rect2.yMin += rect.height / 2;
+                    rect.yMax -= rect.height / 2;
+                    profilerBar.Draw(
+                        rect2,
+                        phase.OffThreadMetrics,
+                        phase.ModNames,
+                        _phaseMaxImpact,
+                        _phaseModColors,
+                        translateCategories: false
+                    );
+                }
+                profilerBar.Draw(
+                    rect,
+                    phase.Metrics,
+                    phase.ModNames,
+                    _phaseMaxImpact,
+                    _phaseModColors,
+                    translateCategories: false
+                );
+            }
+            row++;
         }
     }
 
@@ -553,11 +728,18 @@ internal sealed class DialogStartupImpact : Window
         y += modsProfileRect.height + InnerSpacing;
         Text.Font = GameFont.Small;
 
+        var groupingToggleWidth = DrawGroupingToggle(y, area.width);
+
         var filterLabel = "LoadingProgress.StartupImpact.FilterMods".Translate();
         var filterLabelWidth = Text.CalcSize(filterLabel).x + InnerSpacing;
         Widgets.Label(new Rect(0, y, filterLabelWidth, CheckboxHeight), filterLabel);
         var newModFilter = Widgets.TextField(
-            new Rect(filterLabelWidth, y, area.width - filterLabelWidth, CheckboxHeight),
+            new Rect(
+                filterLabelWidth,
+                y,
+                area.width - filterLabelWidth - groupingToggleWidth - OuterSpacing,
+                CheckboxHeight
+            ),
             _modFilter
         );
         if (newModFilter != _modFilter)
@@ -567,63 +749,21 @@ internal sealed class DialogStartupImpact : Window
         }
         y += CheckboxHeight + OuterSpacing;
 
-        _table.Header(0, y, area.width, HeaderHeight, DrawTableHeaderColumn);
+        var table = _groupByPhase ? _phaseTable : _table;
+        table.Header(0, y, area.width, HeaderHeight, DrawTableHeaderColumn);
         y += HeaderHeight + InnerSpacing;
 
         var bottomOffset = ButtonHeight + OuterSpacing + InnerSpacing; // Button height + spacing + padding
-        _table.StartTable(0, y, area.width, area.height - y - bottomOffset);
-
-        var row = 0;
-        foreach (var info in _filteredModViewData)
+        table.StartTable(0, y, area.width, area.height - y - bottomOffset);
+        if (_groupByPhase)
         {
-            if (_table.IsRowVisible(row))
-            {
-                if (
-                    Widgets.ButtonImage(
-                        _table.Cell(0, row),
-                        Textures.Eye,
-                        info.HideInUi ? Color.white : Color.grey,
-                        tooltip: "LoadingProgress.StartupImpact.ToggleModVisibility.Tip".Translate()
-                    )
-                )
-                {
-                    info.HideInUi = !info.HideInUi;
-                    _sessionViewData.CalculateBaseGameStats();
-                    _sessionViewData.CalculateModStats();
-                }
-
-                GUI.color = info.HideInUi ? Color.grey : Color.white;
-
-                _table.TruncatedLabel(1, row, info.ModData.ModName);
-
-                _table.TruncatedLabel(2, row, ProfilerBar.TimeText(info.ModData.TotalImpact));
-
-                var rect = _table.Cell(3, row);
-                var rect2 = rect;
-                if (info.ModData.OffThreadTotalImpact > 1f)
-                {
-                    rect2.yMin += rect.height / 2;
-                    rect.yMax -= rect.height / 2;
-                    profilerBar.Draw(
-                        rect2,
-                        info.OffThreadMetrics,
-                        _sessionViewData.Categories,
-                        Math.Max(_sessionViewData.MaxImpact, info.ModData.OffThreadTotalImpact),
-                        CategoryColors
-                    );
-                }
-                profilerBar.Draw(
-                    rect,
-                    info.Metrics,
-                    _sessionViewData.Categories,
-                    Math.Max(_sessionViewData.MaxImpact, info.ModData.TotalImpact),
-                    CategoryColors
-                );
-            }
-            row++;
+            DrawPhaseTable(profilerBar);
         }
-
-        _table.EndTable();
+        else
+        {
+            DrawModTable(profilerBar);
+        }
+        table.EndTable();
 
         GUI.color = Color.white;
         var showSave = HasSomethingToSave();

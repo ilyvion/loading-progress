@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- The mod list in the startup impact window can now be grouped by loading phase instead of by mod, using the new 'Grouping' button beside the filter. Each row is then a phase, such as 'Loading textures' or 'Running static constructors', showing the total time all mods together spent in it, sorted by which phase took the longest. Each row's bar shows how that time splits between the mods. The filter and hidden mods apply here too, so you can see where a particular group of mods spends its time. Exported HTML reports have the same option.
+
 ### Changed
 
 - Removed the Russian translation. It had gone unmaintained apart from machine translation for a while and I'm tired of the maintenance burden. If someone wants to pick it back up, releasing it as a standalone translation mod is the way to go.

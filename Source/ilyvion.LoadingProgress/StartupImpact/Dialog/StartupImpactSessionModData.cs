@@ -29,6 +29,22 @@ internal sealed class StartupImpactSessionModData : IExposable
             offThreadTotalImpact = info.Profiler.OffThreadTotalImpact,
         };
 
+    internal static StartupImpactSessionModData FromValues(
+        string modName,
+        string modPackageId,
+        Dictionary<string, float> metrics,
+        Dictionary<string, float> offThreadMetrics
+    ) =>
+        new()
+        {
+            modName = modName,
+            modPackageId = modPackageId,
+            metrics = metrics,
+            totalImpact = metrics.Values.Sum(),
+            offThreadMetrics = offThreadMetrics,
+            offThreadTotalImpact = offThreadMetrics.Values.Sum(),
+        };
+
     public void ExposeData()
     {
         Scribe_Values.Look(ref modName!, "modName");
