@@ -651,7 +651,8 @@ internal sealed class DialogStartupImpact : Window
                     _sessionViewData,
                     CategoryColors,
                     DefaultColor,
-                    LoadingProgressMod.Settings.ShowBaseGameOffThreadImpact
+                    LoadingProgressMod.Settings.ShowBaseGameOffThreadImpact,
+                    LoadingProgressMod.Settings.ShowStartupImpactTimesInSecondsOnly
                 );
                 var exportPath = Path.Combine(
                     GenFilePaths.SaveDataFolderPath,

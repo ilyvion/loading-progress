@@ -176,6 +176,13 @@ internal sealed class Settings : ModSettings
         set => _showBaseGameOffThreadImpact = value;
     }
 
+    private bool _showStartupImpactTimesInSecondsOnly;
+    public bool ShowStartupImpactTimesInSecondsOnly
+    {
+        get => _showStartupImpactTimesInSecondsOnly;
+        set => _showStartupImpactTimesInSecondsOnly = value;
+    }
+
     private int _sessionsToKeep = SessionRetention.DefaultSessionsToKeep;
     public int SessionsToKeep
     {
@@ -271,6 +278,11 @@ internal sealed class Settings : ModSettings
         Scribe_Values.Look(ref _trackStartupLoadingImpact, "trackStartupLoadingImpact", false);
         Scribe_Values.Look(ref _autoSaveStartupImpactReport, "autoSaveStartupImpactReport", false);
         Scribe_Values.Look(ref _showBaseGameOffThreadImpact, "showBaseGameOffThreadImpact", false);
+        Scribe_Values.Look(
+            ref _showStartupImpactTimesInSecondsOnly,
+            "showStartupImpactTimesInSecondsOnly",
+            false
+        );
         Scribe_Values.Look(
             ref _sessionsToKeep,
             "sessionsToKeep",
@@ -443,6 +455,12 @@ internal sealed class Settings : ModSettings
                 "LoadingProgress.ShowBaseGameOffThreadImpact".Translate(),
                 ref _showBaseGameOffThreadImpact,
                 "LoadingProgress.ShowBaseGameOffThreadImpact.Tip".Translate()
+            );
+
+            listingStandard.CheckboxLabeled(
+                "LoadingProgress.ShowStartupImpactTimesInSecondsOnly".Translate(),
+                ref _showStartupImpactTimesInSecondsOnly,
+                "LoadingProgress.ShowStartupImpactTimesInSecondsOnly.Tip".Translate()
             );
         }
 

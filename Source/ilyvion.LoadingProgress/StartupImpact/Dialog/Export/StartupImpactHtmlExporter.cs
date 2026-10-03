@@ -17,7 +17,8 @@ internal static class StartupImpactHtmlExporter
         StartupImpactSessionViewData viewData,
         IReadOnlyDictionary<string, Color> modCategoryColors,
         Color defaultColor,
-        bool showBaseGameOffThreadImpact
+        bool showBaseGameOffThreadImpact,
+        bool secondsOnly
     )
     {
         var json = BuildDataJson(
@@ -25,7 +26,8 @@ internal static class StartupImpactHtmlExporter
             viewData,
             modCategoryColors,
             defaultColor,
-            showBaseGameOffThreadImpact
+            showBaseGameOffThreadImpact,
+            secondsOnly
         );
         return Template.Replace("/*__DATA_JSON__*/", json, StringComparison.Ordinal);
     }
@@ -35,7 +37,8 @@ internal static class StartupImpactHtmlExporter
         StartupImpactSessionViewData viewData,
         IReadOnlyDictionary<string, Color> modCategoryColors,
         Color defaultColor,
-        bool showBaseGameOffThreadImpact
+        bool showBaseGameOffThreadImpact,
+        bool secondsOnly
     )
     {
         var sb = new StringBuilder();
@@ -43,6 +46,9 @@ internal static class StartupImpactHtmlExporter
 
         AppendNumber(sb, "loadingTimeMs", sessionData.LoadingTime);
         _ = sb.Append(',');
+
+        AppendKey(sb, "secondsOnly");
+        _ = sb.Append(secondsOnly ? "true," : "false,");
 
         if (
             sessionData.DefsParsed is int defsParsed
@@ -662,7 +668,27 @@ internal static class StartupImpactHtmlExporter
 
   var tooltipEl = document.getElementById("tooltip");
 
+  function clockText(ms) {
+    var tenths = Math.round(ms / 100);
+    if (tenths < 600) {
+      return null;
+    }
+    var hours = Math.floor(tenths / 36000);
+    var minutes = Math.floor(tenths / 600) % 60;
+    var seconds = Math.floor(tenths / 10) % 60;
+    var tenth = tenths % 10;
+    var ss = (seconds < 10 ? "0" : "") + seconds + "." + tenth;
+    if (hours > 0) {
+      return hours + ":" + (minutes < 10 ? "0" : "") + minutes + ":" + ss;
+    }
+    return minutes + ":" + ss;
+  }
+
   function timeText(ms) {
+    var clock = DATA.secondsOnly ? null : clockText(ms);
+    if (clock !== null) {
+      return clock;
+    }
     if (ms > 10000) {
       return DATA.strings.secondsFormat.replace("{0}", (ms / 1000).toFixed(1));
     }

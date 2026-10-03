@@ -14,17 +14,42 @@ internal sealed class ProfilerBar
     public float Tau { get; set; } = 1000f;
 
     public static string TimeText(float ms) =>
-        ms > 10000
+        TimeText(ms, LoadingProgressMod.Settings.ShowStartupImpactTimesInSecondsOnly);
+
+    internal static string TimeText(float ms, bool secondsOnly) =>
+        !secondsOnly && ClockTimeText(ms) is { } clockText ? clockText
+        : ms > 10000
             ? "LoadingProgress.StartupImpact.Seconds".Translate(
                 (ms * 0.001f).ToString("F1", CultureInfo.InvariantCulture)
             )
-            : (
-                ms > 1000
-                    ? "LoadingProgress.StartupImpact.Seconds".Translate(
-                        (ms * 0.001f).ToString("F2", CultureInfo.InvariantCulture)
-                    )
-                    : "LoadingProgress.StartupImpact.Milliseconds".Translate(ms)
-            );
+        : (
+            ms > 1000
+                ? "LoadingProgress.StartupImpact.Seconds".Translate(
+                    (ms * 0.001f).ToString("F2", CultureInfo.InvariantCulture)
+                )
+                : "LoadingProgress.StartupImpact.Milliseconds".Translate(ms)
+        );
+
+    /// <summary>
+    /// <c>m:ss.f</c>, or <c>h:mm:ss.f</c> from an hour up, for durations of at least a minute
+    /// once rounded to tenths of a second; <see langword="null"/> below that.
+    /// </summary>
+    internal static string? ClockTimeText(float ms)
+    {
+        var tenths = (long)Math.Round(ms / 100.0, MidpointRounding.AwayFromZero);
+        if (tenths < 600)
+        {
+            return null;
+        }
+        var hours = tenths / 36000;
+        var minutes = tenths / 600 % 60;
+        var seconds = tenths / 10 % 60;
+        var tenth = tenths % 10;
+        var inv = CultureInfo.InvariantCulture;
+        return hours > 0
+            ? string.Format(inv, "{0}:{1:00}:{2:00}.{3}", hours, minutes, seconds, tenth)
+            : string.Format(inv, "{0}:{1:00}.{2}", minutes, seconds, tenth);
+    }
 
     public void Draw(
         Rect rect,

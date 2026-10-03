@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed the Russian translation. It had gone unmaintained apart from machine translation for a while and I'm tired of the maintenance burden. If someone wants to pick it back up, releasing it as a standalone translation mod is the way to go.
 - The loading window no longer forces an immediate repaint on every loading stage change and before every step of reloading a mod's content, since all that repainting slowed loading down. The label shown can lag behind a slow step by a moment as a result. The old behavior can be turned back on with the new 'Repaint the loading window immediately on stage changes and content reload steps' setting.
 - The loading time shown in the bottom-right corner of the main menu, in the pause menu and in the mod settings is now how long this launch took to load. It used to show the same averaged estimate the loading window counts down from.
+- Times of a minute or longer in the startup impact window and in exported HTML reports now include minutes, and hours from an hour up, such as 5:24.3 or 1:02:05.4 rather than 324.3 s. Shorter times are shown in seconds or milliseconds as before. The new 'Show startup impact times in seconds and milliseconds only' setting brings back the old format.
 
 ### Fixed
 
