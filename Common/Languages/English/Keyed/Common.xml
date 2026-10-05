@@ -6,6 +6,7 @@
     <LoadingProgress.InGameExecuteToExecuteWhenFinished>Loading progress: Regenerating renderer</LoadingProgress.InGameExecuteToExecuteWhenFinished>
     <LoadingProgress.CallAll>Loading progress: Calling all static constructors</LoadingProgress.CallAll>
     <LoadingProgress.ModHashChanged>(Mod list has changed since last game start; estimate may be inaccurate.)</LoadingProgress.ModHashChanged>
+    <LoadingProgress.CachingTextures>This game launch may take longer as the game is caching new textures. Subsequent launches will be faster.</LoadingProgress.CachingTextures>
     <LoadingProgress.MemoryUsage>Heap: {0}  ·  Process: {1}</LoadingProgress.MemoryUsage>
     <LoadingProgress.EstimateBasedOnSingle>estimate based on previous game launch</LoadingProgress.EstimateBasedOnSingle>
     <LoadingProgress.EstimateBasedOn>estimate based on {0} previous game launches</LoadingProgress.EstimateBasedOn>

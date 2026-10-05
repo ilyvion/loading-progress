@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Support for RimWorld 1.7.
+- On RimWorld 1.7, the loading window now shows a note when the game is caching textures it hasn't seen before, such as on the first launch after installing or updating the game or a mod. That launch takes longer than usual, and subsequent launches will be faster.
 
 ## [0.18.1] - 2026-10-11
 

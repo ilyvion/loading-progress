@@ -15,26 +15,44 @@ internal enum OwnWindow
 
 internal sealed partial class LoadingProgressWindow
 {
-    internal static Vector2 WindowSize
+    internal static Vector2 WindowSize =>
+        new(
+            776f,
+            WindowHeight(
+                LoadingProgressMod.Settings.ShowLastLoadingTime,
+                LoadingProgressMod.Settings.LoadingTimeSampleCount > 0,
+                HasLastLoadAndHashChanged(),
+                TextureCache.IsCaching
+            )
+        );
+
+    internal static float WindowHeight(
+        bool showLastLoadingTime,
+        bool showSampleCount,
+        bool modHashChanged,
+        bool cachingTextures
+    )
     {
-        get
+        var noteLineHeight = Text.LineHeightOf(GameFont.Small) + VerticalWidgetMargin;
+        var height = 110f;
+        if (showLastLoadingTime)
         {
-            var windowSize = field;
-            if (LoadingProgressMod.Settings.ShowLastLoadingTime)
+            height += 30f;
+            if (showSampleCount)
             {
-                windowSize.y += 30f;
-                if (LoadingProgressMod.Settings.LoadingTimeSampleCount > 0)
-                {
-                    windowSize.y += Text.LineHeightOf(GameFont.Small) + VerticalWidgetMargin;
-                }
-                if (HasLastLoadAndHashChanged())
-                {
-                    windowSize.y += Text.LineHeightOf(GameFont.Small) + VerticalWidgetMargin;
-                }
+                height += noteLineHeight;
             }
-            return windowSize;
+            if (modHashChanged)
+            {
+                height += noteLineHeight;
+            }
         }
-    } = new(776f, 110f);
+        if (cachingTextures)
+        {
+            height += noteLineHeight;
+        }
+        return height;
+    }
 
     private static bool HasLastLoadAndHashChanged() =>
         _lastLoadingTime.HasValue
@@ -319,6 +337,7 @@ internal sealed partial class LoadingProgressWindow
             );
         }
 
+        var lastRect = progressRect;
         if (LoadingProgressMod.Settings.ShowLastLoadingTime)
         {
             Text.Anchor = TextAnchor.MiddleCenter;
@@ -372,6 +391,7 @@ internal sealed partial class LoadingProgressWindow
                 loadingTimeText = $"{Utilities.FormatDuration(elapsed)} / {lastLoadingTimeText}";
             }
             Widgets.Label(loadingTimeRect, loadingTimeText);
+            lastRect = loadingTimeRect;
 
             var sampleCount = LoadingProgressMod.Settings.LoadingTimeSampleCount;
             if (sampleCount > 0)
@@ -393,6 +413,7 @@ internal sealed partial class LoadingProgressWindow
                 );
                 GUI.color = Color.white;
                 loadingTimeRect = sampleInfoRect;
+                lastRect = sampleInfoRect;
             }
 
             if (HasLastLoadAndHashChanged())
@@ -406,7 +427,22 @@ internal sealed partial class LoadingProgressWindow
                     modHashRect,
                     Translations.GetTranslation("LoadingProgress.ModHashChanged")
                 );
+                lastRect = modHashRect;
             }
+        }
+
+        if (TextureCache.IsCaching)
+        {
+            Text.Font = GameFont.Small;
+            Text.Anchor = TextAnchor.MiddleCenter;
+
+            var textureCacheRect = lastRect;
+            textureCacheRect.y += lastRect.height + VerticalWidgetMargin;
+            textureCacheRect.height = Text.LineHeight;
+            Widgets.Label(
+                textureCacheRect,
+                Translations.GetTranslation("LoadingProgress.CachingTextures")
+            );
         }
 
         Text.Anchor = TextAnchor.UpperLeft;

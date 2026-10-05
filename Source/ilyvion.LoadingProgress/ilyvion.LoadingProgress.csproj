@@ -73,5 +73,7 @@
         <Publicize Include="0Harmony:HarmonyLib.PatchCall.method" />
         <Publicize Include="0Harmony:HarmonyLib.MethodCreatorTools" />
         <Publicize Include="0Harmony:HarmonyLib.MethodCreatorTools.EmitCodes" />
+        <Publicize Include="Waylith:Waylith.Rendering.TextureCacheStore" />
+        <Publicize Include="Waylith:Waylith.Rendering.TextureCacheStore._writers" />
     </ItemGroup>
 </Project>
