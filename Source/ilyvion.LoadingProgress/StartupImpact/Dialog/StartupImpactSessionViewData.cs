@@ -49,7 +49,25 @@ internal sealed class StartupImpactSessionViewData
     public float BasegameLoadingTime { get; private set; }
     public float OffThreadBasegameLoadingTime { get; private set; }
     public float ModsLoadingTime { get; private set; }
+
+    /// <summary>
+    /// The mod table's shared scale: the largest time any visible mod has on the loading
+    /// thread or on other threads.
+    /// </summary>
     public float MaxImpact { get; private set; }
+
+    /// <summary>
+    /// A table's shared scale for rows of time on the loading thread and on other threads:
+    /// the largest of either among the rows that are shown, so each row's two bars share the
+    /// scale with every other row. A hidden row does not set it.
+    /// </summary>
+    internal static float SharedScale(
+        IEnumerable<(float OnThread, float OffThread, bool Hidden)> rows
+    ) =>
+        rows.Where(row => !row.Hidden)
+            .Select(row => Math.Max(row.OnThread, row.OffThread))
+            .DefaultIfEmpty(0f)
+            .Max();
 
     public IReadOnlyList<string> Categories => categories.AsReadOnly();
     public IReadOnlyList<string> CategoriesNonMods => categoriesNonMods.AsReadOnly();
@@ -102,6 +120,17 @@ internal sealed class StartupImpactSessionViewData
     ) => stagesKept ? entries.Sum() : Math.Max(0f, window - timedTotal);
 
     /// <summary>
+    /// What the base game's bars span: with the off-thread bar shown, the longer of its time
+    /// on the loading thread and its time on other threads, so the two bars share one scale;
+    /// without it, the loading-thread time alone.
+    /// </summary>
+    internal static float BaseGameBarSpan(
+        float onThreadMs,
+        float offThreadMs,
+        bool offThreadShown
+    ) => offThreadShown ? Math.Max(onThreadMs, offThreadMs) : onThreadMs;
+
+    /// <summary>
     /// How the remaining time splits by loading stage, largest first, with what came after
     /// loading finished as an entry of its own. Empty for sessions saved before stages were
     /// kept.
@@ -134,7 +163,15 @@ internal sealed class StartupImpactSessionViewData
     {
         ModsLoadingTime = 0;
         hiddenModsLoadingTime = 0;
-        MaxImpact = 0;
+        MaxImpact = SharedScale(
+            modViewData.Select(modView =>
+                (
+                    modView.ModData.TotalImpact,
+                    modView.ModData.OffThreadTotalImpact,
+                    modView.HideInUi
+                )
+            )
+        );
 
         HashSet<string> categorySet = [];
         foreach (var modView in modViewData)
@@ -145,11 +182,6 @@ internal sealed class StartupImpactSessionViewData
             }
             else
             {
-                if (MaxImpact < modView.ModData.TotalImpact)
-                {
-                    MaxImpact = modView.ModData.TotalImpact;
-                }
-
                 ModsLoadingTime += modView.ModData.TotalImpact;
             }
 

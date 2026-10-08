@@ -51,4 +51,19 @@ internal sealed class StartupImpactHtmlExporterTests
             Expect.IsTrue(html.Contains($"\"valueMs\":{valueMs}}}", StringComparison.Ordinal));
         }
     }
+
+    // The report's mod table takes its shared scale from both of a row's bars, as the window's
+    // does, and every mod carries its time on other threads for it.
+    [Test]
+    public static void TheReportsTableScaleCountsTimeOnOtherThreads()
+    {
+        var html = Report(new StartupImpactSessionViewData(Session));
+
+        Expect.IsTrue(
+            html.Contains(
+                "max = Math.max(max, mod.totalImpactMs, mod.offThreadTotalImpactMs);",
+                StringComparison.Ordinal
+            )
+        );
+    }
 }

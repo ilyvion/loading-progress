@@ -503,6 +503,11 @@ internal sealed class DialogStartupImpact : Window
 
                 var rect = _table.Cell(3, row);
                 var rect2 = rect;
+                // Both of the row's bars on one scale, shared with the other rows.
+                var rowSpan = Math.Max(
+                    _sessionViewData.MaxImpact,
+                    Math.Max(info.ModData.TotalImpact, info.ModData.OffThreadTotalImpact)
+                );
                 if (info.ModData.OffThreadTotalImpact > 1f)
                 {
                     rect2.yMin += rect.height / 2;
@@ -511,7 +516,7 @@ internal sealed class DialogStartupImpact : Window
                         rect2,
                         info.OffThreadMetrics,
                         _sessionViewData.Categories,
-                        Math.Max(_sessionViewData.MaxImpact, info.ModData.OffThreadTotalImpact),
+                        rowSpan,
                         CategoryColors
                     );
                 }
@@ -519,7 +524,7 @@ internal sealed class DialogStartupImpact : Window
                     rect,
                     info.Metrics,
                     _sessionViewData.Categories,
-                    Math.Max(_sessionViewData.MaxImpact, info.ModData.TotalImpact),
+                    rowSpan,
                     CategoryColors
                 );
             }
@@ -684,10 +689,17 @@ internal sealed class DialogStartupImpact : Window
 
         Rect nonmodsProfileRect = new(0, y, area.width, BarHeight);
         var nonmodsOffThreadRect = nonmodsProfileRect;
-        if (
+        var showOffThread =
             LoadingProgressMod.Settings.ShowBaseGameOffThreadImpact
-            && _sessionViewData.OffThreadBasegameLoadingTime > 1f
-        )
+            && _sessionViewData.OffThreadBasegameLoadingTime > 1f;
+        // The two bars share one scale: the longer spans the width and the other is drawn in
+        // proportion to it.
+        var nonmodsSpan = StartupImpactSessionViewData.BaseGameBarSpan(
+            _sessionViewData.BasegameLoadingTime,
+            _sessionViewData.OffThreadBasegameLoadingTime,
+            showOffThread
+        );
+        if (showOffThread)
         {
             nonmodsOffThreadRect.yMin += nonmodsProfileRect.height / 2;
             nonmodsProfileRect.yMax -= nonmodsProfileRect.height / 2;
@@ -695,10 +707,7 @@ internal sealed class DialogStartupImpact : Window
                 nonmodsOffThreadRect,
                 _sessionViewData.MetricsOffThreadNonMods,
                 _sessionViewData.CategoriesNonMods,
-                Math.Max(
-                    _sessionViewData.BasegameLoadingTime,
-                    _sessionViewData.OffThreadBasegameLoadingTime
-                ),
+                nonmodsSpan,
                 _sessionViewData.CategoryColorsNonMods
             );
         }
@@ -706,7 +715,7 @@ internal sealed class DialogStartupImpact : Window
             nonmodsProfileRect,
             _sessionViewData.MetricsNonMods,
             _sessionViewData.CategoriesNonMods,
-            _sessionViewData.BasegameLoadingTime,
+            nonmodsSpan,
             _sessionViewData.CategoryColorsNonMods
         );
         y += BarHeight + OuterSpacing;

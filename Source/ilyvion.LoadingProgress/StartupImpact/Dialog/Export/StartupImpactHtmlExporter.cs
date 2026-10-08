@@ -945,17 +945,18 @@ internal static class StartupImpactHtmlExporter
     });
   }
 
+  // Both of a row's bars on one scale, shared with the other rows; a hidden mod larger than
+  // the shared scale gets its own.
   function modMaxImpact(mod, sessionMaxImpact) {
-    return state.hidden.has(mod)
-      ? Math.max(sessionMaxImpact, mod.totalImpactMs)
-      : sessionMaxImpact;
+    var own = Math.max(mod.totalImpactMs, mod.offThreadTotalImpactMs);
+    return state.hidden.has(mod) ? Math.max(sessionMaxImpact, own) : sessionMaxImpact;
   }
 
   function computeSessionMaxImpact() {
     var max = 0;
     DATA.mods.forEach(function (mod) {
-      if (!state.hidden.has(mod) && mod.totalImpactMs > max) {
-        max = mod.totalImpactMs;
+      if (!state.hidden.has(mod)) {
+        max = Math.max(max, mod.totalImpactMs, mod.offThreadTotalImpactMs);
       }
     });
     return max;
@@ -1022,7 +1023,7 @@ internal static class StartupImpactHtmlExporter
     if (mod.offThreadTotalImpactMs > 1) {
       var offBar = document.createElement("div");
       offBar.className = "bar";
-      renderBar(offBar, mod.offThreadMetrics, Math.max(sessionMaxImpact, mod.offThreadTotalImpactMs));
+      renderBar(offBar, mod.offThreadMetrics, rowMaxImpact);
       barCell.appendChild(offBar);
     }
     var mainBar = document.createElement("div");
@@ -1224,7 +1225,8 @@ internal static class StartupImpactHtmlExporter
     }
     var mainBar = document.createElement("div");
     mainBar.className = "bar";
-    renderBar(mainBar, DATA.baseGame.segments, DATA.baseGame.loadingTimeMs);
+    // Both bars on one scale: the longer spans the width, the other is drawn in proportion.
+    renderBar(mainBar, DATA.baseGame.segments, maxImpact);
     container.appendChild(mainBar);
   }
 

@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Faster Game Loading went unrecognized when its Workshop copy carried the '_steam' package id suffix the game adds while a local copy with the same id is installed. Its early content loading was then neither shown in the loading window nor taken into account when loading content.
+- Each pair of bars for time on the loading thread and time on other threads, the base game's and every mod's, is now drawn on one scale, so the longer of the two spans the width and the other is drawn in proportion. The loading-thread bar used to fill the width on its own scale, so an off-thread total above it read as equal. The HTML export does the same.
 - A deferred initialization task that threw left its startup impact category open: the time it had run was never recorded, and every category its mod, or the base game, started afterwards ran inside it.
 - A startup impact category started while another was open for the same mod, or for the base game, lost the open one's time up to that point, so the open one was credited only with what it ran after the other stopped.
 - A timed step that threw, such as a mod constructor that failed or a mod whose defs could not be loaded, left its startup impact category open, so the time it had run was never recorded.

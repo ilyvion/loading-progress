@@ -143,4 +143,33 @@ internal sealed class StartupImpactSessionViewDataTests
         Expect.AreApproximatelyEqual(11000f, ProfilerBar.LinearSpan(10000f, 11000f));
         Expect.AreApproximatelyEqual(10000f, ProfilerBar.LinearSpan(10000f, 9000f));
     }
+
+    // The base game's two bars are drawn against the longer of the two totals, so an
+    // off-thread total above the loading-thread one shortens the loading-thread bar.
+    [Test]
+    public static void TheBaseGameBarsShareTheLongerSpan()
+    {
+        Expect.IsTrue(StartupImpactSessionViewData.BaseGameBarSpan(21400f, 24300f, true) == 24300f);
+        Expect.IsTrue(StartupImpactSessionViewData.BaseGameBarSpan(21400f, 3000f, true) == 21400f);
+    }
+
+    [Test]
+    public static void WithoutTheOffThreadBarTheLoadingThreadBarSpansItself() =>
+        Expect.IsTrue(
+            StartupImpactSessionViewData.BaseGameBarSpan(21400f, 24300f, false) == 21400f
+        );
+
+    // The mod table's shared scale covers both bars of every visible mod, so a row whose
+    // off-thread time is the largest figure in the table sets the scale for all of them; a
+    // hidden row does not, however large.
+    [Test]
+    public static void TheTableScaleCoversBothBarsOfEveryVisibleMod() =>
+        Expect.AreApproximatelyEqual(
+            3000f,
+            StartupImpactSessionViewData.SharedScale([
+                (1000f, 3000f, false),
+                (2000f, 0f, false),
+                (500f, 9000f, true),
+            ])
+        );
 }
