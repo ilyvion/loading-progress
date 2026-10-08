@@ -31,8 +31,13 @@ internal sealed class CallAllHookTimingTests
     // for the runtime to inline into the patched method's replacement.
     public static void ThinPostfix() => SlowPostfix();
 
+    // Fails a call below the hook, where a mod's error usually is, so the test can tell
+    // whether that frame survives in the stack trace.
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public static void ThrowingPostfix() =>
+    public static void ThrowingPostfix() => FailBelowTheHook();
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void FailBelowTheHook() =>
         throw new InvalidOperationException("A hook that fails, for the test.");
 
     private static MethodInfo TargetMethod =>
@@ -122,7 +127,8 @@ internal sealed class CallAllHookTimingTests
 
     // A hook that throws still has its timing closed and the call's category restarted, so
     // the call's category stops cleanly; stopping one that is not running logs an error,
-    // which fails the test.
+    // which fails the test. Its exception keeps the frame it was thrown in: the timing's
+    // finalizer used to hand it back, and Harmony then threw it again with a fresh trace.
     [Test]
     public static IEnumerator AHookThatThrowsLeavesTheTimingIntact()
     {
@@ -146,19 +152,22 @@ internal sealed class CallAllHookTimingTests
         try
         {
             var threw = false;
+            string? trace = null;
             TimedCall(() =>
             {
                 try
                 {
                     Target();
                 }
-                catch (InvalidOperationException)
+                catch (InvalidOperationException e)
                 {
                     threw = true;
+                    trace = e.StackTrace;
                 }
             });
 
             Expect.IsTrue(threw);
+            Expect.IsTrue(trace?.IndexOf(nameof(FailBelowTheHook), StringComparison.Ordinal) >= 0);
             Expect.IsTrue(BaseGame.Metrics.ContainsKey(TestBaseCategory));
         }
         finally

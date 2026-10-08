@@ -318,12 +318,11 @@ internal sealed class CallAllHookTiming
     }
 
     // Stops the hook's category only if the prefix started it: a start that threw opened
-    // nothing, and a stop would close whatever category the mod had open below it.
-    private static Exception? Finalizer(
-        Exception? __exception,
-        MethodBase __originalMethod,
-        bool __state
-    )
+    // nothing, and a stop would close whatever category the mod had open below it. It returns
+    // nothing, so an exception from the hook goes on as it was: a finalizer that returns one
+    // has Harmony throw it again, which resets its stack trace to the hook's replacement and
+    // drops the frames below it, where the mod's error is.
+    private static void Finalizer(MethodBase __originalMethod, bool __state)
     {
         if (_timed.TryGetValue(__originalMethod, out var timed))
         {
@@ -338,7 +337,6 @@ internal sealed class CallAllHookTiming
                 _ = Quietly(() => StartupImpactProfilerUtil.StartBaseGameProfiler(paused));
             }
         }
-        return __exception;
     }
 
     // The prefix and finalizer run inside other mods' hooks, so nothing in them may throw into
