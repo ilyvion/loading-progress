@@ -37,6 +37,50 @@ internal sealed class StartupImpactSessionIndexEntryTests
         Expect.AreNotEqual("LoadModXml", text);
     }
 
+    private static StartupImpactSessionData Session(float timeToMenu) =>
+        StartupImpactSessionData.FromValues(
+            90600f,
+            timeToMenu,
+            new() { ["LoadingProgress.StartupImpact.AbstractFilesystemClearAllCache"] = 1000f },
+            [],
+            []
+        );
+
+    // The picker lists a session by the same figure the startup impact window titles it with:
+    // the time to the main menu once the session has one.
+    [Test]
+    public static void AnEntryListsTheTimeToTheMenuWhenTheSessionHasOne()
+    {
+        var entry = StartupImpactSessionIndexEntry.ForCompletedSession("to-menu", Session(110600f));
+
+        Expect.AreApproximatelyEqual(110600f, entry.LoadingTime);
+        Expect.IsTrue(entry.MeasuredToMenu);
+    }
+
+    // A session from before the time to the menu was measured is listed by the point the clock
+    // stopped, and marked, since it reads shorter than a newer session of the same mods.
+    [Test]
+    public static void AnEntryWithoutATimeToTheMenuIsListedByTheLoadingTime()
+    {
+        var entry = StartupImpactSessionIndexEntry.ForCompletedSession("to-end", Session(0f));
+
+        Expect.AreApproximatelyEqual(90600f, entry.LoadingTime);
+        Expect.IsFalse(entry.MeasuredToMenu);
+    }
+
+    // A session already in the history that is saved again, by hand, keeps its entry, which
+    // takes the figures it was saved with.
+    [Test]
+    public static void SavingTheSessionAgainUpdatesItsEntry()
+    {
+        var entry = StartupImpactSessionIndexEntry.ForCompletedSession("again", Session(0f));
+
+        entry.UpdateFrom(Session(110600f));
+
+        Expect.AreApproximatelyEqual(110600f, entry.LoadingTime);
+        Expect.IsTrue(entry.MeasuredToMenu);
+    }
+
     // The second delayed-initialization pass has no string of its own. It used to be listed
     // by its raw member name, in every language.
     [Test]
@@ -53,5 +97,25 @@ internal sealed class StartupImpactSessionIndexEntryTests
             second
         );
         Expect.AreNotEqual(nameof(LoadingStage.ExecuteToExecuteWhenFinished2), second);
+    }
+
+    // The marker stays until the startup's session is saved, so a boot can stop after loading.
+    // That stage's own text is the loading window's 'Finished!', which reads wrong after
+    // 'Stopped at', so it has a note of its own.
+    [Test]
+    public static void ABootThatStoppedAfterLoadingSaysSo()
+    {
+        Expect.AreEqual(
+            "LoadingProgress.StartupImpact.History.Note.UnfinishedAfterLoading"
+                .Translate()
+                .ToString(),
+            StartupImpactSessionIndexEntry.UnfinishedNote(nameof(LoadingStage.Finished))
+        );
+        Expect.AreEqual(
+            "LoadingProgress.StartupImpact.History.Note.UnfinishedAt"
+                .Translate(StartupImpactSessionIndexEntry.TranslateStage("LoadModXml"))
+                .ToString(),
+            StartupImpactSessionIndexEntry.UnfinishedNote("LoadModXml")
+        );
     }
 }

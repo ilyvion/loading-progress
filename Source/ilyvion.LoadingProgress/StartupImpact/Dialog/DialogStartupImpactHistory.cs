@@ -470,16 +470,18 @@ internal sealed class DialogStartupImpactHistory : Window
             _ => throw new ArgumentOutOfRangeException(nameof(group), group, null),
         };
 
+    // A session not timed to the main menu, one from before that was measured or one that went
+    // into a game or whose menu never settled, says so rather than passing for a comparable run.
     private static string NoteFor(StartupImpactSessionIndexEntry entry, bool comparable) =>
         entry.Completed
-            ? comparable
-                ? string.Empty
-                : "LoadingProgress.StartupImpact.History.Note.DifferentList".Translate().ToString()
-            : string.IsNullOrEmpty(entry.LastStage)
-                ? "LoadingProgress.StartupImpact.History.Note.Unfinished".Translate().ToString()
-                : "LoadingProgress.StartupImpact.History.Note.UnfinishedAt"
-                    .Translate(StartupImpactSessionIndexEntry.TranslateStage(entry.LastStage))
-                    .ToString();
+            ? !comparable
+                ? "LoadingProgress.StartupImpact.History.Note.DifferentList".Translate().ToString()
+                : entry.MeasuredToMenu
+                    ? string.Empty
+                    : "LoadingProgress.StartupImpact.History.Note.ToEndOfLoading"
+                        .Translate()
+                        .ToString()
+            : StartupImpactSessionIndexEntry.UnfinishedNote(entry.LastStage);
 
     private static Color NoteColorFor(StartupImpactSessionIndexEntry entry, bool comparable) =>
         !entry.Completed ? UnfinishedColor

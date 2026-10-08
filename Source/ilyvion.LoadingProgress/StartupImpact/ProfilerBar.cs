@@ -13,6 +13,11 @@ internal sealed class ProfilerBar
     /// </summary>
     public float Tau { get; set; } = 1000f;
 
+    /// <summary>
+    /// Extra lines for a segment's tooltip, by category, shown under the usual label and time.
+    /// </summary>
+    public IReadOnlyDictionary<string, string>? TooltipDetails { get; set; }
+
     public static string TimeText(float ms) =>
         TimeText(ms, LoadingProgressMod.Settings.ShowStartupImpactTimesInSecondsOnly);
 
@@ -85,7 +90,7 @@ internal sealed class ProfilerBar
             DrawLinearScale(
                 metrics,
                 categories,
-                maxImpact,
+                LinearSpan(maxImpact, sumLinear),
                 categoryColors,
                 innerX,
                 innerY,
@@ -120,6 +125,14 @@ internal sealed class ProfilerBar
                 : category;
         }
 
+        string Tooltip(string category, float impact)
+        {
+            var text = $"{TooltipLabel(category)}: {TimeText(impact)}";
+            return TooltipDetails != null && TooltipDetails.TryGetValue(category, out var detail)
+                ? text + "\n" + detail
+                : text;
+        }
+
         void DrawLinearScale(
             IReadOnlyList<float> metrics,
             IReadOnlyList<string> categories,
@@ -146,10 +159,7 @@ internal sealed class ProfilerBar
                 var color = categoryColors.TryGetValue(categories[i], out var c) ? c : DefaultColor;
                 DrawSegment(textRect, color);
 
-                TooltipHandler.TipRegion(
-                    textRect,
-                    new TipSignal($"{TooltipLabel(categories[i])}: {TimeText(impact)}")
-                );
+                TooltipHandler.TipRegion(textRect, new TipSignal(Tooltip(categories[i], impact)));
 
                 x += width;
             }
@@ -207,10 +217,7 @@ internal sealed class ProfilerBar
                 var color = categoryColors.TryGetValue(categories[i], out var c) ? c : DefaultColor;
                 DrawSegment(textRect, color);
 
-                TooltipHandler.TipRegion(
-                    textRect,
-                    new TipSignal($"{TooltipLabel(categories[i])}: {TimeText(impact)}")
-                );
+                TooltipHandler.TipRegion(textRect, new TipSignal(Tooltip(categories[i], impact)));
 
                 xCursor += width;
                 drawn += width;
@@ -244,6 +251,18 @@ internal sealed class ProfilerBar
             GUI.color = stored;
         }
     }
+
+    /// <summary>
+    /// What a linear bar's full width stands for: <paramref name="span"/>, or the segments'
+    /// <paramref name="segmentsTotal"/> when they come to more, so the bar never runs past its
+    /// rect. The log scale caps its fill instead.
+    /// </summary>
+    /// <remarks>
+    /// The totals bar's segments can come to a little more than the startup time: see
+    /// <see cref="Dialog.StartupImpactSessionViewData.RemainingTotal"/>.
+    /// </remarks>
+    internal static float LinearSpan(float span, float segmentsTotal) =>
+        Math.Max(span, segmentsTotal);
 
     /// <summary>
     /// Applies a log scaling transformation to the input value x, using tau as the scaling parameter.

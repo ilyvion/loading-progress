@@ -1,9 +1,12 @@
-﻿namespace ilyvion.LoadingProgress.StartupImpact;
+﻿using System.Diagnostics;
+
+namespace ilyvion.LoadingProgress.StartupImpact;
 
 internal sealed class StartupImpact
 {
     private int _activeThreadId;
     private readonly ProfilerStopwatch _loadingProfiler;
+    private readonly Stopwatch _clock = new();
 
     public ModInfoList Modlist { get; } = new();
 
@@ -12,6 +15,30 @@ internal sealed class StartupImpact
     /// </summary>
     public float TotalLoadingTime { get; private set; }
     public Profiler BaseGameProfiler { get; }
+
+    /// <summary>
+    /// Milliseconds since tracking began, on the clock the stage ledger and the time to the
+    /// main menu are read from.
+    /// </summary>
+    internal float ElapsedMs => (float)_clock.Elapsed.TotalMilliseconds;
+
+    /// <summary>
+    /// Per loading stage, how long it ran against how much of it a category accounted for.
+    /// </summary>
+    public StageLedger StageLedger { get; } = new(LoadingStage.Initializing.ToString());
+
+    /// <summary>
+    /// Whether FinishLoading has run, i.e. the loading time has been taken.
+    /// </summary>
+    public bool LoadingTimeMeasured { get; private set; }
+
+    /// <summary>
+    /// Milliseconds from the start of tracking to the frame the main menu was usable, or 0
+    /// until that frame comes. Later than <see cref="TotalLoadingTime"/> by however long the
+    /// interface's initialization and other mods' post-load events took, less any time the
+    /// game sat paused in the background in between.
+    /// </summary>
+    public float TimeToMenu { get; private set; }
 
     /// <summary>
     /// Whether TrackStartupLoadingImpact was on when the mod was constructed, i.e. for the
@@ -52,6 +79,9 @@ internal sealed class StartupImpact
         BaseGameProfiler = new Profiler("base game");
         _loadingProfiler = new ProfilerStopwatch("loading");
 
+        // The two clocks start together, so a time read off one can be set against the other:
+        // the time to the menu against the loading time, the stages against both.
+        _clock.Start();
         if (WasTrackingEnabledAtStartup)
         {
             _loadingProfiler.Start("loading");
@@ -69,68 +99,123 @@ internal sealed class StartupImpact
         }
     }
 
-    private bool _loadingTimeMeasured;
+    /// <summary>
+    /// Notes a stage change in the ledger.
+    /// </summary>
+    internal void NotifyStage(LoadingStage stage)
+    {
+        if (WasTrackingEnabledAtStartup)
+        {
+            StageLedger.Begin(stage.ToString(), ElapsedMs);
+        }
+    }
 
     public void FinishLoading()
     {
-        if (!_loadingTimeMeasured)
+        if (!LoadingTimeMeasured)
         {
-            _loadingTimeMeasured = true;
+            LoadingTimeMeasured = true;
             _ = _loadingProfiler.Stop("loading");
             TotalLoadingTime = _loadingProfiler.Total;
+            StageLedger.Close(ElapsedMs);
             _sessionCapturedAtUtc = DateTime.UtcNow;
-
-            // This boot finished, so the marker no longer describes anything.
-            StartupImpactCrashMarker.Clear();
 
             LoadingProgressMod.instance.harmony.UnpatchCategory(
                 Assembly.GetExecutingAssembly(),
                 "StartupImpact"
             );
 
-            // FinishLoading runs from inside the InitializingInterface long event; defer both of
-            // these until it has finished.
+            // FinishLoading runs inside the interface's own long event, so the previous
+            // startup's record waits until that event has finished, when Scribe is free. It
+            // does not wait for this startup to end: one that stopped on the way would lose it.
             if (PreviousUnfinishedBoot is not null)
             {
-                LongEventHandler.ExecuteWhenFinished(static () =>
-                {
-                    try
-                    {
-                        if (
-                            LoadingProgressMod.instance.StartupImpact.PreviousUnfinishedBoot is
-                            { } unfinished
-                        )
-                        {
-                            Dialog.StartupImpactSessionStorage.RecordUnfinishedBoot(unfinished);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        LoadingProgressMod.Error("Failed to record an unfinished boot: " + e);
-                    }
-                });
-            }
-
-            if (
-                WasTrackingEnabledAtStartup
-                && LoadingProgressMod.Settings.AutoSaveStartupImpactReport
-            )
-            {
-                LongEventHandler.ExecuteWhenFinished(static () =>
-                {
-                    try
-                    {
-                        Dialog.StartupImpactSessionStorage.SaveAndRecord(
-                            Dialog.StartupImpactSessionData.FromCurrentSession()
-                        );
-                    }
-                    catch (Exception e)
-                    {
-                        LoadingProgressMod.Error("Failed to auto-save startup impact report: " + e);
-                    }
-                });
+                LongEventHandler.ExecuteWhenFinished(RecordPreviousUnfinishedBoot);
             }
         }
+    }
+
+    private void RecordPreviousUnfinishedBoot()
+    {
+        if (PreviousUnfinishedBoot is not { } unfinished)
+        {
+            return;
+        }
+
+        try
+        {
+            Dialog.StartupImpactSessionStorage.RecordUnfinishedBoot(unfinished);
+        }
+        catch (Exception e)
+        {
+            LoadingProgressMod.Error("Failed to record an unfinished boot: " + e);
+        }
+    }
+
+    /// <summary>
+    /// Takes the time to the main menu, less <paramref name="pausedMs"/> the game sat paused in
+    /// the background on the way.
+    /// </summary>
+    internal void MarkMenuReached(float pausedMs)
+    {
+        if (LoadingTimeMeasured)
+        {
+            TimeToMenu = Math.Max(TotalLoadingTime, ElapsedMs - pausedMs);
+        }
+    }
+
+    /// <summary>
+    /// Ends the startup, after loading has: saves its session, once, when saving it
+    /// automatically is on, then removes the marker.
+    /// </summary>
+    /// <remarks>
+    /// Saving uses Scribe. An asynchronous long event whose thread is still running may be
+    /// using it, as loading a save does, so the saving then waits until that event has
+    /// finished. The marker stays until then, so a game that stops first leaves it, and the
+    /// next startup records this one as a startup that never finished.
+    /// </remarks>
+    internal void FinishStartup()
+    {
+        if (!LoadingTimeMeasured)
+        {
+            return;
+        }
+
+        if (SavingMustWait(LongEventHandler.eventThread))
+        {
+            LongEventHandler.ExecuteWhenFinished(SaveAtStartupEnd);
+        }
+        else
+        {
+            SaveAtStartupEnd();
+        }
+    }
+
+    /// <summary>
+    /// Whether the end of the startup's saving has to wait for the current long event: its
+    /// thread is running, and could be using Scribe. One queued but not yet started cannot be.
+    /// </summary>
+    internal static bool SavingMustWait(Thread? eventThread) => eventThread is { IsAlive: true };
+
+    // This startup's session, when saving it automatically is on; then the marker, since the
+    // boot it describes is over and recorded.
+    private void SaveAtStartupEnd()
+    {
+        if (WasTrackingEnabledAtStartup && LoadingProgressMod.Settings.AutoSaveStartupImpactReport)
+        {
+            try
+            {
+                Dialog.StartupImpactSessionStorage.SaveAndRecord(
+                    Dialog.StartupImpactSessionData.FromCurrentSession()
+                );
+            }
+            catch (Exception e)
+            {
+                LoadingProgressMod.Error("Failed to auto-save startup impact report: " + e);
+            }
+        }
+
+        StartupImpactCrashMarker.Clear();
     }
 
     public void UpdateActiveThreadId() => _activeThreadId = Environment.CurrentManagedThreadId;

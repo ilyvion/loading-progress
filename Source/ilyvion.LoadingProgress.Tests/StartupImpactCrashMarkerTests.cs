@@ -62,6 +62,23 @@ internal sealed class StartupImpactCrashMarkerTests
         Expect.IsFalse(File.Exists(StartupImpactCrashMarker.MarkerFilePath));
     }
 
+    // The marker now stays through the wait after loading, so the end of loading is recorded
+    // too, but only once the play data has loaded: the interface also initializes after a load
+    // that failed, and that boot keeps the stage it failed at.
+    [Test]
+    public static void TheEndOfLoadingIsRecordedOnlyAfterALoadThatCompleted()
+    {
+        Expect.IsTrue(
+            StartupImpactCrashMarker.Records(LoadingStage.Finished, playDataLoaded: true)
+        );
+        Expect.IsFalse(
+            StartupImpactCrashMarker.Records(LoadingStage.Finished, playDataLoaded: false)
+        );
+        Expect.IsTrue(
+            StartupImpactCrashMarker.Records(LoadingStage.LoadModXml, playDataLoaded: false)
+        );
+    }
+
     [Test]
     public static void AMarkerWithoutAStartTimeIsNoMarker() =>
         Expect.IsFalse(StartupImpactCrashMarker.Parse("version=1\nstage=LoadModXml\n").HasValue);

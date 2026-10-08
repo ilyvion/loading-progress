@@ -23,6 +23,7 @@ internal sealed class StartupImpactSessionIndexEntry : IExposable
     private string lastStage = "";
     private bool pinned;
     private bool baseline;
+    private bool measuredToMenu;
 
     public string Id => id;
 
@@ -30,16 +31,23 @@ internal sealed class StartupImpactSessionIndexEntry : IExposable
         savedAtUtcTicks == 0 ? DateTime.MinValue : new DateTime(savedAtUtcTicks, DateTimeKind.Utc);
 
     /// <summary>
-    /// Total load time in milliseconds, matching StartupImpactSessionData and
-    /// the ProfilerStopwatch it comes from, or 0 for a boot that never
-    /// finished. Note this is not the unit Settings.LoadingTimes uses, which is
-    /// seconds.
+    /// The time the session is listed by, in milliseconds: the startup time the
+    /// startup impact window gives it (see <see cref="ListedTime"/>); 0 for a
+    /// boot that never finished. Note this is not the unit Settings.LoadingTimes
+    /// uses, which is seconds.
     /// </summary>
     public float LoadingTime => loadingTime;
 
     public int ModsLoaded => modsLoaded;
 
     public int ModListHash => modListHash;
+
+    /// <summary>
+    /// Whether <see cref="LoadingTime"/> runs to the main menu. False for a session saved
+    /// before that was measured, and for a startup that went straight into a game; theirs
+    /// runs to the end of loading only, so it reads shorter than a newer session's would.
+    /// </summary>
+    public bool MeasuredToMenu => measuredToMenu;
 
     /// <summary>
     /// Whether the boot reached the end of loading. False means the run was
@@ -89,6 +97,21 @@ internal sealed class StartupImpactSessionIndexEntry : IExposable
     /// every stage; and Translate pseudo-translates a fallback result in dev
     /// mode, which would garble the one case this exists to serve.
     /// </remarks>
+    /// <summary>
+    /// The history's note on a boot that never finished, from the last stage it recorded:
+    /// where it stopped, or that it stopped after loading, before the main menu was usable.
+    /// </summary>
+    internal static string UnfinishedNote(string? lastStage) =>
+        string.IsNullOrEmpty(lastStage)
+            ? "LoadingProgress.StartupImpact.History.Note.Unfinished".Translate().ToString()
+        : lastStage == nameof(LoadingStage.Finished)
+            ? "LoadingProgress.StartupImpact.History.Note.UnfinishedAfterLoading"
+                .Translate()
+                .ToString()
+        : "LoadingProgress.StartupImpact.History.Note.UnfinishedAt"
+            .Translate(TranslateStage(lastStage!))
+            .ToString();
+
     internal static string TranslateStage(string stageName)
     {
         if (string.IsNullOrEmpty(stageName))
@@ -180,12 +203,36 @@ internal sealed class StartupImpactSessionIndexEntry : IExposable
                     data.SavedAtUtc == DateTime.MinValue
                         ? DateTime.UtcNow.Ticks
                         : data.SavedAtUtc.Ticks,
-                loadingTime = data.LoadingTime,
+                loadingTime = ListedTime(data),
                 modsLoaded = data.ModsLoaded ?? data.Mods.Count,
                 modListHash = data.ModListHash,
                 completed = true,
                 lastStage = "",
+                measuredToMenu = data.TimeToMenu > 0f,
             };
+
+    /// <summary>
+    /// Takes the figures of a session saved again under this entry, as when the player saves
+    /// a session already in the history by hand.
+    /// </summary>
+    internal void UpdateFrom(StartupImpactSessionData data)
+    {
+        if (data is null)
+        {
+            throw new ArgumentNullException(nameof(data));
+        }
+
+        loadingTime = ListedTime(data);
+        modsLoaded = data.ModsLoaded ?? data.Mods.Count;
+        measuredToMenu = data.TimeToMenu > 0f;
+    }
+
+    /// <summary>
+    /// The time a session is listed by, the startup time the startup impact window puts in its
+    /// title: see <see cref="StartupImpactSessionViewData.Span(StartupImpactSessionData)"/>.
+    /// </summary>
+    internal static float ListedTime(StartupImpactSessionData data) =>
+        StartupImpactSessionViewData.Span(data);
 
     internal static StartupImpactSessionIndexEntry ForUnfinishedBoot(
         string id,
@@ -216,6 +263,7 @@ internal sealed class StartupImpactSessionIndexEntry : IExposable
         Scribe_Values.Look(ref lastStage, "lastStage", "");
         Scribe_Values.Look(ref pinned, "pinned");
         Scribe_Values.Look(ref baseline, "baseline");
+        Scribe_Values.Look(ref measuredToMenu, "measuredToMenu");
 
         if (Scribe.mode == LoadSaveMode.LoadingVars)
         {

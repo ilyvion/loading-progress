@@ -44,5 +44,6 @@
         <Publicize Include="Assembly-CSharp:Verse.MapDrawer.SectionCount" />
         <Publicize Include="Assembly-CSharp:Verse.PostLoadIniter.saveablesToPostLoad" />
         <Publicize Include="Assembly-CSharp:Verse.Map.loadedFullThings" />
+        <Publicize Include="Assembly-CSharp:Verse.QuickStarter.quickStarted" />
     </ItemGroup>
 </Project>

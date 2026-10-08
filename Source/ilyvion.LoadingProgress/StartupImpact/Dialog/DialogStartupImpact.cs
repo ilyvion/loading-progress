@@ -634,19 +634,21 @@ internal sealed class DialogStartupImpact : Window
         Widgets.Label(
             titleRect,
             "LoadingProgress.StartupImpact.StartupTime".Translate(
-                ProfilerBar.TimeText(_sessionData.LoadingTime)
+                ProfilerBar.TimeText(_sessionViewData.TotalWindow)
             )
         );
         y += titleRect.height;
 
         Rect profileRect = new(0, y, area.width, BarHeight);
+        profilerBar.TooltipDetails = _sessionViewData.RemainingTooltipDetails;
         profilerBar.Draw(
             profileRect,
             _sessionViewData.MetricsTotal,
             StartupImpactSessionViewData.CategoriesTotal,
-            _sessionData.LoadingTime,
+            _sessionViewData.TotalWindow,
             CategoryColors
         );
+        profilerBar.TooltipDetails = null;
         y += profileRect.height + InnerSpacing;
 
         if (

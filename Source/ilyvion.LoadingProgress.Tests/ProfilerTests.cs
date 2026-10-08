@@ -5,10 +5,11 @@ using ilyvion.LoadingProgress.StartupImpact.Patches;
 
 namespace ilyvion.LoadingProgress.Tests;
 
+// Some of these tests wait through the startup's tail, while other mods' post-load events run.
 [TestFixture(TestType.MainMenu)]
+[WarningsAllowed(TestStartup.OtherModsWarnings)]
 internal sealed class ProfilerTests
 {
-    private const string TrackingOff = "Startup impact tracking is off.";
     private const string TestHarmonyId = "ilyvion.LoadingProgress.Tests.ProfilerTests";
     private const string ConstructorCategory = "LoadingProgress.StartupImpact.ModConstructor";
     private const string NextCategory = "LoadingProgress.Tests.ProfilerTests.Next";
@@ -59,12 +60,19 @@ internal sealed class ProfilerTests
     }
 
     [Test]
-    public static void AnOuterCategoryKeepsItsTimeFromBeforeAnInnerOne()
+    public static IEnumerator AnOuterCategoryKeepsItsTimeFromBeforeAnInnerOne()
     {
         if (!LoadingProgressMod.Settings.TrackStartupLoadingImpact)
         {
-            Test.Skip(TrackingOff);
-            return;
+            Test.Skip(TestStartup.TrackingOff);
+            yield break;
+        }
+
+        // Every stop on the active thread also goes to the live session's stage ledger.
+        var framesWaited = 0;
+        while (TestStartup.StillStartingUp(ref framesWaited))
+        {
+            yield return null;
         }
 
         using var profiler = new Profiler("test");
@@ -82,17 +90,55 @@ internal sealed class ProfilerTests
         Expect.GreaterThanOrEqualTo(inner, 19f);
     }
 
+    // The profiler records the open category's time before it opens the new one. In the other
+    // order, a start whose recording throws would leave the new category open with no stop
+    // coming for it, and the open category's stop would close and record it instead, with a
+    // mismatch error. TheOpenCategoryStaysOnTopUntilTheNewOneIsPushed checks the halves the
+    // start is made of; this checks the start itself.
+    [Test]
+    public static IEnumerator AStartWhoseRecordingThrowsOpensNothing()
+    {
+        if (!LoadingProgressMod.Settings.TrackStartupLoadingImpact)
+        {
+            Test.Skip(TestStartup.TrackingOff);
+            yield break;
+        }
+
+        // A recording reaches the live session's stage ledger, where it is made to throw.
+        var framesWaited = 0;
+        while (TestStartup.StillStartingUp(ref framesWaited))
+        {
+            yield return null;
+        }
+
+        using var profiler = new Profiler("test");
+        profiler.Start("outer");
+        RecordingFailure.During(() =>
+            _ = Expect.Throws<InvalidOperationException>(() => profiler.Start("inner"))
+        );
+        _ = profiler.Stop("outer");
+
+        Expect.IsTrue(profiler.Metrics.ContainsKey("outer"));
+        Expect.IsFalse(profiler.Metrics.ContainsKey("inner"));
+    }
+
     // The timing patches closed their categories in postfixes, which do not run when the
     // method throws, and the engine goes on loading after a mod constructor that throws. The
     // category stayed open, and each later start on that mod's timer credited it with the
     // whole gap since the timer's previous step.
     [Test]
-    public static void AMethodThatThrowsHasItsCategoryClosed()
+    public static IEnumerator AMethodThatThrowsHasItsCategoryClosed()
     {
         if (!LoadingProgressMod.Settings.TrackStartupLoadingImpact)
         {
-            Test.Skip(TrackingOff);
-            return;
+            Test.Skip(TestStartup.TrackingOff);
+            yield break;
+        }
+
+        var framesWaited = 0;
+        while (TestStartup.StillStartingUp(ref framesWaited))
+        {
+            yield return null;
         }
 
         var (mod, profiler, before) = ConstructorTimingSoFar();
@@ -125,12 +171,18 @@ internal sealed class ProfilerTests
     // mod's postfix on the same method, such as Missile Girl writing its cache after
     // ParseAndProcessXML.
     [Test]
-    public static void AnotherModsLaterPostfixStaysOutsideTheCategory()
+    public static IEnumerator AnotherModsLaterPostfixStaysOutsideTheCategory()
     {
         if (!LoadingProgressMod.Settings.TrackStartupLoadingImpact)
         {
-            Test.Skip(TrackingOff);
-            return;
+            Test.Skip(TestStartup.TrackingOff);
+            yield break;
+        }
+
+        var framesWaited = 0;
+        while (TestStartup.StillStartingUp(ref framesWaited))
+        {
+            yield return null;
         }
 
         var (mod, profiler, before) = ConstructorTimingSoFar();
@@ -152,12 +204,18 @@ internal sealed class ProfilerTests
     // finalizer must not stop it again: stopping one that is not running logs an error, which
     // fails the test.
     [Test]
-    public static void ALaterPostfixThatThrowsLeavesOneStop()
+    public static IEnumerator ALaterPostfixThatThrowsLeavesOneStop()
     {
         if (!LoadingProgressMod.Settings.TrackStartupLoadingImpact)
         {
-            Test.Skip(TrackingOff);
-            return;
+            Test.Skip(TestStartup.TrackingOff);
+            yield break;
+        }
+
+        var framesWaited = 0;
+        while (TestStartup.StillStartingUp(ref framesWaited))
+        {
+            yield return null;
         }
 
         var (mod, profiler, before) = ConstructorTimingSoFar();
@@ -219,8 +277,8 @@ internal sealed class ProfilerTests
         return harmony;
     }
 
-    // Takes the timing off again and the test's entries back out of the live session. A
-    // category a regression left open is closed first, so it cannot go on collecting time.
+    // Takes the timing off again and the test's time back out of the live session. A category
+    // a regression left open is closed first, so it cannot go on collecting time.
     private static void Untime(Harmony harmony, ModContentPack mod, Profiler profiler, float before)
     {
         harmony.UnpatchAll(harmony.Id);
@@ -229,15 +287,13 @@ internal sealed class ProfilerTests
             Mod_Constructor_Patches._currentModAssembly = null;
             StartupImpactProfilerUtil.StopModProfiler(mod, ConstructorCategory);
         }
-        if (before > 0f)
+        _ = profiler.Metrics.TryGetValue(ConstructorCategory, out var now);
+        profiler.Discount(ConstructorCategory, now - before);
+        if (profiler.Metrics.TryGetValue(NextCategory, out var next))
         {
-            profiler.Metrics[ConstructorCategory] = before;
+            profiler.Discount(NextCategory, next);
+            _ = profiler.Metrics.TryRemove(NextCategory, out _);
         }
-        else
-        {
-            _ = profiler.Metrics.TryRemove(ConstructorCategory, out _);
-        }
-        _ = profiler.Metrics.TryRemove(NextCategory, out _);
     }
 
     // Stand in for mod constructors, with the argument the patch reads.

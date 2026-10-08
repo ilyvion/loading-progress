@@ -222,6 +222,9 @@ internal static class StartupImpactSessionStorage
             if (already >= 0)
             {
                 File.Copy(SaveFilePath, SessionFilePath(entries[already].Id), true);
+                // A session saved again by hand carries the figures the picker lists now.
+                entries[already].UpdateFrom(sessionData);
+                SaveIndex(entries);
                 return;
             }
 

@@ -8,11 +8,19 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
 {
     private static bool _hasWarnedAboutReloadIntPatches;
 
+    // Whether the settings asked for this patch: the deferred-task replacement during loading
+    // and the in-game repaint run only then. With tracking on, the patch is applied without
+    // them too, for the deferred actions after loading alone.
+    private static bool _settingsAskForThePatch;
+
     private static bool Prepare()
     {
+        _settingsAskForThePatch =
+            LoadingProgressMod.Settings.PatchInitialization
+            || LoadingProgressMod.Settings.PatchInGameDeferredRepaint;
         if (
-            !LoadingProgressMod.Settings.PatchInitialization
-            && !LoadingProgressMod.Settings.PatchInGameDeferredRepaint
+            !_settingsAskForThePatch
+            && !LoadingProgressMod.instance.StartupImpact.WasTrackingEnabledAtStartup
         )
         {
             LoadingProgressMod.Message(
@@ -27,7 +35,8 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
     private static bool Prefix()
     {
         if (
-            LongEventHandler.toExecuteWhenFinished.Count > 0
+            _settingsAskForThePatch
+            && LongEventHandler.toExecuteWhenFinished.Count > 0
             && LoadingProgressWindow.CurrentStage != LoadingStage.Finished
         )
         {
@@ -42,8 +51,24 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
             return false;
         }
 
+        // In the wait after loading, each action is timed under its own mod, not the event it
+        // runs after.
         if (
-            LongEventHandler.toExecuteWhenFinished.Count > 0
+            HandsTheQueueToTheTail(
+                LongEventHandler.toExecuteWhenFinished.Count,
+                LoadingProgressWindow.CurrentStage,
+                PostLoadTracker.IsTimingTheTail,
+                UnityData.IsInMainThread
+            )
+        )
+        {
+            PostLoadTracker.RunDeferredActions();
+            return false;
+        }
+
+        if (
+            _settingsAskForThePatch
+            && LongEventHandler.toExecuteWhenFinished.Count > 0
             && LoadingProgressWindow.CurrentStage == LoadingStage.Finished
             && LoadingProgressMod.Settings.PatchInGameDeferredRepaint
             && InGameLoadingSession.IsActive
@@ -85,6 +110,20 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
 
         return true;
     }
+
+    /// <summary>
+    /// Whether the deferred actions are run by
+    /// <see cref="PostLoadTracker.RunDeferredActions()"/>: some are queued, loading has
+    /// finished, the wait after loading is being timed, and this is the main thread, where
+    /// everything after loading runs. A call from another thread, which the engine makes run
+    /// the queue there, is left to the engine, untimed.
+    /// </summary>
+    internal static bool HandsTheQueueToTheTail(
+        int queued,
+        LoadingStage stage,
+        bool timingTheTail,
+        bool onMainThread
+    ) => queued > 0 && stage == LoadingStage.Finished && timingTheTail && onMainThread;
 
 #pragma warning disable CA1502
     internal static IEnumerable ExecuteToExecuteWhenFinished()
@@ -140,6 +179,20 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
         else
         {
             (reloadContentIntMethod, reloadContentIntmodContentPackField) = methodFields.First();
+        }
+
+        // This resumed pass runs after the atlas baking and the garbage collection, so the
+        // window's stage rule for it no longer fires. The stage ledger still begins the stage
+        // here, or what the pass leaves untimed would be filed under the garbage collection.
+        if (
+            StaticConstructorOnStartupUtilityReplacement._callAllCalled
+            && LoadingProgressWindow.CurrentStage > LoadingStage.ExecuteToExecuteWhenFinished2
+            && LoadingProgressWindow.CurrentStage < LoadingStage.Finished
+        )
+        {
+            LoadingProgressMod.instance.StartupImpact.NotifyStage(
+                LoadingStage.ExecuteToExecuteWhenFinished2
+            );
         }
 
         LongEventHandler.executingToExecuteWhenFinished = true;
@@ -285,10 +338,7 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
 
             ModContentPack_ReloadContentInt_Patch.CurrentModContentPack = null;
 
-            var label =
-                toExecuteWhenFinished.Method.DeclaringType.ToString()
-                + " -> "
-                + toExecuteWhenFinished.Method.ToString();
+            var label = ProfilerLabel(toExecuteWhenFinished);
             if (
                 LoadingProgressWindow.CurrentStage
                 is LoadingStage.ExecuteToExecuteWhenFinished
@@ -308,15 +358,7 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
                 );
             }
             yield return null;
-            DeepProfiler.Start(label);
-            try
-            {
-                RunDeferredAction(toExecuteWhenFinished, label, timeDeferredActions);
-            }
-            finally
-            {
-                DeepProfiler.End();
-            }
+            RunLabelledDeferredAction(toExecuteWhenFinished, label, label, timeDeferredActions);
 
             // DeepProfiler.End() above just restored the parent scope's label (e.g.
             // "ExecuteToExecuteWhenFinished()") via DeepProfiler_End_Patches, undoing the
@@ -353,27 +395,63 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
         "LoadingProgress.StartupImpact.ExecuteToExecuteWhenFinished";
 
     /// <summary>
+    /// The engine's profiler label for a deferred action: the type and the method it runs.
+    /// </summary>
+    internal static string ProfilerLabel(Action action) =>
+        $"{action.Method.DeclaringType} -> {action.Method}";
+
+    /// <summary>
+    /// Runs one deferred action inside its profiler label, as the engine's pass does, through
+    /// <see cref="RunDeferredAction(Action, string, bool, string)"/>, under
+    /// <paramref name="categoryLabel"/>.
+    /// </summary>
+    internal static void RunLabelledDeferredAction(
+        Action action,
+        string profilerLabel,
+        string categoryLabel,
+        bool timed,
+        string categoryKey = DeferredActionCategory
+    )
+    {
+        DeepProfiler.Start(profilerLabel);
+        try
+        {
+            RunDeferredAction(action, categoryLabel, timed, categoryKey);
+        }
+        finally
+        {
+            DeepProfiler.End();
+        }
+    }
+
+    /// <summary>
     /// Runs one deferred initialization action, timed under the mod it is credited to when
-    /// <paramref name="timed"/>. Its category is closed whether or not the action throws, and
-    /// an exception is logged rather than passed on, so the rest of the queue still runs.
+    /// <paramref name="timed"/>, in a category under <paramref name="categoryKey"/>. Its
+    /// category is closed whether or not the action throws, and an exception is logged rather
+    /// than passed on, so the rest of the queue still runs.
     /// </summary>
     /// <remarks>
     /// Finding the owner walks the action's closure by reflection, for each of the tens of
     /// thousands of actions a large mod list queues, so it is skipped when nothing is timed. A
     /// failure in the timing itself leaves the action untimed, never unrun.
     /// </remarks>
-    internal static void RunDeferredAction(Action action, string label, bool timed) =>
-        RunDeferredAction(action, label, timed, OwnerOf);
+    internal static void RunDeferredAction(
+        Action action,
+        string label,
+        bool timed,
+        string categoryKey = DeferredActionCategory
+    ) => RunDeferredAction(action, label, timed, OwnerOf, categoryKey);
 
     /// <summary>
-    /// <see cref="RunDeferredAction(Action, string, bool)"/>, finding the action's owner with
-    /// <paramref name="findOwner"/>.
+    /// <see cref="RunDeferredAction(Action, string, bool, string)"/>, finding the action's owner
+    /// with <paramref name="findOwner"/>.
     /// </summary>
     internal static void RunDeferredAction(
         Action action,
         string label,
         bool timed,
-        Func<Delegate, (ModContentPack? Owner, bool IsBaseGame)> findOwner
+        Func<Delegate, (ModContentPack? Owner, bool IsBaseGame)> findOwner,
+        string categoryKey = DeferredActionCategory
     )
     {
         string? category = null;
@@ -384,7 +462,7 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
             try
             {
                 (owner, isBaseGame) = findOwner(action);
-                category = $"{DeferredActionCategory}|{label}";
+                category = $"{categoryKey}|{label}";
                 StartupImpactProfilerUtil.Start(owner, isBaseGame, category);
             }
             catch (Exception ex)

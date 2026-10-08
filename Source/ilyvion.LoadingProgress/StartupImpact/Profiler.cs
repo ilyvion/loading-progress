@@ -62,6 +62,9 @@ internal sealed class Profiler(string measurementTarget) : IDisposable
             _ = Metrics.TryGetValue(category, out var total);
             total += ms;
             Metrics[category] = total;
+
+            var startupImpact = LoadingProgressMod.instance.StartupImpact;
+            startupImpact.StageLedger.Attribute(ms, startupImpact.ElapsedMs);
         }
         else
         {
@@ -69,6 +72,22 @@ internal sealed class Profiler(string measurementTarget) : IDisposable
 
             _ = OffThreadMetrics.AddOrUpdate(category, ms, (_, total) => total + ms);
         }
+    }
+
+    /// <summary>
+    /// Takes <paramref name="ms"/> back off a category timed on the active thread, for time it
+    /// was open that was not the startup's: the game sitting paused in the background.
+    /// </summary>
+    public void Discount(string category, float ms)
+    {
+        if (ms <= 0f || !Metrics.TryGetValue(category, out var total))
+        {
+            return;
+        }
+
+        var taken = Math.Min(ms, total);
+        Metrics[category] = total - taken;
+        TotalImpact -= taken;
     }
 
     public void Dispose()

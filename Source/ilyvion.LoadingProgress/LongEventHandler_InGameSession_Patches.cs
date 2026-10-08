@@ -1,12 +1,22 @@
+using ilyvion.LoadingProgress.StartupImpact;
+
 namespace ilyvion.LoadingProgress;
 
 // LongEventsUpdate runs every frame regardless of whether an event is currently displayed,
 // unlike DrawLongEventWindowContents (which only fires while currentEvent != null), so it's the
-// only reliable place to observe "the queue went empty" and end a session.
+// only reliable place to observe "the queue went empty" and end a session, and likewise the
+// place to see every long event that runs between the end of loading and the idle main menu.
 [HarmonyPatch(typeof(LongEventHandler), nameof(LongEventHandler.LongEventsUpdate))]
 internal static class LongEventHandler_LongEventsUpdate_Patches
 {
-    private static void Postfix() => InGameLoadingSession.Update();
+    // Before the frame's long events run: where a pause in the background ends.
+    private static void Prefix() => PostLoadTracker.MarkFrameStart();
+
+    private static void Postfix()
+    {
+        PostLoadTracker.Update();
+        InGameLoadingSession.Update();
+    }
 }
 
 [HarmonyPatch(typeof(LongEventHandler), nameof(LongEventHandler.ClearQueuedEvents))]
