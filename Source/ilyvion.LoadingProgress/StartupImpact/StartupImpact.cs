@@ -55,6 +55,7 @@ internal sealed class StartupImpact
     internal StartupImpactCrashMarker.UnfinishedBoot? PreviousUnfinishedBoot { get; }
 
     private DateTime? _sessionCapturedAtUtc;
+    private bool _previousUnfinishedBootRecorded;
 
     /// <summary>
     /// When this startup's session was captured, fixed for the life of the
@@ -128,6 +129,8 @@ internal sealed class StartupImpact
             // FinishLoading runs inside the interface's own long event, so the previous
             // startup's record waits until that event has finished, when Scribe is free. It
             // does not wait for this startup to end: one that stopped on the way would lose it.
+            // The engine runs that queue only after an event that returns normally, so the
+            // end of the startup makes the record too, if this has not run by then.
             if (PreviousUnfinishedBoot is not null)
             {
                 LongEventHandler.ExecuteWhenFinished(RecordPreviousUnfinishedBoot);
@@ -135,12 +138,14 @@ internal sealed class StartupImpact
         }
     }
 
+    // Records the previous unfinished startup once, from whichever asks first.
     private void RecordPreviousUnfinishedBoot()
     {
-        if (PreviousUnfinishedBoot is not { } unfinished)
+        if (_previousUnfinishedBootRecorded || PreviousUnfinishedBoot is not { } unfinished)
         {
             return;
         }
+        _previousUnfinishedBootRecorded = true;
 
         try
         {
@@ -199,9 +204,13 @@ internal sealed class StartupImpact
     internal static bool SavingMustWait(Thread? eventThread) => eventThread is { IsAlive: true };
 
     // This startup's session, when saving it automatically is on; then the marker, since the
-    // boot it describes is over and recorded.
+    // boot it describes is over and recorded. The previous unfinished startup is recorded
+    // first, if the interface's event threw and never ran the action FinishLoading queued: its
+    // marker is already gone, so nothing could record it later.
     private void SaveAtStartupEnd()
     {
+        RecordPreviousUnfinishedBoot();
+
         if (WasTrackingEnabledAtStartup && LoadingProgressMod.Settings.AutoSaveStartupImpactReport)
         {
             try
