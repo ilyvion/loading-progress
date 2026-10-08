@@ -604,37 +604,15 @@ internal sealed partial class LoadingProgressWindow
                 CurrentStage <= LoadingStage.GarbageCollection && value == LoadingFinishedLabel,
             value =>
             {
+                // Loading is over, but the startup is not: the interface's initialization and
+                // the long events other mods queue for after loading still run, with this
+                // window up and its clock going, until CompleteStartup at the frame the menu is
+                // usable. The activity line shows each of those events from here on.
                 CurrentStage = LoadingStage.Finished;
-                if (_loadingStopwatch is { } loadingStopwatch)
-                {
-                    var elapsed = loadingStopwatch.Elapsed;
-                    CurrentLoadingTime = elapsed;
-                    var elapsedSeconds = (float)elapsed.TotalSeconds;
-                    var settings = LoadingProgressMod.Settings;
-
-                    // Mod list changed: the existing list served as the estimate this load,
-                    // but we clear it so history reflects the new mod configuration.
-                    if (
-                        settings.ClearEstimatesOnModListChange
-                        && _currentModHash != settings.LastLoadingModHash
-                    )
-                    {
-                        settings.LoadingTimes.Clear();
-                    }
-
-                    settings.LoadingTimes.Add(elapsedSeconds);
-                    while (settings.LoadingTimes.Count > settings.LoadingTimesCapacity)
-                    {
-                        settings.LoadingTimes.RemoveAt(0);
-                    }
-
-                    settings.LastLoadingModHash = _currentModHash;
-                    settings.Write();
-                    loadingStopwatch.Stop();
-                    Translations.Clear();
-                }
+                _currentLoadingActivity = string.Empty;
             },
-            LoadingStage.Finished
+            LoadingStage.Finished,
+            activity => string.IsNullOrEmpty(activity) ? null : activity
         ),
     ];
 

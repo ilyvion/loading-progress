@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
     <LoadingProgress.Title>Loading progress</LoadingProgress.Title>
+    <LoadingProgress.FinishingUp>Finishing up</LoadingProgress.FinishingUp>
     <LoadingProgress.ExecuteToExecuteWhenFinished>Loading progress: Executing delayed initialization tasks</LoadingProgress.ExecuteToExecuteWhenFinished>
     <LoadingProgress.InGameExecuteToExecuteWhenFinished>Loading progress: Regenerating renderer</LoadingProgress.InGameExecuteToExecuteWhenFinished>
     <LoadingProgress.CallAll>Loading progress: Calling all static constructors</LoadingProgress.CallAll>
@@ -11,6 +12,7 @@
     <LoadingProgress.LoadingTimeLabel>Loading time</LoadingProgress.LoadingTimeLabel>
     <LoadingProgress.LoadingTime>Game took {0} to load</LoadingProgress.LoadingTime>
     <LoadingProgress.LoadingTime.Tip>Click to see loading time broken down in detail.</LoadingProgress.LoadingTime.Tip>
+    <LoadingProgress.LoadingTimeNotRecorded>Loading time not recorded</LoadingProgress.LoadingTimeNotRecorded>
     <LoadingProgress.TimeRemaining>{0} left of {1}</LoadingProgress.TimeRemaining>
     <LoadingProgress.TimeOverEstimate>{0} over {1}</LoadingProgress.TimeOverEstimate>
     <LoadingProgress.FasterGameLoadingEarlyModContentLoading>Loading progress — Faster Game Loading Early Mod Content Loading</LoadingProgress.FasterGameLoadingEarlyModContentLoading>

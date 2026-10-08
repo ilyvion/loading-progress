@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - The top bar's 'Untracked' segment, the part of the startup time no timed step accounts for, is now called 'Remaining'.
+- The loading window now stays on screen, with its clock running and its activity line naming each long event, until the main menu is usable (or a quicktest has gone straight into a game), instead of leaving when the interface begins initializing and handing the rest of the wait to the game's own status box, which reads '...' for an event with no text. The loading time it records for its estimate runs to the menu, leaves out time the game sat paused in the background, and matches the startup time the startup impact window shows, and so does the 'Game took X to load' figure in the main menu's corner, the pause menu and the mod settings; the history of earlier, shorter samples is cleared once. A startup that goes straight into a game records no loading time, since it never reaches the menu, and neither does one whose menu has not settled five minutes after loading, as when a mod keeps a long event queued on it: the window leaves anyway, and the corner, the pause menu and the settings say that no time was recorded.
 - With automatic saving on, the startup impact session is now saved once, when the startup reaches the main menu or goes into a game, instead of when loading finishes. A startup that stops in the wait between the two is recorded as one that never finished, stopped after loading.
 
 ### Fixed

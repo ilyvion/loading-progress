@@ -86,6 +86,16 @@ internal sealed class Settings : ModSettings
         set => _clearEstimatesOnModListChange = value;
     }
 
+    // Loading-time samples run to the frame the main menu is usable; those recorded by
+    // earlier versions ran only to the interface starting to initialize. Set once the
+    // history has been cleared of the shorter kind.
+    private bool _loadingTimesMeasuredToMenu;
+    public bool LoadingTimesMeasuredToMenu
+    {
+        get => _loadingTimesMeasuredToMenu;
+        set => _loadingTimesMeasuredToMenu = value;
+    }
+
     // The 10 most-recent entries get decreasing weights 10→1; everything older gets weight 1.
     // This means old entries are never squeezed out no matter how large the history grows.
     private const int WeightSpread = 10;
@@ -247,6 +257,7 @@ internal sealed class Settings : ModSettings
             "clearEstimatesOnModListChange",
             true
         );
+        Scribe_Values.Look(ref _loadingTimesMeasuredToMenu, "loadingTimesMeasuredToMenu", false);
 
         if (
             Scribe.mode == LoadSaveMode.LoadingVars
@@ -531,11 +542,8 @@ internal sealed class Settings : ModSettings
 
         listingStandard.Gap();
 
-        if (LoadingProgressWindow.CurrentLoadingTime is { } loadingTime)
+        if (LoadingProgressWindow.LoadingTimeText is { } text)
         {
-            string text = "LoadingProgress.LoadingTime".Translate(
-                Utilities.FormatDuration(loadingTime)
-            );
             if (
                 listingStandard.ButtonTextLabeled(
                     "LoadingProgress.LoadingTimeLabel".Translate(),

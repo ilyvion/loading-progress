@@ -18,21 +18,18 @@ internal static class VersionControl_DrawInfoInCorner_Patch
             return;
         }
 
-        if (LoadingProgressWindow.CurrentLoadingTime is not { } loadingTime)
+        if (LoadingProgressWindow.LoadingTimeText is not { } text)
         {
-            // This launch's loading time wasn't recorded
+            // This launch's startup has not ended
             return;
         }
 
         var rect = new Rect(UI.screenWidth - 10f, UI.screenHeight - 10f, 0, 0);
-        DrawLoadingTime(rect, loadingTime);
+        DrawLoadingTime(rect, text);
     }
 
-    internal static void DrawLoadingTime(Rect rect, TimeSpan loadingTime)
+    internal static void DrawLoadingTime(Rect rect, string text)
     {
-        string text = "LoadingProgress.LoadingTime".Translate(
-            Utilities.FormatDuration(loadingTime)
-        );
         Text.Font = GameFont.Small;
         var vector = Text.CalcSize(text);
         rect.x -= vector.x;

@@ -3,14 +3,16 @@ namespace ilyvion.LoadingProgress.StartupImpact;
 /// <summary>
 /// Follows the startup's tail: the long events that run once loading is over, up to the frame
 /// the main menu is usable (two idle frames within 250 ms of each other, or the fifth idle
-/// frame in a row), and times each under the mod whose code it runs.
+/// frame in a row). Keeps the loading window's activity line on the event that is running,
+/// ends the startup for the window when the menu is reached and, with tracking on, times
+/// each event under the mod whose code it runs.
 /// </summary>
 /// <remarks>
 /// <para>
 /// Loading is over, and the tracking clock stops, where the interface begins initializing,
-/// the window's Finished stage, and the loading window leaves with it. What runs after, the
-/// rest of the interface's initialization and the windows and setup other mods queue for
-/// after loading, is time the player still waits through. Each such event is timed from the frame
+/// the window's Finished stage. What runs after, the rest of the interface's initialization
+/// and the windows and setup other mods queue for after loading, is time the player still
+/// waits through, with the loading window on screen. Each such event is timed from the frame
 /// it became the current one to the frame it stopped being it, and credited to the mod whose
 /// code it runs, under its own category, so it shows beside everything else that mod cost.
 /// The engine's own events go under the base game, and one whose code no mod loaded is left
@@ -47,8 +49,8 @@ internal static class PostLoadTracker
     private const int SlowMenuIdleFrames = 5;
 
     // A menu that has not settled this long after loading, in active time, is taken never to:
-    // a mod that keeps a long event queued on the menu would otherwise keep the startup from
-    // ever ending. The wait after loading takes 20 to 30 s on a list of 230 mods.
+    // a mod that keeps a long event queued on the menu would otherwise keep the loading window
+    // over it for good. The wait after loading takes 20 to 30 s on a list of 230 mods.
     internal const float MaxTailMs = 5f * 60f * 1000f;
     private static float _tailStartMs = -1f;
 
@@ -76,9 +78,11 @@ internal static class PostLoadTracker
             return;
         }
 
-        // Only a startup tracked from the start has a tail to time, once its loading is over.
+        // Timing needs tracking; the window's tail runs with or without it.
         var startupImpact = LoadingProgressMod.instance?.StartupImpact;
-        if (startupImpact is not { WasTrackingEnabledAtStartup: true, LoadingTimeMeasured: true })
+        var timing = IsTimingTheTail;
+        var finished = LoadingProgressWindow.CurrentStage == LoadingStage.Finished;
+        if (!timing && !finished)
         {
             return;
         }
@@ -126,7 +130,7 @@ internal static class PostLoadTracker
         }
 
         var current = LongEventHandler.currentEvent;
-        if (!ReferenceEquals(current, _current) || paused > 0f)
+        if (timing && (!ReferenceEquals(current, _current) || paused > 0f))
         {
             // An event that was current through a pause has the pause taken back off its
             // time, and goes on being timed from here.
@@ -136,8 +140,17 @@ internal static class PostLoadTracker
                 StartCurrent(current);
             }
         }
+        if (finished && current != null)
+        {
+            LoadingProgressWindow.ShowPostLoadEvent(current);
+        }
 
-        if (current == null && !LongEventHandler.AnyEventNowOrWaiting && Find.UIRoot != null)
+        if (
+            finished
+            && current == null
+            && !LongEventHandler.AnyEventNowOrWaiting
+            && Find.UIRoot != null
+        )
         {
             // The queue going empty is not the player being able to click. A mod that builds
             // its state on the menu's first frame stalls the main thread between that frame
@@ -314,9 +327,10 @@ internal static class PostLoadTracker
     }
 
     /// <summary>
-    /// Ends the tail: the startup takes its time to the menu when the menu was reached, then
-    /// saves its session once. The event current until now is stopped with
-    /// <paramref name="pausedThisFrame"/>, the pause before this frame, taken back off its time.
+    /// Ends the tail: the window leaves, and records its loading time when the menu was
+    /// reached, as the startup takes its time to the menu; then the startup saves its session
+    /// once. The event current until now is stopped with <paramref name="pausedThisFrame"/>,
+    /// the pause before this frame, taken back off its time.
     /// </summary>
     private static void Finish(
         StartupImpact? startupImpact,
@@ -331,11 +345,20 @@ internal static class PostLoadTracker
             Application.focusChanged -= OnFocusChanged;
         }
 
+        // The time to the menu is taken before the window's bookkeeping, which writes the
+        // settings, and the session is saved even if that bookkeeping throws.
         if (menuReached)
         {
             startupImpact?.MarkMenuReached(_pausedMs);
         }
-        startupImpact?.FinishStartup();
+        try
+        {
+            LoadingProgressWindow.CompleteStartup(_pausedMs, recordLoadingTime: menuReached);
+        }
+        finally
+        {
+            startupImpact?.FinishStartup();
+        }
     }
 
     /// <summary>
