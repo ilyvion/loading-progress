@@ -7,15 +7,21 @@ internal static class FasterGameLoadingUtils
     {
         get
         {
-            _hasFasterGameLoading ??= ModsConfig.ActiveModsInLoadOrder.Any(mod =>
-                mod.PackageId.Equals(
-                    "taranchuk.fastergameloading",
-                    StringComparison.OrdinalIgnoreCase
-                )
-            );
+            _hasFasterGameLoading ??= ModsConfig.ActiveModsInLoadOrder.Any(IsFasterGameLoading);
             return _hasFasterGameLoading.Value;
         }
     }
+
+    /// <summary>
+    /// Whether <paramref name="mod"/> is Faster Game Loading. The id is compared without the
+    /// <c>_steam</c> postfix the game adds to a Workshop copy's id while a local copy with the
+    /// same id is installed.
+    /// </summary>
+    internal static bool IsFasterGameLoading(ModMetaData mod) =>
+        mod.PackageIdNonUnique.Equals(
+            "taranchuk.fastergameloading",
+            StringComparison.OrdinalIgnoreCase
+        );
 
     public static HashSet<ModContentPack>? LoadedMods
     {
