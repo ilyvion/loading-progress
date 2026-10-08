@@ -34,7 +34,8 @@ internal sealed class DeferredActionRunTests
                     throw new InvalidOperationException(
                         "A deferred action that fails, for the test."
                     ),
-                Label
+                Label,
+                timed: true
             );
 
             Expect.IsTrue(info!.Profiler.Metrics.ContainsKey(Category));
@@ -67,11 +68,51 @@ internal sealed class DeferredActionRunTests
             var ran = false;
             LongEventHandler_ExecuteToExecuteWhenFinished_Patches.RunDeferredAction(
                 () => ran = true,
-                Label
+                Label,
+                timed: true
             );
 
             Expect.IsTrue(ran);
             Expect.IsTrue(info!.Profiler.Metrics.ContainsKey(Category));
+        }
+        finally
+        {
+            Forget(info!.Profiler, Category);
+        }
+    }
+
+    // Finding an action's owner walks its closure by reflection, for each of the tens of
+    // thousands of actions a large mod list queues. With tracking off at startup nothing used
+    // the result, and the walk ran anyway.
+    [Test]
+    public static void AnUntimedActionNeitherLooksItsOwnerUpNorRecordsTime()
+    {
+        if (!LoadingProgressMod.Settings.TrackStartupLoadingImpact)
+        {
+            Test.Skip(TrackingOff);
+            return;
+        }
+
+        var info = OwnModInfo();
+        Expect.IsNotNull(info);
+        try
+        {
+            var ran = false;
+            var lookups = 0;
+            LongEventHandler_ExecuteToExecuteWhenFinished_Patches.RunDeferredAction(
+                () => ran = true,
+                Label,
+                timed: false,
+                _ =>
+                {
+                    lookups++;
+                    return (null, false);
+                }
+            );
+
+            Expect.IsTrue(ran);
+            Expect.AreEqual(0, lookups);
+            Expect.IsFalse(info!.Profiler.Metrics.ContainsKey(Category));
         }
         finally
         {
@@ -88,6 +129,7 @@ internal sealed class DeferredActionRunTests
         LongEventHandler_ExecuteToExecuteWhenFinished_Patches.RunDeferredAction(
             () => ran = true,
             Label,
+            timed: true,
             _ => throw new InvalidOperationException("An owner lookup that fails, for the test.")
         );
 

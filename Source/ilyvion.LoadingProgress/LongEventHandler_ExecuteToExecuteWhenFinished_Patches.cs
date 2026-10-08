@@ -95,6 +95,10 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
         LoadingProgressMod.instance.StartupImpact.UpdateActiveThreadId();
 
         var patchReloadContent = LoadingProgressMod.Settings.PatchReloadContent;
+        var timeDeferredActions = LoadingProgressMod
+            .instance
+            .StartupImpact
+            .WasTrackingEnabledAtStartup;
 
         if (LongEventHandler.executingToExecuteWhenFinished)
         {
@@ -307,7 +311,7 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
             DeepProfiler.Start(label);
             try
             {
-                RunDeferredAction(toExecuteWhenFinished, label);
+                RunDeferredAction(toExecuteWhenFinished, label, timeDeferredActions);
             }
             finally
             {
@@ -349,41 +353,47 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
         "LoadingProgress.StartupImpact.ExecuteToExecuteWhenFinished";
 
     /// <summary>
-    /// Runs one deferred initialization action, timed under the mod it is credited to. Its
-    /// category is closed whether or not the action throws, and an exception is logged rather
-    /// than passed on, so the rest of the queue still runs.
+    /// Runs one deferred initialization action, timed under the mod it is credited to when
+    /// <paramref name="timed"/>. Its category is closed whether or not the action throws, and
+    /// an exception is logged rather than passed on, so the rest of the queue still runs.
     /// </summary>
     /// <remarks>
-    /// A failure in the timing itself leaves the action untimed, never unrun.
+    /// Finding the owner walks the action's closure by reflection, for each of the tens of
+    /// thousands of actions a large mod list queues, so it is skipped when nothing is timed. A
+    /// failure in the timing itself leaves the action untimed, never unrun.
     /// </remarks>
-    internal static void RunDeferredAction(Action action, string label) =>
-        RunDeferredAction(action, label, OwnerOf);
+    internal static void RunDeferredAction(Action action, string label, bool timed) =>
+        RunDeferredAction(action, label, timed, OwnerOf);
 
     /// <summary>
-    /// <see cref="RunDeferredAction(Action, string)"/>, finding the action's owner with
+    /// <see cref="RunDeferredAction(Action, string, bool)"/>, finding the action's owner with
     /// <paramref name="findOwner"/>.
     /// </summary>
     internal static void RunDeferredAction(
         Action action,
         string label,
+        bool timed,
         Func<Delegate, (ModContentPack? Owner, bool IsBaseGame)> findOwner
     )
     {
-        string? category;
+        string? category = null;
         ModContentPack? owner = null;
         var isBaseGame = false;
-        try
+        if (timed)
         {
-            (owner, isBaseGame) = findOwner(action);
-            category = $"{DeferredActionCategory}|{label}";
-            StartTiming(owner, isBaseGame, category);
-        }
-        catch (Exception ex)
-        {
-            category = null;
-            LoadingProgressMod.Warning(
-                $"Could not time the deferred action {label}, so it runs untimed: {ex.Message}"
-            );
+            try
+            {
+                (owner, isBaseGame) = findOwner(action);
+                category = $"{DeferredActionCategory}|{label}";
+                StartupImpactProfilerUtil.Start(owner, isBaseGame, category);
+            }
+            catch (Exception ex)
+            {
+                category = null;
+                LoadingProgressMod.Warning(
+                    $"Could not time the deferred action {label}, so it runs untimed: {ex.Message}"
+                );
+            }
         }
 
         try
@@ -403,41 +413,15 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
         }
     }
 
-    // The mod whose code the action runs, and whether that code is the engine's.
-    private static (ModContentPack? Owner, bool IsBaseGame) OwnerOf(Delegate action)
-    {
-        var methodAssembly = action.Method.DeclaringType.Assembly;
-        return (
-            Utilities.FindModByAssembly(methodAssembly),
-            methodAssembly.FullName.StartsWith("Assembly-CSharp", StringComparison.Ordinal)
-        );
-    }
-
-    private static void StartTiming(ModContentPack? owner, bool isBaseGame, string category)
-    {
-        if (isBaseGame)
-        {
-            StartupImpactProfilerUtil.StartBaseGameProfiler(category);
-        }
-        else
-        {
-            StartupImpactProfilerUtil.StartModProfiler(owner, category);
-        }
-    }
+    private static (ModContentPack? Owner, bool IsBaseGame) OwnerOf(Delegate action) =>
+        (StartupImpactProfilerUtil.OwnerOfDeferredAction(action, out var isBaseGame), isBaseGame);
 
     // Never throws into the queue: a failure to stop is logged, and the next action runs.
     private static void StopTiming(ModContentPack? owner, bool isBaseGame, string category)
     {
         try
         {
-            if (isBaseGame)
-            {
-                StartupImpactProfilerUtil.StopBaseGameProfiler(category);
-            }
-            else
-            {
-                StartupImpactProfilerUtil.StopModProfiler(owner, category);
-            }
+            StartupImpactProfilerUtil.Stop(owner, isBaseGame, category);
         }
         catch (Exception ex)
         {
