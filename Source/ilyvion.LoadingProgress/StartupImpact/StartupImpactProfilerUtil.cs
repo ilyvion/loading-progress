@@ -100,6 +100,43 @@ internal static class StartupImpactProfilerUtil
         _ = info?.Stop(key);
     }
 
+    /// <summary>
+    /// Stops <paramref name="category"/> on the base game's timer for a timing patch, once.
+    /// The patch's postfix calls this on a normal return, and its finalizer when the method
+    /// threw and the postfix did not run. <paramref name="started"/> is the state the prefix
+    /// set when it started the category; it is cleared before the stop, so a stop that throws
+    /// is not tried again.
+    /// </summary>
+    internal static void StopBaseGameOnce(ref bool started, string category)
+    {
+        if (TakeStarted(ref started))
+        {
+            StopBaseGameProfiler(category);
+        }
+    }
+
+    /// <summary>
+    /// <see cref="StopBaseGameOnce"/> for a category on <paramref name="mod"/>'s timer.
+    /// </summary>
+    internal static void StopModOnce(ref bool started, ModContentPack? mod, string category)
+    {
+        if (TakeStarted(ref started))
+        {
+            StopModProfiler(mod, category);
+        }
+    }
+
+    /// <summary>
+    /// The rule both stop-once helpers follow: whether <paramref name="started"/> was set,
+    /// clearing it first, so the stop that follows happens once even if it throws.
+    /// </summary>
+    internal static bool TakeStarted(ref bool started)
+    {
+        var wasStarted = started;
+        started = false;
+        return wasStarted;
+    }
+
     public static void StartBaseGameProfiler(string key) =>
         // LoadingProgressMod.DevMessage($"Starting base game profiler for {key}");
         LoadingProgressMod.instance.StartupImpact.BaseGameProfiler.Start(key);

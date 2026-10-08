@@ -45,27 +45,21 @@ internal static class Mod_Constructor_Patches
     internal static void Postfix(
         [HarmonyArgument(0)] ModContentPack modContentPack,
         ref bool __state
-    )
-    {
-        Stop(modContentPack);
-        __state = false;
-    }
+    ) => Stop(modContentPack, ref __state);
 
     // The engine catches a mod constructor that throws and goes on loading, and a postfix does
     // not run then, so the finalizer closes the category. On a normal return the postfix has
     // closed it, at its place among other mods' postfixes, which stay outside it.
-    internal static void Finalizer([HarmonyArgument(0)] ModContentPack modContentPack, bool __state)
-    {
-        if (__state)
-        {
-            Stop(modContentPack);
-        }
-    }
+    internal static void Finalizer(
+        [HarmonyArgument(0)] ModContentPack modContentPack,
+        bool __state
+    ) => Stop(modContentPack, ref __state);
 
-    private static void Stop(ModContentPack modContentPack)
+    private static void Stop(ModContentPack modContentPack, ref bool started)
     {
         _currentModAssembly = null;
-        StartupImpactProfilerUtil.StopModProfiler(
+        StartupImpactProfilerUtil.StopModOnce(
+            ref started,
             modContentPack,
             "LoadingProgress.StartupImpact.ModConstructor"
         );

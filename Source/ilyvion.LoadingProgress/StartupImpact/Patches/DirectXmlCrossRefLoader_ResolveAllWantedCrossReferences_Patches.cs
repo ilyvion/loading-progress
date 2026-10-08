@@ -36,29 +36,16 @@ internal static class DirectXmlCrossRefLoader_ResolveAllWantedCrossReferences_Pa
         }
     }
 
-    internal static void Postfix(FailMode failReportMode, ref bool __state)
-    {
-        if (__state)
-        {
-            Stop(failReportMode);
-            __state = false;
-        }
-    }
+    internal static void Postfix(FailMode failReportMode, ref bool __state) =>
+        StartupImpactProfilerUtil.StopBaseGameOnce(ref __state, Category(failReportMode));
 
     // A postfix does not run when the method throws, so the finalizer closes the category then.
-    internal static void Finalizer(FailMode failReportMode, bool __state)
-    {
-        if (__state)
-        {
-            Stop(failReportMode);
-        }
-    }
+    internal static void Finalizer(FailMode failReportMode, bool __state) =>
+        StartupImpactProfilerUtil.StopBaseGameOnce(ref __state, Category(failReportMode));
 
-    // Stops the category the prefix started, which it did only for these two modes.
-    private static void Stop(FailMode failReportMode) =>
-        StartupImpactProfilerUtil.StopBaseGameProfiler(
-            failReportMode == FailMode.Silent
-                ? "LoadingProgress.StartupImpact.ResolveAllWantedCrossReferences.NonImplied"
-                : "LoadingProgress.StartupImpact.ResolveAllWantedCrossReferences.Implied"
-        );
+    // The category the prefix started, which it did only for these two modes.
+    private static string Category(FailMode failReportMode) =>
+        failReportMode == FailMode.Silent
+            ? "LoadingProgress.StartupImpact.ResolveAllWantedCrossReferences.NonImplied"
+            : "LoadingProgress.StartupImpact.ResolveAllWantedCrossReferences.Implied";
 }

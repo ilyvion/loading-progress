@@ -240,6 +240,57 @@ internal sealed class ProfilerTests
         }
     }
 
+    // The base game's and a mod's stop-once helpers share this rule: the state is cleared
+    // before the stop, so a stop that throws is not tried again by the finalizer.
+    [Test]
+    public static void TakingTheStartedStateClearsItAndSaysWhetherItWasSet()
+    {
+        var started = true;
+        Expect.IsTrue(StartupImpactProfilerUtil.TakeStarted(ref started));
+        Expect.IsFalse(started);
+        Expect.IsFalse(StartupImpactProfilerUtil.TakeStarted(ref started));
+        Expect.IsFalse(started);
+    }
+
+    // The timing patches stop their category from the postfix and, when the method throws,
+    // from the finalizer, through a helper that stops it once. A second stop would log that
+    // the category is not running, which fails the test.
+    [Test]
+    public static IEnumerator AStopOnceStopsItsCategoryOnlyOnce()
+    {
+        if (!LoadingProgressMod.Settings.TrackStartupLoadingImpact)
+        {
+            Test.Skip(TestStartup.TrackingOff);
+            yield break;
+        }
+
+        var framesWaited = 0;
+        while (TestStartup.StillStartingUp(ref framesWaited))
+        {
+            yield return null;
+        }
+
+        var (mod, profiler, _) = ConstructorTimingSoFar();
+        var started = true;
+        StartupImpactProfilerUtil.StartModProfiler(mod, NextCategory);
+        try
+        {
+            StartupImpactProfilerUtil.StopModOnce(ref started, mod, NextCategory);
+            StartupImpactProfilerUtil.StopModOnce(ref started, mod, NextCategory);
+
+            Expect.IsFalse(started);
+            Expect.IsTrue(profiler.Metrics.ContainsKey(NextCategory));
+        }
+        finally
+        {
+            if (started)
+            {
+                StartupImpactProfilerUtil.StopModProfiler(mod, NextCategory);
+            }
+            TestStartup.Forget(profiler, NextCategory);
+        }
+    }
+
     // This mod and its constructor time so far, before a test times one of the stand-ins.
     private static (ModContentPack Mod, Profiler Profiler, float Before) ConstructorTimingSoFar()
     {

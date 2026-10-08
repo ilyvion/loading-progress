@@ -55,21 +55,15 @@ internal static partial class <#= type.Replace('.', '_') #>_<#= method #>_Patche
     internal static void Postfix(ref bool __state)
     {
         BeforePostfix();
-        StartupImpactProfilerUtil.StopBaseGameProfiler("LoadingProgress.StartupImpact.<#= profilerKey #>");
-        __state = false;
+        StartupImpactProfilerUtil.StopBaseGameOnce(ref __state, "LoadingProgress.StartupImpact.<#= profilerKey #>");
         AfterPostfix();
     }
 
     // A postfix does not run when the method throws, so the finalizer closes the category then.
     // On a normal return the postfix has closed it, at its place among other mods' postfixes,
     // which stay outside it; a finalizer runs after all of them.
-    internal static void Finalizer(bool __state)
-    {
-        if (__state)
-        {
-            StartupImpactProfilerUtil.StopBaseGameProfiler("LoadingProgress.StartupImpact.<#= profilerKey #>");
-        }
-    }
+    internal static void Finalizer(bool __state) =>
+        StartupImpactProfilerUtil.StopBaseGameOnce(ref __state, "LoadingProgress.StartupImpact.<#= profilerKey #>");
 }
 
 <#
@@ -104,21 +98,15 @@ internal static partial class <#= type #>_<#= method #>_Patches
     internal static void Postfix(ModContentPack? <#= parameterName #>, ref bool __state)
     {
         BeforePostfix(<#= parameterName #>);
-        StartupImpactProfilerUtil.StopModProfiler(<#= parameterName #>, "LoadingProgress.StartupImpact.<#= profilerKey #>");
-        __state = false;
+        StartupImpactProfilerUtil.StopModOnce(ref __state, <#= parameterName #>, "LoadingProgress.StartupImpact.<#= profilerKey #>");
         AfterPostfix(<#= parameterName #>);
     }
 
     // A postfix does not run when the method throws, so the finalizer closes the category then.
     // On a normal return the postfix has closed it, at its place among other mods' postfixes,
     // which stay outside it; a finalizer runs after all of them.
-    internal static void Finalizer(ModContentPack? <#= parameterName #>, bool __state)
-    {
-        if (__state)
-        {
-            StartupImpactProfilerUtil.StopModProfiler(<#= parameterName #>, "LoadingProgress.StartupImpact.<#= profilerKey #>");
-        }
-    }
+    internal static void Finalizer(ModContentPack? <#= parameterName #>, bool __state) =>
+        StartupImpactProfilerUtil.StopModOnce(ref __state, <#= parameterName #>, "LoadingProgress.StartupImpact.<#= profilerKey #>");
 }
 
 <#
