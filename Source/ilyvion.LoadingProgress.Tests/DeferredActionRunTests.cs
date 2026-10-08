@@ -253,44 +253,56 @@ internal sealed class DeferredActionRunTests
     [Test]
     public static void OnlyTheMainThreadHandsTheQueueToThePassAfterLoading()
     {
+        Expect.IsTrue(HandsOver(1, LoadingStage.Finished, true, true, true));
+        Expect.IsFalse(HandsOver(1, LoadingStage.Finished, true, false, true));
+        Expect.IsFalse(HandsOver(0, LoadingStage.Finished, true, true, true));
+        Expect.IsFalse(HandsOver(1, LoadingStage.GarbageCollection, true, true, true));
+        Expect.IsFalse(HandsOver(1, LoadingStage.Finished, false, true, true));
+    }
+
+    // The in-game repaint setting alone also has the patch applied, and the pass after loading
+    // used to take the queue over then, with the initialization patch turned off.
+    [Test]
+    public static void WithTheInitializationPatchOffTheQueueStaysWithTheEngine() =>
+        Expect.IsFalse(HandsOver(1, LoadingStage.Finished, true, true, false));
+
+    private static bool HandsOver(
+        int queued,
+        LoadingStage stage,
+        bool timingTheTail,
+        bool onMainThread,
+        bool patchInitialization
+    ) =>
+        LongEventHandler_ExecuteToExecuteWhenFinished_Patches.HandsTheQueueToTheTail(
+            queued,
+            stage,
+            timingTheTail,
+            onMainThread,
+            patchInitialization
+        );
+
+    // With startup impact tracking on, the patch used to be applied even with both
+    // initialization patches turned off in the settings, and it replaced the engine's pass
+    // after loading. The settings alone now decide.
+    [Test]
+    public static void TheSettingsAloneDecideWhetherThePatchIsApplied()
+    {
+        Expect.IsFalse(
+            LongEventHandler_ExecuteToExecuteWhenFinished_Patches.SettingsAskForThePatch(
+                false,
+                false
+            )
+        );
         Expect.IsTrue(
-            LongEventHandler_ExecuteToExecuteWhenFinished_Patches.HandsTheQueueToTheTail(
-                1,
-                LoadingStage.Finished,
-                timingTheTail: true,
-                onMainThread: true
+            LongEventHandler_ExecuteToExecuteWhenFinished_Patches.SettingsAskForThePatch(
+                true,
+                false
             )
         );
-        Expect.IsFalse(
-            LongEventHandler_ExecuteToExecuteWhenFinished_Patches.HandsTheQueueToTheTail(
-                1,
-                LoadingStage.Finished,
-                timingTheTail: true,
-                onMainThread: false
-            )
-        );
-        Expect.IsFalse(
-            LongEventHandler_ExecuteToExecuteWhenFinished_Patches.HandsTheQueueToTheTail(
-                0,
-                LoadingStage.Finished,
-                timingTheTail: true,
-                onMainThread: true
-            )
-        );
-        Expect.IsFalse(
-            LongEventHandler_ExecuteToExecuteWhenFinished_Patches.HandsTheQueueToTheTail(
-                1,
-                LoadingStage.GarbageCollection,
-                timingTheTail: true,
-                onMainThread: true
-            )
-        );
-        Expect.IsFalse(
-            LongEventHandler_ExecuteToExecuteWhenFinished_Patches.HandsTheQueueToTheTail(
-                1,
-                LoadingStage.Finished,
-                timingTheTail: false,
-                onMainThread: true
+        Expect.IsTrue(
+            LongEventHandler_ExecuteToExecuteWhenFinished_Patches.SettingsAskForThePatch(
+                false,
+                true
             )
         );
     }

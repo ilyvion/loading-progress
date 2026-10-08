@@ -8,19 +8,13 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
 {
     private static bool _hasWarnedAboutReloadIntPatches;
 
-    // Whether the settings asked for this patch: the deferred-task replacement during loading
-    // and the in-game repaint run only then. With tracking on, the patch is applied without
-    // them too, for the deferred actions after loading alone.
-    private static bool _settingsAskForThePatch;
-
     private static bool Prepare()
     {
-        _settingsAskForThePatch =
-            LoadingProgressMod.Settings.PatchInitialization
-            || LoadingProgressMod.Settings.PatchInGameDeferredRepaint;
         if (
-            !_settingsAskForThePatch
-            && !LoadingProgressMod.instance.StartupImpact.WasTrackingEnabledAtStartup
+            !SettingsAskForThePatch(
+                LoadingProgressMod.Settings.PatchInitialization,
+                LoadingProgressMod.Settings.PatchInGameDeferredRepaint
+            )
         )
         {
             LoadingProgressMod.Message(
@@ -32,11 +26,21 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
         return true;
     }
 
+    /// <summary>
+    /// Whether the settings ask for this patch: the deferred-task replacement during loading,
+    /// the in-game repaint, or both. With both off it is not applied, whatever startup impact
+    /// tracking is set to, so the deferred actions after loading then run as the engine runs
+    /// them, inside the event they run after.
+    /// </summary>
+    internal static bool SettingsAskForThePatch(
+        bool patchInitialization,
+        bool patchInGameDeferredRepaint
+    ) => patchInitialization || patchInGameDeferredRepaint;
+
     private static bool Prefix()
     {
         if (
-            _settingsAskForThePatch
-            && LongEventHandler.toExecuteWhenFinished.Count > 0
+            LongEventHandler.toExecuteWhenFinished.Count > 0
             && LoadingProgressWindow.CurrentStage != LoadingStage.Finished
         )
         {
@@ -58,7 +62,8 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
                 LongEventHandler.toExecuteWhenFinished.Count,
                 LoadingProgressWindow.CurrentStage,
                 PostLoadTracker.IsTimingTheTail,
-                UnityData.IsInMainThread
+                UnityData.IsInMainThread,
+                LoadingProgressMod.Settings.PatchInitialization
             )
         )
         {
@@ -67,8 +72,7 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
         }
 
         if (
-            _settingsAskForThePatch
-            && LongEventHandler.toExecuteWhenFinished.Count > 0
+            LongEventHandler.toExecuteWhenFinished.Count > 0
             && LoadingProgressWindow.CurrentStage == LoadingStage.Finished
             && LoadingProgressMod.Settings.PatchInGameDeferredRepaint
             && InGameLoadingSession.IsActive
@@ -114,16 +118,24 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
     /// <summary>
     /// Whether the deferred actions are run by
     /// <see cref="PostLoadTracker.RunDeferredActions()"/>: some are queued, loading has
-    /// finished, the wait after loading is being timed, and this is the main thread, where
-    /// everything after loading runs. A call from another thread, which the engine makes run
-    /// the queue there, is left to the engine, untimed.
+    /// finished, the wait after loading is being timed, this is the main thread, where
+    /// everything after loading runs, and the initialization patch is on in the settings. A
+    /// call from another thread, which the engine makes run the queue there, is left to the
+    /// engine, untimed, and so is every call while that setting is off, even when the in-game
+    /// repaint setting has the patch applied.
     /// </summary>
     internal static bool HandsTheQueueToTheTail(
         int queued,
         LoadingStage stage,
         bool timingTheTail,
-        bool onMainThread
-    ) => queued > 0 && stage == LoadingStage.Finished && timingTheTail && onMainThread;
+        bool onMainThread,
+        bool patchInitialization
+    ) =>
+        queued > 0
+        && stage == LoadingStage.Finished
+        && timingTheTail
+        && onMainThread
+        && patchInitialization;
 
 #pragma warning disable CA1502
     internal static IEnumerable ExecuteToExecuteWhenFinished()

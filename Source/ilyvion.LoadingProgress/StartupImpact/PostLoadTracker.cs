@@ -20,6 +20,8 @@ namespace ilyvion.LoadingProgress.StartupImpact;
 /// the clock stop instead, since it finishes within the frame the clock stops in. The
 /// deferred actions an event queues run when it finishes; each is timed under the mod it is
 /// credited to, the way deferred actions during loading are, with the event paused meanwhile.
+/// That needs the deferred-action patch, which the settings for the initialization patches
+/// turn off; without it, the engine runs those actions inside the event.
 /// </para>
 /// <para>
 /// Time the game spends paused is left out. The engine keeps running in the background only
