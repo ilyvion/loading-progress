@@ -61,6 +61,13 @@ internal sealed class DialogStartupImpactHistory : Window
     private readonly UiTable _table;
     private readonly int _currentModListHash;
 
+    // The two notes that read the same on every row they are on. The window draws them on
+    // every frame, row by row, so they are translated once per window.
+    private readonly string _differentListNote =
+        "LoadingProgress.StartupImpact.History.Note.DifferentList".Translate();
+    private readonly string _toEndOfLoadingNote =
+        "LoadingProgress.StartupImpact.History.Note.ToEndOfLoading".Translate();
+
     /// <summary>
     /// The footer line. Falls back to the summary once it has been on screen
     /// long enough, the same way the startup impact window's own status does,
@@ -472,15 +479,13 @@ internal sealed class DialogStartupImpactHistory : Window
 
     // A session not timed to the main menu, one from before that was measured or one that went
     // into a game or whose menu never settled, says so rather than passing for a comparable run.
-    private static string NoteFor(StartupImpactSessionIndexEntry entry, bool comparable) =>
+    private string NoteFor(StartupImpactSessionIndexEntry entry, bool comparable) =>
         entry.Completed
             ? !comparable
-                ? "LoadingProgress.StartupImpact.History.Note.DifferentList".Translate().ToString()
+                ? _differentListNote
                 : entry.MeasuredToMenu
                     ? string.Empty
-                    : "LoadingProgress.StartupImpact.History.Note.ToEndOfLoading"
-                        .Translate()
-                        .ToString()
+                    : _toEndOfLoadingNote
             : StartupImpactSessionIndexEntry.UnfinishedNote(entry.LastStage);
 
     private static Color NoteColorFor(StartupImpactSessionIndexEntry entry, bool comparable) =>

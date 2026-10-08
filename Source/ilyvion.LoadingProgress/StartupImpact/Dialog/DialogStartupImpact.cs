@@ -492,7 +492,7 @@ internal sealed class DialogStartupImpact : Window
                         _table.Cell(0, row),
                         Textures.Eye,
                         info.HideInUi ? Color.white : Color.grey,
-                        tooltip: "LoadingProgress.StartupImpact.ToggleModVisibility.Tip".Translate()
+                        tooltip: _toggleModVisibilityTip
                     )
                 )
                 {
@@ -519,7 +519,7 @@ internal sealed class DialogStartupImpact : Window
                 {
                     rect2.yMin += rect.height / 2;
                     rect.yMax -= rect.height / 2;
-                    profilerBar.TooltipSuffix = OnOtherThreadsTip;
+                    profilerBar.TooltipSuffix = _onOtherThreadsTip;
                     profilerBar.Draw(
                         rect2,
                         info.OffThreadMetrics,
@@ -563,7 +563,7 @@ internal sealed class DialogStartupImpact : Window
                 {
                     rect2.yMin += rect.height / 2;
                     rect.yMax -= rect.height / 2;
-                    profilerBar.TooltipSuffix = OnOtherThreadsTip;
+                    profilerBar.TooltipSuffix = _onOtherThreadsTip;
                     profilerBar.Draw(
                         rect2,
                         phase.OffThreadMetrics,
@@ -929,9 +929,15 @@ internal sealed class DialogStartupImpact : Window
 
     private const float SectionButtonSize = 18f;
 
-    // The line every segment of a bar for time on other threads ends its tooltip with.
-    private static string OnOtherThreadsTip =>
+    // The line every segment of a bar for time on other threads ends its tooltip with, the
+    // one a section heading's tooltip ends with, and the tooltip of every mod row's
+    // visibility button. The window draws them on every frame, row by row, so they are
+    // translated once per window.
+    private readonly string _onOtherThreadsTip =
         "LoadingProgress.StartupImpact.OnOtherThreads.Tip".Translate();
+    private readonly string _sectionTip = "LoadingProgress.StartupImpact.Section.Tip".Translate();
+    private readonly string _toggleModVisibilityTip =
+        "LoadingProgress.StartupImpact.ToggleModVisibility.Tip".Translate();
 
     /// <summary>
     /// A section's heading line: a reveal or collapse button, the title and a short detail
@@ -941,7 +947,7 @@ internal sealed class DialogStartupImpact : Window
     /// <paramref name="setOpen"/>, which are written when it changes. Returns whether the
     /// section is open after this frame.
     /// </summary>
-    private static bool DrawSectionHeading(
+    private bool DrawSectionHeading(
         float y,
         float width,
         string title,
@@ -976,10 +982,9 @@ internal sealed class DialogStartupImpact : Window
             Text.Font = GameFont.Medium;
         }
 
-        var tip = "LoadingProgress.StartupImpact.Section.Tip".Translate().ToString();
         TooltipHandler.TipRegion(
             lineRect,
-            !open && breakdown != null ? breakdown + "\n\n" + tip : tip
+            !open && breakdown != null ? breakdown + "\n\n" + _sectionTip : _sectionTip
         );
         if (Widgets.ButtonInvisible(lineRect))
         {
@@ -1043,7 +1048,7 @@ internal sealed class DialogStartupImpact : Window
         {
             offThreadRect.yMin += barRect.height / 2;
             barRect.yMax -= barRect.height / 2;
-            profilerBar.TooltipSuffix = OnOtherThreadsTip;
+            profilerBar.TooltipSuffix = _onOtherThreadsTip;
             profilerBar.Draw(
                 offThreadRect,
                 _sessionViewData.MetricsOffThreadNonMods,
