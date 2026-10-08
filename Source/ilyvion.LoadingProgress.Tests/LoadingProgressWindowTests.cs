@@ -100,6 +100,19 @@ internal sealed class LoadingProgressWindowTests
         Expect.AreEqual(expected, LoadingProgressWindow.ActivityFor(null));
     }
 
+    // Regression. Clearing the translations, as the window does when the startup completes,
+    // used to leave the next word asked for to be looked up in a table that was gone.
+    [Test]
+    public static void AWordAskedForAfterTheTranslationsAreClearedIsReadAgain()
+    {
+        Translations.Clear();
+
+        Expect.AreEqual(
+            "LoadingProgress.FinishingUp".Translate().ToString(),
+            LoadingProgressWindow.ActivityFor("")
+        );
+    }
+
     private static Settings History(params float[] samples)
     {
         var settings = new Settings { LoadingTimesMeasuredToMenu = true, LastLoadingModHash = 7 };

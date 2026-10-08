@@ -9,10 +9,13 @@ internal static class Translations
     private static Dictionary<string, string>? ActiveLanguageTranslationValues;
     private static bool _activeLanguageTranslationsLoaded;
 
+    // A lookup after this reads the translations again.
     public static void Clear()
     {
         EnglishTranslationValues = null;
+        _englishTranslationsLoaded = false;
         ActiveLanguageTranslationValues = null;
+        _activeLanguageTranslationsLoaded = false;
     }
 
     public static string GetTranslation(string translationKey, params object[] args)
