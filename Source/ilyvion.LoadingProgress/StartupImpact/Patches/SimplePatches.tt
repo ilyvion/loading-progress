@@ -60,8 +60,10 @@ internal static partial class <#= type.Replace('.', '_') #>_<#= method #>_Patche
     }
 
     // A postfix does not run when the method throws, so the finalizer closes the category then.
-    // On a normal return the postfix has closed it, at its place among other mods' postfixes,
-    // which stay outside it; a finalizer runs after all of them.
+    // On a normal return the postfix has closed it, at its place among other mods' postfixes:
+    // those Harmony orders after it, at the same priority or a lower one, stay outside it, and
+    // a higher-priority one runs inside it, as does a prefix ordered after this one. A
+    // finalizer runs after all of them.
     internal static void Finalizer(bool __state) =>
         StartupImpactProfilerUtil.StopBaseGameOnce(ref __state, "LoadingProgress.StartupImpact.<#= profilerKey #>");
 }
@@ -103,8 +105,10 @@ internal static partial class <#= type #>_<#= method #>_Patches
     }
 
     // A postfix does not run when the method throws, so the finalizer closes the category then.
-    // On a normal return the postfix has closed it, at its place among other mods' postfixes,
-    // which stay outside it; a finalizer runs after all of them.
+    // On a normal return the postfix has closed it, at its place among other mods' postfixes:
+    // those Harmony orders after it, at the same priority or a lower one, stay outside it, and
+    // a higher-priority one runs inside it, as does a prefix ordered after this one. A
+    // finalizer runs after all of them.
     internal static void Finalizer(ModContentPack? <#= parameterName #>, bool __state) =>
         StartupImpactProfilerUtil.StopModOnce(ref __state, <#= parameterName #>, "LoadingProgress.StartupImpact.<#= profilerKey #>");
 }
