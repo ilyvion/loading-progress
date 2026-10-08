@@ -36,12 +36,30 @@ internal static class DefDatabase_AddAllInMods_Patches
         }
     }
 
-    internal static void Prefix() =>
+    internal static void Prefix(out bool __state)
+    {
         StartupImpactProfilerUtil.StartBaseGameProfiler(
             "LoadingProgress.StartupImpact.DefDatabaseAddAllInMods"
         );
+        __state = true;
+    }
 
-    internal static void Postfix() =>
+    internal static void Postfix(ref bool __state)
+    {
+        Stop();
+        __state = false;
+    }
+
+    // A postfix does not run when the method throws, so the finalizer closes the category then.
+    internal static void Finalizer(bool __state)
+    {
+        if (__state)
+        {
+            Stop();
+        }
+    }
+
+    private static void Stop() =>
         StartupImpactProfilerUtil.StopBaseGameProfiler(
             "LoadingProgress.StartupImpact.DefDatabaseAddAllInMods"
         );

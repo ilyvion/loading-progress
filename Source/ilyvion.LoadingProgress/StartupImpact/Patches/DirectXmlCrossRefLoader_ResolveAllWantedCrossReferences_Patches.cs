@@ -7,8 +7,9 @@ namespace ilyvion.LoadingProgress.StartupImpact.Patches;
 [HarmonyPatchCategory("StartupImpact")]
 internal static class DirectXmlCrossRefLoader_ResolveAllWantedCrossReferences_Patches
 {
-    internal static void Prefix(FailMode failReportMode)
+    internal static void Prefix(FailMode failReportMode, out bool __state)
     {
+        __state = false;
         if (LoadingProgressWindow.CurrentStage != LoadingStage.Finished)
         {
             switch (failReportMode)
@@ -17,12 +18,14 @@ internal static class DirectXmlCrossRefLoader_ResolveAllWantedCrossReferences_Pa
                     StartupImpactProfilerUtil.StartBaseGameProfiler(
                         "LoadingProgress.StartupImpact.ResolveAllWantedCrossReferences.NonImplied"
                     );
+                    __state = true;
                     break;
 
                 case FailMode.LogErrors:
                     StartupImpactProfilerUtil.StartBaseGameProfiler(
                         "LoadingProgress.StartupImpact.ResolveAllWantedCrossReferences.Implied"
                     );
+                    __state = true;
                     break;
                 default:
                     LoadingProgressMod.Warning(
@@ -33,29 +36,29 @@ internal static class DirectXmlCrossRefLoader_ResolveAllWantedCrossReferences_Pa
         }
     }
 
-    internal static void Postfix(FailMode failReportMode)
+    internal static void Postfix(FailMode failReportMode, ref bool __state)
     {
-        if (LoadingProgressWindow.CurrentStage != LoadingStage.Finished)
+        if (__state)
         {
-            switch (failReportMode)
-            {
-                case FailMode.Silent:
-                    StartupImpactProfilerUtil.StopBaseGameProfiler(
-                        "LoadingProgress.StartupImpact.ResolveAllWantedCrossReferences.NonImplied"
-                    );
-                    break;
-
-                case FailMode.LogErrors:
-                    StartupImpactProfilerUtil.StopBaseGameProfiler(
-                        "LoadingProgress.StartupImpact.ResolveAllWantedCrossReferences.Implied"
-                    );
-                    break;
-                default:
-                    LoadingProgressMod.Warning(
-                        $"Unknown fail report mode used with DirectXmlCrossRefLoader.ResolveAllWantedCrossReferences: {failReportMode}"
-                    );
-                    break;
-            }
+            Stop(failReportMode);
+            __state = false;
         }
     }
+
+    // A postfix does not run when the method throws, so the finalizer closes the category then.
+    internal static void Finalizer(FailMode failReportMode, bool __state)
+    {
+        if (__state)
+        {
+            Stop(failReportMode);
+        }
+    }
+
+    // Stops the category the prefix started, which it did only for these two modes.
+    private static void Stop(FailMode failReportMode) =>
+        StartupImpactProfilerUtil.StopBaseGameProfiler(
+            failReportMode == FailMode.Silent
+                ? "LoadingProgress.StartupImpact.ResolveAllWantedCrossReferences.NonImplied"
+                : "LoadingProgress.StartupImpact.ResolveAllWantedCrossReferences.Implied"
+        );
 }
