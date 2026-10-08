@@ -67,7 +67,7 @@ internal sealed class StartupImpactSessionTotalsTests
         {
             Expect.AreApproximatelyEqual(
                 new StartupImpactSessionViewData(session).TotalWindow,
-                StartupImpactSessionIndexEntry.ListedTime(session)
+                StartupImpactSessionIndexEntry.ForCompletedSession("test", session).LoadingTime
             );
         }
     }
