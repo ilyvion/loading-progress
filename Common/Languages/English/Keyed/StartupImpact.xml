@@ -65,6 +65,11 @@
     <LoadingProgress.StartupImpact.SessionStats>{0} defs parsed, {1} patch operations applied, {2} mods loaded</LoadingProgress.StartupImpact.SessionStats>
     <LoadingProgress.StartupImpact.StartupMods>Mods startup impact: {0}</LoadingProgress.StartupImpact.StartupMods>
     <LoadingProgress.StartupImpact.StartupNonmods>Not directly related to mods: {0}</LoadingProgress.StartupImpact.StartupNonmods>
+    <LoadingProgress.StartupImpact.Nonmods.BySteps>Not directly related to mods, largest steps first:</LoadingProgress.StartupImpact.Nonmods.BySteps>
+    <LoadingProgress.StartupImpact.Section.OnOtherThreads>{0} on other threads</LoadingProgress.StartupImpact.Section.OnOtherThreads>
+    <LoadingProgress.StartupImpact.Section.Tip>Click to open or close this section.</LoadingProgress.StartupImpact.Section.Tip>
+    <LoadingProgress.StartupImpact.OnOtherThreads.Tip>On other threads, summed across them</LoadingProgress.StartupImpact.OnOtherThreads.Tip>
+    <LoadingProgress.StartupImpact.Breakdown.More>And {0} more</LoadingProgress.StartupImpact.Breakdown.More>
     <LoadingProgress.StartupImpact.LogarithmicScale>Use logarithmic scale</LoadingProgress.StartupImpact.LogarithmicScale>
     <LoadingProgress.StartupImpact.LogarithmicScale.Tip>When this is enabled, the startup impact values will be displayed on a logarithmic scale, compressing large differences in impact so they are easier to compare. Use the Detail slider that appears next to this option to fine-tune how strong the compression is.</LoadingProgress.StartupImpact.LogarithmicScale.Tip>
     <LoadingProgress.StartupImpact.ScaleDetail>Detail: {0}</LoadingProgress.StartupImpact.ScaleDetail>

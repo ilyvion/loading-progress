@@ -54,6 +54,19 @@ internal static class StartupImpactHtmlExporter
         AppendNumber(sb, "remainingMs", viewData.RemainingLoadingTime);
         _ = sb.Append(',');
 
+        // The folded sections' texts as the window has them, with times written as the report
+        // writes its own. None depends on which mods are hidden, so the report shows them as
+        // they are.
+        var texts = viewData.Texts(secondsOnly);
+        AppendString(sb, "baseGameBreakdownText", texts.BaseGameBreakdown);
+        _ = sb.Append(',');
+        AppendString(sb, "largestBaseGameStepText", texts.LargestBaseGameStep);
+        _ = sb.Append(',');
+        AppendString(sb, "remainingBreakdownText", texts.RemainingBreakdown);
+        _ = sb.Append(',');
+        AppendString(sb, "largestRemainingEntryText", texts.LargestRemainingEntry);
+        _ = sb.Append(',');
+
         AppendKey(sb, "secondsOnly");
         _ = sb.Append(secondsOnly ? "true," : "false,");
 
@@ -350,6 +363,20 @@ internal static class StartupImpactHtmlExporter
             "LoadingProgress.StartupImpact.StartupRemaining".Translate()
         );
         _ = sb.Append(',');
+        AppendString(
+            sb,
+            "onOtherThreadsDetail",
+            "LoadingProgress.StartupImpact.Section.OnOtherThreads".Translate()
+        );
+        _ = sb.Append(',');
+        AppendString(
+            sb,
+            "onOtherThreadsTip",
+            "LoadingProgress.StartupImpact.OnOtherThreads.Tip".Translate()
+        );
+        _ = sb.Append(',');
+        AppendString(sb, "sectionTip", "LoadingProgress.StartupImpact.Section.Tip".Translate());
+        _ = sb.Append(',');
         AppendString(sb, "secondsFormat", "LoadingProgress.StartupImpact.Seconds".Translate());
         _ = sb.Append(',');
         AppendString(
@@ -451,10 +478,17 @@ internal static class StartupImpactHtmlExporter
         _ = sb.Append(value.ToString(CultureInfo.InvariantCulture));
     }
 
-    private static void AppendString(StringBuilder sb, string key, string value)
+    private static void AppendString(StringBuilder sb, string key, string? value)
     {
         AppendKey(sb, key);
-        AppendJsonString(sb, value);
+        if (value == null)
+        {
+            _ = sb.Append("null");
+        }
+        else
+        {
+            AppendJsonString(sb, value);
+        }
     }
 
     private static void AppendKey(StringBuilder sb, string key)
@@ -463,7 +497,10 @@ internal static class StartupImpactHtmlExporter
         _ = sb.Append(':');
     }
 
-    private static void AppendJsonString(StringBuilder sb, string value)
+    /// <summary>
+    /// Writes <paramref name="value"/> as a JSON string, quotes included.
+    /// </summary>
+    internal static void AppendJsonString(StringBuilder sb, string value)
     {
         _ = sb.Append('"');
         foreach (var ch in value)
@@ -527,6 +564,16 @@ internal static class StartupImpactHtmlExporter
   }
   h1 { font-size: 20px; }
   h2 { font-size: 16px; margin-top: 18px; }
+  details.section > summary { cursor: pointer; list-style: none; }
+  details.section > summary::-webkit-details-marker { display: none; }
+  details.section > summary h2 { display: inline-block; }
+  details.section > summary h2::before { content: "\25B8"; display: inline-block; width: 1em; }
+  details.section[open] > summary h2::before { content: "\25BE"; }
+  details.section > summary .section-detail {
+    margin-left: 10px;
+    color: var(--text-dim);
+    font-size: 13px;
+  }
   .titlebar-row {
     display: flex;
     align-items: flex-start;
@@ -728,6 +775,7 @@ internal static class StartupImpactHtmlExporter
     border-radius: 4px;
     font-size: 12px;
     line-height: 1.4;
+    white-space: pre-line;
     pointer-events: none;
     z-index: 1000;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
@@ -761,11 +809,15 @@ internal static class StartupImpactHtmlExporter
   <div class="bar" id="totalBar"></div>
   <div class="session-stats" id="sessionStats"></div>
 
-  <h2 id="baseGameTitle"></h2>
-  <div class="basegame-bar-cell" id="baseGameBar"></div>
+  <details class="section" id="baseGameSection">
+    <summary><h2 id="baseGameTitle"></h2><span class="section-detail" id="baseGameDetail"></span></summary>
+    <div class="basegame-bar-cell" id="baseGameBar"></div>
+  </details>
 
-  <h2 id="remainingTitle" style="display:none"></h2>
-  <div class="bar" id="remainingBar" style="display:none"></div>
+  <details class="section" id="remainingSection" style="display:none">
+    <summary><h2 id="remainingTitle"></h2><span class="section-detail" id="remainingDetail"></span></summary>
+    <div class="bar" id="remainingBar"></div>
+  </details>
 
   <h2 id="modsTitle"></h2>
   <div class="bar" id="modsBar"></div>
@@ -892,7 +944,9 @@ internal static class StartupImpactHtmlExporter
     el.addEventListener("mouseleave", hideTooltip);
   });
 
-  function renderBar(container, segments, maxImpactMs) {
+  // A segment's tooltip is its label and time, then its own detail if it has one, then the
+  // line every segment of the bar ends with, if any (that the bar is time on other threads).
+  function renderBar(container, segments, maxImpactMs, tipSuffix) {
     container.innerHTML = "";
     var values = segments.map(function (s) { return Math.max(0, s.valueMs); });
     var sumLinear = values.reduce(function (a, b) { return a + b; }, 0);
@@ -909,6 +963,12 @@ internal static class StartupImpactHtmlExporter
       el.style.setProperty("--seg-color", seg.color);
       el.style.width = widthPercent + "%";
       var tipText = seg.label + ": " + timeText(seg.valueMs);
+      if (seg.detail) {
+        tipText += "\n" + seg.detail;
+      }
+      if (tipSuffix) {
+        tipText += "\n" + tipSuffix;
+      }
       el.addEventListener("mouseenter", function (evt) { showTooltip(evt, tipText); });
       el.addEventListener("mousemove", moveTooltip);
       el.addEventListener("mouseleave", hideTooltip);
@@ -962,6 +1022,10 @@ internal static class StartupImpactHtmlExporter
     return max;
   }
 
+  // The window's breakdowns of the folded sections, null when a section has none.
+  var baseGameBreakdown = DATA.baseGameBreakdownText;
+  var remainingBreakdown = DATA.remainingBreakdownText;
+
   function renderTotalBar() {
     var modsTotal = 0;
     var hiddenTotal = 0;
@@ -977,12 +1041,13 @@ internal static class StartupImpactHtmlExporter
     // less than the timed steps.
     var windowMs = DATA.windowMs;
 
+    // The base game's and the remaining segments list what their folded sections hold.
     var cats = DATA.totalCategories;
     var segments = [
       { label: cats[0].label, color: cats[0].color, valueMs: modsTotal },
       { label: cats[1].label, color: cats[1].color, valueMs: hiddenTotal },
-      { label: cats[2].label, color: cats[2].color, valueMs: baseGameTotal },
-      { label: cats[3].label, color: cats[3].color, valueMs: DATA.remainingMs }
+      { label: cats[2].label, color: cats[2].color, valueMs: baseGameTotal, detail: baseGameBreakdown },
+      { label: cats[3].label, color: cats[3].color, valueMs: DATA.remainingMs, detail: remainingBreakdown }
     ];
     renderBar(document.getElementById("totalBar"), segments, windowMs);
     document.getElementById("modsTitle").textContent = DATA.strings.modsTitle.replace("{0}", timeText(modsTotal));
@@ -1023,7 +1088,7 @@ internal static class StartupImpactHtmlExporter
     if (mod.offThreadTotalImpactMs > 1) {
       var offBar = document.createElement("div");
       offBar.className = "bar";
-      renderBar(offBar, mod.offThreadMetrics, rowMaxImpact);
+      renderBar(offBar, mod.offThreadMetrics, rowMaxImpact, DATA.strings.onOtherThreadsTip);
       barCell.appendChild(offBar);
     }
     var mainBar = document.createElement("div");
@@ -1137,7 +1202,7 @@ internal static class StartupImpactHtmlExporter
     if (phase.offThreadTotalImpactMs > 1) {
       var offBar = document.createElement("div");
       offBar.className = "bar";
-      renderBar(offBar, phase.offThreadSegments, maxImpact);
+      renderBar(offBar, phase.offThreadSegments, maxImpact, DATA.strings.onOtherThreadsTip);
       barCell.appendChild(offBar);
     }
     var mainBar = document.createElement("div");
@@ -1220,7 +1285,7 @@ internal static class StartupImpactHtmlExporter
     if (DATA.baseGame.offThreadTotalImpactMs > 1) {
       var offBar = document.createElement("div");
       offBar.className = "bar";
-      renderBar(offBar, DATA.baseGame.offThreadSegments, maxImpact);
+      renderBar(offBar, DATA.baseGame.offThreadSegments, maxImpact, DATA.strings.onOtherThreadsTip);
       container.appendChild(offBar);
     }
     var mainBar = document.createElement("div");
@@ -1246,11 +1311,11 @@ internal static class StartupImpactHtmlExporter
     if (!DATA.remainingByStage.length) {
       return;
     }
-    var title = document.getElementById("remainingTitle");
-    title.textContent = DATA.strings.remainingTitle.replace("{0}", timeText(DATA.remainingMs));
-    title.style.display = "";
+    document.getElementById("remainingTitle").textContent =
+      DATA.strings.remainingTitle.replace("{0}", timeText(DATA.remainingMs));
+    document.getElementById("remainingDetail").textContent = DATA.largestRemainingEntryText || "";
+    document.getElementById("remainingSection").style.display = "";
     var bar = document.getElementById("remainingBar");
-    bar.style.display = "";
     renderBar(bar, DATA.remainingByStage, DATA.remainingMs);
   }
 
@@ -1274,6 +1339,33 @@ internal static class StartupImpactHtmlExporter
 
   document.getElementById("baseGameTitle").textContent =
     DATA.strings.baseGameTitle.replace("{0}", timeText(DATA.baseGame.loadingTimeMs));
+  // The base game's time on other threads when its bar for that is shown, as in the window,
+  // and its largest step when it is not.
+  document.getElementById("baseGameDetail").textContent = DATA.baseGame.offThreadTotalImpactMs > 1
+    ? DATA.strings.onOtherThreadsDetail.replace("{0}", timeText(DATA.baseGame.offThreadTotalImpactMs))
+    : DATA.largestBaseGameStepText || "";
+
+  // Hovering a section's heading says what a click does and, while the section is closed,
+  // shows the breakdown it holds, as the window's headings do.
+  function wireSectionTip(sectionId, breakdown) {
+    var section = document.getElementById(sectionId);
+    var summary = section.querySelector("summary");
+    function tipText() {
+      return !section.open && breakdown
+        ? breakdown + "\n\n" + DATA.strings.sectionTip
+        : DATA.strings.sectionTip;
+    }
+    summary.addEventListener("mouseenter", function (evt) { showTooltip(evt, tipText()); });
+    summary.addEventListener("mousemove", moveTooltip);
+    summary.addEventListener("mouseleave", hideTooltip);
+    section.addEventListener("toggle", function () {
+      if (summary.matches(":hover")) {
+        tooltipEl.textContent = tipText();
+      }
+    });
+  }
+  wireSectionTip("baseGameSection", baseGameBreakdown);
+  wireSectionTip("remainingSection", remainingBreakdown);
 
   document.getElementById("footer").textContent =
     DATA.strings.footer.replace("{0}", DATA.generatedAt);

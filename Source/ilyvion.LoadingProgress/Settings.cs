@@ -186,6 +186,22 @@ internal sealed class Settings : ModSettings
         set => _showBaseGameOffThreadImpact = value;
     }
 
+    // Whether the startup impact window's sections for the base game and for the remaining
+    // time show their bars, or only their heading line. Set by clicking the heading.
+    private bool _expandBaseGameSection;
+    public bool ExpandBaseGameSection
+    {
+        get => _expandBaseGameSection;
+        set => _expandBaseGameSection = value;
+    }
+
+    private bool _expandRemainingSection;
+    public bool ExpandRemainingSection
+    {
+        get => _expandRemainingSection;
+        set => _expandRemainingSection = value;
+    }
+
     private bool _showStartupImpactTimesInSecondsOnly;
     public bool ShowStartupImpactTimesInSecondsOnly
     {
@@ -289,6 +305,8 @@ internal sealed class Settings : ModSettings
         Scribe_Values.Look(ref _trackStartupLoadingImpact, "trackStartupLoadingImpact", false);
         Scribe_Values.Look(ref _autoSaveStartupImpactReport, "autoSaveStartupImpactReport", false);
         Scribe_Values.Look(ref _showBaseGameOffThreadImpact, "showBaseGameOffThreadImpact", false);
+        Scribe_Values.Look(ref _expandBaseGameSection, "expandBaseGameSection", false);
+        Scribe_Values.Look(ref _expandRemainingSection, "expandRemainingSection", false);
         Scribe_Values.Look(
             ref _showStartupImpactTimesInSecondsOnly,
             "showStartupImpactTimesInSecondsOnly",

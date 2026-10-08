@@ -19,6 +19,11 @@ internal sealed class ProfilerBar
     public IReadOnlyDictionary<string, string>? TooltipDetails { get; set; }
 
     /// <summary>
+    /// A line every segment's tooltip ends with, such as what the whole bar measures.
+    /// </summary>
+    public string? TooltipSuffix { get; set; }
+
+    /// <summary>
     /// Whether each segment wide enough for it carries its time as a label.
     /// </summary>
     public bool ShowSegmentLabels { get; set; }
@@ -153,9 +158,11 @@ internal sealed class ProfilerBar
         string Tooltip(string category, float impact)
         {
             var text = $"{TooltipLabel(category)}: {TimeText(impact)}";
-            return TooltipDetails != null && TooltipDetails.TryGetValue(category, out var detail)
-                ? text + "\n" + detail
-                : text;
+            if (TooltipDetails != null && TooltipDetails.TryGetValue(category, out var detail))
+            {
+                text += "\n" + detail;
+            }
+            return TooltipSuffix != null ? text + "\n" + TooltipSuffix : text;
         }
 
         void DrawLinearScale(

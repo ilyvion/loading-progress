@@ -172,4 +172,152 @@ internal sealed class StartupImpactSessionViewDataTests
                 (500f, 9000f, true),
             ])
         );
+
+    // The base game's largest steps, for its tooltip and its folded heading: largest first,
+    // nothing for a step with no time in it, and no more lines than asked for.
+    [Test]
+    public static void TheLargestStepsComeLargestFirstAndCapped()
+    {
+        var steps = StartupImpactSessionViewData.LargestSteps(
+            ["A", "B", "C", "D"],
+            [200f, 0f, 900f, 500f],
+            2
+        );
+
+        Expect.IsTrue(steps.Count == 2);
+        Expect.IsTrue(steps[0].Category == "C");
+        Expect.IsTrue(steps[1].Category == "D");
+    }
+
+    // Hovering the top bar's base-game and remaining segments shows the breakdowns the folded
+    // sections hold, from this startup's own session: a key for each text that exists.
+    [Test]
+    public static void TheTotalsBarTooltipsCarryBothBreakdowns()
+    {
+        var viewData = new StartupImpactSessionViewData(
+            StartupImpactSessionData.FromCurrentSession()
+        );
+
+        var texts = viewData.Texts(secondsOnly: false);
+        var details = texts.TotalsTooltipDetails;
+        Expect.IsTrue(
+            details.ContainsKey("LoadingProgress.StartupImpact.Total.BaseGame")
+                == (texts.BaseGameBreakdown != null)
+        );
+        Expect.IsTrue(
+            details.ContainsKey("LoadingProgress.StartupImpact.Total.Others")
+                == (texts.RemainingBreakdown != null)
+        );
+        Expect.IsTrue(viewData.BasegameLoadingTime < 1f || texts.BaseGameBreakdown != null);
+    }
+
+    // A breakdown lists its largest lines and counts the rest, so a reader adding up the
+    // lines knows when some are missing.
+    [Test]
+    public static void ABreakdownCountsTheLinesItLeavesOut()
+    {
+        List<(string Label, float Ms)> lines =
+        [
+            .. Enumerable
+                .Range(0, StartupImpactSessionViewData.BreakdownLines + 3)
+                .Select(i => ($"Step {i}", 100f - i)),
+        ];
+
+        var shown = StartupImpactSessionViewData
+            .Breakdown("Header:", lines, secondsOnly: false)
+            .Split('\n');
+
+        Expect.AreEqual(StartupImpactSessionViewData.BreakdownLines + 2, shown.Length);
+        Expect.AreEqual("Header:", shown[0]);
+        Expect.AreEqual(
+            "LoadingProgress.StartupImpact.Breakdown.More".Translate(3).ToString(),
+            shown[^1]
+        );
+    }
+
+    [Test]
+    public static void ABreakdownThatFitsHasNoCount() =>
+        Expect.AreEqual(
+            2,
+            StartupImpactSessionViewData
+                .Breakdown("Header:", [("Step", 5f)], secondsOnly: false)
+                .Split('\n')
+                .Length
+        );
+
+    // With the base game's off-thread bar hidden, which is the default, its folded heading
+    // names its largest step.
+    [Test]
+    public static void TheBaseGameHeadingCanNameItsLargestStep()
+    {
+        const string Small = "LoadingProgress.StartupImpact.AbstractFilesystemClearAllCache";
+        const string Large = "LoadingProgress.StartupImpact.GarbageCollection";
+        var viewData = new StartupImpactSessionViewData(
+            StartupImpactSessionData.FromValues(
+                10000f,
+                0f,
+                new() { [Small] = 1000f, [Large] = 3000f },
+                [],
+                []
+            )
+        );
+
+        Expect.AreEqual(
+            $"{StartupImpactProfilerUtil.TranslateCategory(Large)}: {ProfilerBar.TimeText(3000f, false)}",
+            viewData.Texts(secondsOnly: false).LargestBaseGameStep
+        );
+    }
+
+    // The remaining heading names the remaining time's largest entry. The window and the HTML
+    // report both show this text.
+    [Test]
+    public static void TheRemainingHeadingNamesItsLargestEntry()
+    {
+        var viewData = new StartupImpactSessionViewData(
+            StartupImpactSessionData.FromValues(
+                10000f,
+                0f,
+                [],
+                [],
+                [new("LoadingDefs", 1500f, 500f), new("AtlasBaking", 3000f, 500f)]
+            )
+        );
+
+        var largest = viewData.RemainingByStage[0];
+        Expect.AreEqual("AtlasBaking", largest.Key);
+        Expect.AreEqual(
+            $"{largest.Label}: {ProfilerBar.TimeText(2500f, false)}",
+            viewData.Texts(secondsOnly: false).LargestRemainingEntry
+        );
+    }
+
+    // The section texts used to be written once, with the seconds-only setting of when the
+    // window opened, while the titles beside them follow the setting as it is. Ticking it in
+    // the settings window behind the open window turned a heading's time to seconds and left a
+    // minute-long entry beside it in minutes. The texts are now written as each caller asks.
+    [Test]
+    public static void TheSectionTextsAreWrittenAsTheyAreAskedFor()
+    {
+        const string Step = "LoadingProgress.StartupImpact.GarbageCollection";
+        var viewData = new StartupImpactSessionViewData(
+            StartupImpactSessionData.FromValues(
+                100000f,
+                0f,
+                new() { [Step] = 62300f },
+                [],
+                [new("LoadingDefs", 80000f, 17700f)]
+            )
+        );
+
+        foreach (var secondsOnly in new[] { false, true, false })
+        {
+            var texts = viewData.Texts(secondsOnly);
+            var time = ProfilerBar.TimeText(62300f, secondsOnly);
+            Expect.IsTrue(texts.LargestBaseGameStep!.EndsWith(time, StringComparison.Ordinal));
+            Expect.IsTrue(texts.LargestRemainingEntry!.EndsWith(time, StringComparison.Ordinal));
+            Expect.IsTrue(texts.BaseGameBreakdown!.Contains(time, StringComparison.Ordinal));
+            Expect.IsTrue(texts.RemainingBreakdown!.Contains(time, StringComparison.Ordinal));
+        }
+        Expect.AreNotEqual(ProfilerBar.TimeText(62300f, false), ProfilerBar.TimeText(62300f, true));
+    }
 }
