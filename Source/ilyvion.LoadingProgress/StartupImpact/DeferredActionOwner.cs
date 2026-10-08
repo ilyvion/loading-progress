@@ -1,3 +1,5 @@
+using System.Collections.Concurrent;
+
 namespace ilyvion.LoadingProgress.StartupImpact;
 
 /// <summary>
@@ -20,7 +22,7 @@ internal static class DeferredActionOwner
 {
     private const int MaxClosureDepth = 2;
 
-    private static readonly Dictionary<Type, FieldInfo[]> _closureFieldsByType = [];
+    private static readonly ConcurrentDictionary<Type, FieldInfo[]> _closureFieldsByType = new();
 
     /// <summary>
     /// The content pack that owns the def the action works on, or null when the action is not
@@ -74,26 +76,22 @@ internal static class DeferredActionOwner
         return null;
     }
 
-    private static FieldInfo[] ClosureFields(Type type)
-    {
-        lock (_closureFieldsByType)
-        {
-            if (_closureFieldsByType.TryGetValue(type, out var cached))
-            {
-                return cached;
-            }
-
-            var fields = type.GetFields(
-                    BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic
-                )
-                .Where(field =>
-                    typeof(Def).IsAssignableFrom(field.FieldType)
-                    || typeof(ModContentPack).IsAssignableFrom(field.FieldType)
-                    || CompilerGenerated.Is(field.FieldType)
-                )
-                .ToArray();
-            _closureFieldsByType[type] = fields;
-            return fields;
-        }
-    }
+    // The fields of a closure that can lead to a def, kept per type as CompilerGenerated keeps
+    // its answer.
+    private static FieldInfo[] ClosureFields(Type type) =>
+        _closureFieldsByType.GetOrAdd(
+            type,
+            static closure =>
+                [
+                    .. closure
+                        .GetFields(
+                            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic
+                        )
+                        .Where(field =>
+                            typeof(Def).IsAssignableFrom(field.FieldType)
+                            || typeof(ModContentPack).IsAssignableFrom(field.FieldType)
+                            || CompilerGenerated.Is(field.FieldType)
+                        ),
+                ]
+        );
 }
