@@ -307,45 +307,7 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
             DeepProfiler.Start(label);
             try
             {
-                var methodAssembly = toExecuteWhenFinished.Method.DeclaringType.Assembly;
-                var assemblyMod = Utilities.FindModByAssembly(methodAssembly);
-                var isBaseGame = methodAssembly.FullName.StartsWith(
-                    "Assembly-CSharp",
-                    StringComparison.Ordinal
-                );
-                if (isBaseGame)
-                {
-                    StartupImpactProfilerUtil.StartBaseGameProfiler(
-                        $"LoadingProgress.StartupImpact.ExecuteToExecuteWhenFinished|{label}"
-                    );
-                }
-                else
-                {
-                    StartupImpactProfilerUtil.StartModProfiler(
-                        assemblyMod,
-                        $"LoadingProgress.StartupImpact.ExecuteToExecuteWhenFinished|{label}"
-                    );
-                }
-
-                toExecuteWhenFinished();
-
-                if (isBaseGame)
-                {
-                    StartupImpactProfilerUtil.StopBaseGameProfiler(
-                        $"LoadingProgress.StartupImpact.ExecuteToExecuteWhenFinished|{label}"
-                    );
-                }
-                else
-                {
-                    StartupImpactProfilerUtil.StopModProfiler(
-                        assemblyMod,
-                        $"LoadingProgress.StartupImpact.ExecuteToExecuteWhenFinished|{label}"
-                    );
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Error("Could not execute post-long-event action. Exception: " + ex);
+                RunDeferredAction(toExecuteWhenFinished, label);
             }
             finally
             {
@@ -381,5 +343,105 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
         LongEventHandler.executingToExecuteWhenFinished = false;
         FasterGameLoading_DelayedActions_LateUpdate_Patches._pauseFasterGameLoading_DelayedActions_LateUpdate =
             false;
+    }
+
+    internal const string DeferredActionCategory =
+        "LoadingProgress.StartupImpact.ExecuteToExecuteWhenFinished";
+
+    /// <summary>
+    /// Runs one deferred initialization action, timed under the mod it is credited to. Its
+    /// category is closed whether or not the action throws, and an exception is logged rather
+    /// than passed on, so the rest of the queue still runs.
+    /// </summary>
+    /// <remarks>
+    /// A failure in the timing itself leaves the action untimed, never unrun.
+    /// </remarks>
+    internal static void RunDeferredAction(Action action, string label) =>
+        RunDeferredAction(action, label, OwnerOf);
+
+    /// <summary>
+    /// <see cref="RunDeferredAction(Action, string)"/>, finding the action's owner with
+    /// <paramref name="findOwner"/>.
+    /// </summary>
+    internal static void RunDeferredAction(
+        Action action,
+        string label,
+        Func<Delegate, (ModContentPack? Owner, bool IsBaseGame)> findOwner
+    )
+    {
+        string? category;
+        ModContentPack? owner = null;
+        var isBaseGame = false;
+        try
+        {
+            (owner, isBaseGame) = findOwner(action);
+            category = $"{DeferredActionCategory}|{label}";
+            StartTiming(owner, isBaseGame, category);
+        }
+        catch (Exception ex)
+        {
+            category = null;
+            LoadingProgressMod.Warning(
+                $"Could not time the deferred action {label}, so it runs untimed: {ex.Message}"
+            );
+        }
+
+        try
+        {
+            action();
+        }
+        catch (Exception ex)
+        {
+            Log.Error("Could not execute post-long-event action. Exception: " + ex);
+        }
+        finally
+        {
+            if (category != null)
+            {
+                StopTiming(owner, isBaseGame, category);
+            }
+        }
+    }
+
+    // The mod whose code the action runs, and whether that code is the engine's.
+    private static (ModContentPack? Owner, bool IsBaseGame) OwnerOf(Delegate action)
+    {
+        var methodAssembly = action.Method.DeclaringType.Assembly;
+        return (
+            Utilities.FindModByAssembly(methodAssembly),
+            methodAssembly.FullName.StartsWith("Assembly-CSharp", StringComparison.Ordinal)
+        );
+    }
+
+    private static void StartTiming(ModContentPack? owner, bool isBaseGame, string category)
+    {
+        if (isBaseGame)
+        {
+            StartupImpactProfilerUtil.StartBaseGameProfiler(category);
+        }
+        else
+        {
+            StartupImpactProfilerUtil.StartModProfiler(owner, category);
+        }
+    }
+
+    // Never throws into the queue: a failure to stop is logged, and the next action runs.
+    private static void StopTiming(ModContentPack? owner, bool isBaseGame, string category)
+    {
+        try
+        {
+            if (isBaseGame)
+            {
+                StartupImpactProfilerUtil.StopBaseGameProfiler(category);
+            }
+            else
+            {
+                StartupImpactProfilerUtil.StopModProfiler(owner, category);
+            }
+        }
+        catch (Exception ex)
+        {
+            LoadingProgressMod.Warning($"Could not stop timing {category}: {ex.Message}");
+        }
     }
 }

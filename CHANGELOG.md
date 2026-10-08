@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Faster Game Loading went unrecognized when its Workshop copy carried the '_steam' package id suffix the game adds while a local copy with the same id is installed. Its early content loading was then neither shown in the loading window nor taken into account when loading content. Contributed by [beverage](https://github.com/beverage).
+- A deferred initialization task that threw left its startup impact category open: the time it had run was never recorded, and every category its mod, or the base game, started afterwards ran inside it.
 
 ## [0.17.0] - 2026-10-03
 
