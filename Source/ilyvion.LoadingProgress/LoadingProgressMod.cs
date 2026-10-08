@@ -16,12 +16,29 @@ internal sealed class LoadingProgressMod : Mod
         instance = this;
         StartupImpact = new StartupImpact.StartupImpact();
 
-        harmony = new(content.PackageId);
-        harmony.PatchAllUncategorized(Assembly.GetExecutingAssembly());
-
-        if (Settings.TrackStartupLoadingImpact)
+        // The patch that times every other mod's constructor is applied below, so this one is
+        // the only constructor it can never see; it is credited by hand instead.
+        const string ownConstructor = "LoadingProgress.StartupImpact.ModConstructor";
+        global::ilyvion.LoadingProgress.StartupImpact.StartupImpactProfilerUtil.StartModProfiler(
+            content,
+            ownConstructor
+        );
+        try
         {
-            harmony.PatchCategory(Assembly.GetExecutingAssembly(), "StartupImpact");
+            harmony = new(content.PackageId);
+            harmony.PatchAllUncategorized(Assembly.GetExecutingAssembly());
+
+            if (Settings.TrackStartupLoadingImpact)
+            {
+                harmony.PatchCategory(Assembly.GetExecutingAssembly(), "StartupImpact");
+            }
+        }
+        finally
+        {
+            global::ilyvion.LoadingProgress.StartupImpact.StartupImpactProfilerUtil.StopModProfiler(
+                content,
+                ownConstructor
+            );
         }
 
         Message(

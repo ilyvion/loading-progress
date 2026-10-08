@@ -39,9 +39,15 @@
     <LoadingProgress.StartupImpact.SolidBioDatabaseLoadAllBios>Loading all bios</LoadingProgress.StartupImpact.SolidBioDatabaseLoadAllBios>
     <LoadingProgress.StartupImpact.LoadedLanguageInjectIntoDataAfterImpliedDefs>Injecting selected language data into game data</LoadingProgress.StartupImpact.LoadedLanguageInjectIntoDataAfterImpliedDefs>
     <LoadingProgress.StartupImpact.StaticConstructorOnStartupUtilityCallAll>Running static constructors</LoadingProgress.StartupImpact.StaticConstructorOnStartupUtilityCallAll>
+    <LoadingProgress.StartupImpact.StaticConstructorOnStartupUtilityCallAllPass>Static constructor pass for other mods' hooks</LoadingProgress.StartupImpact.StaticConstructorOnStartupUtilityCallAllPass>
+    <LoadingProgress.StartupImpact.StaticConstructorOnStartupUtilityCallAllPassWithUntimedHooks>Static constructor pass for other mods' hooks, with hooks not timed on their own: {0}</LoadingProgress.StartupImpact.StaticConstructorOnStartupUtilityCallAllPassWithUntimedHooks>
+    <LoadingProgress.StartupImpact.StaticConstructorOnStartupUtilityCallAllHook>Hook on the static constructor pass: {0}</LoadingProgress.StartupImpact.StaticConstructorOnStartupUtilityCallAllHook>
+    <LoadingProgress.StartupImpact.StaticConstructorOnStartupUtilityCallAllHook.Grouped>Hooks on the static constructor pass</LoadingProgress.StartupImpact.StaticConstructorOnStartupUtilityCallAllHook.Grouped>
+    <LoadingProgress.StartupImpact.ReportProbablyMissingAttributes>Checking for missing StaticConstructorOnStartup attributes (development mode)</LoadingProgress.StartupImpact.ReportProbablyMissingAttributes>
     <LoadingProgress.StartupImpact.FloatMenuMakerMapInit>Initializing float menu maker map</LoadingProgress.StartupImpact.FloatMenuMakerMapInit>
     <LoadingProgress.StartupImpact.GlobalTextureAtlasManagerBakeStaticAtlases>Texture atlas baking</LoadingProgress.StartupImpact.GlobalTextureAtlasManagerBakeStaticAtlases>
     <LoadingProgress.StartupImpact.AbstractFilesystemClearAllCache>Clearing filesystem cache</LoadingProgress.StartupImpact.AbstractFilesystemClearAllCache>
+    <LoadingProgress.StartupImpact.GarbageCollection>Garbage collection and asset unload</LoadingProgress.StartupImpact.GarbageCollection>
     <LoadingProgress.StartupImpact.Total.Mods>Mods</LoadingProgress.StartupImpact.Total.Mods>
     <LoadingProgress.StartupImpact.Total.ModsHidden>Hidden mods</LoadingProgress.StartupImpact.Total.ModsHidden>
     <LoadingProgress.StartupImpact.Total.BaseGame>Not directly related to mods</LoadingProgress.StartupImpact.Total.BaseGame>

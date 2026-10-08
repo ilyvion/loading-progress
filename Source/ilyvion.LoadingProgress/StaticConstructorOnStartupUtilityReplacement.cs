@@ -1,4 +1,5 @@
 using System.Reflection.Emit;
+using ilyvion.LoadingProgress.StartupImpact;
 
 namespace ilyvion.LoadingProgress;
 
@@ -84,10 +85,28 @@ internal sealed class StaticConstructorOnStartupUtilityReplacement
         DeepProfiler.Start("Static constructor calls");
         try
         {
-            StaticConstructorOnStartupUtility.CallAll();
+            // Timing the hooks means patching other mods' methods, which only a player who
+            // asked for startup impact tracking has agreed to.
+            if (LoadingProgressMod.instance.StartupImpact.WasTrackingEnabledAtStartup)
+            {
+                CallAllWithHooksTimed();
+            }
+            else
+            {
+                StaticConstructorOnStartupUtility.CallAll();
+            }
+
             if (Prefs.DevMode)
             {
-                StaticConstructorOnStartupUtility.ReportProbablyMissingAttributes();
+                StartupImpactProfilerUtil.StartBaseGameProfiler(ReportMissingAttributesCategory);
+                try
+                {
+                    StaticConstructorOnStartupUtility.ReportProbablyMissingAttributes();
+                }
+                finally
+                {
+                    StartupImpactProfilerUtil.StopBaseGameProfiler(ReportMissingAttributesCategory);
+                }
             }
         }
         finally
@@ -110,19 +129,154 @@ internal sealed class StaticConstructorOnStartupUtilityReplacement
         }
         yield return null;
 
-        DeepProfiler.Start("Garbage Collection");
+        // The collect and the unload are the engine's; they get a heading of their own under
+        // the base game. The unload is asynchronous and blocks a later frame. The yield that
+        // follows ends this frame once the frame's time budget for long events is spent, as it
+        // is after a long collect on a long mod list, or always when forced repaints are on,
+        // since the stage change above asks for one. The category then stays open into the
+        // frame the unload blocks and takes it in. After a short collect with forced repaints
+        // off, the frame goes on, the category closes first, and the unload's stall falls in
+        // the remaining time.
+        foreach (
+            var step in TimedIntoTheNextFrame(
+                GarbageCollectionCategory,
+                "Garbage Collection",
+                CollectGarbage
+            )
+        )
+        {
+            yield return step;
+        }
+    }
+
+    private static void CollectGarbage()
+    {
+        RimWorld.IO.AbstractFilesystem.ClearAllCache();
+        GC.Collect(int.MaxValue, GCCollectionMode.Forced);
+        _ = Resources.UnloadUnusedAssets();
+    }
+
+    /// <summary>
+    /// Runs <paramref name="work"/> under the base game's <paramref name="category"/>, inside the
+    /// engine profiler's <paramref name="label"/>, and yields once before the category stops,
+    /// so it also takes in a frame the work blocks. The category stops however the iterator
+    /// ends: after the yield, when the work throws, or when the iterator is disposed before it
+    /// finishes.
+    /// </summary>
+    internal static IEnumerable TimedIntoTheNextFrame(string category, string label, Action work)
+    {
+        StartupImpactProfilerUtil.StartBaseGameProfiler(category);
         try
         {
-            RimWorld.IO.AbstractFilesystem.ClearAllCache();
-            GC.Collect(int.MaxValue, GCCollectionMode.Forced);
-            _ = Resources.UnloadUnusedAssets();
+            DeepProfiler.Start(label);
+            try
+            {
+                work();
+            }
+            finally
+            {
+                DeepProfiler.End();
+            }
+            yield return null;
         }
         finally
         {
-            DeepProfiler.End();
+            StartupImpactProfilerUtil.StopBaseGameProfiler(category);
         }
-        yield return null;
     }
+
+    internal const string GarbageCollectionCategory =
+        "LoadingProgress.StartupImpact.GarbageCollection";
+
+    internal const string ReportMissingAttributesCategory =
+        "LoadingProgress.StartupImpact.ReportProbablyMissingAttributes";
+
+    // The engine's own CallAll pass: the call itself, with every hook on it timed elsewhere.
+    internal const string CallAllPassCategory =
+        "LoadingProgress.StartupImpact.StaticConstructorOnStartupUtilityCallAllPass";
+
+    // The same, when some hooks could not be timed on their own: their owners follow the '|'.
+    internal const string CallAllPassWithUntimedHooksKey =
+        "LoadingProgress.StartupImpact.StaticConstructorOnStartupUtilityCallAllPassWithUntimedHooks";
+
+    private static readonly MethodInfo CallAllMethod = AccessTools.Method(
+        typeof(StaticConstructorOnStartupUtility),
+        nameof(StaticConstructorOnStartupUtility.CallAll)
+    );
+
+    /// <summary>
+    /// Runs the engine's CallAll with every other mod's hook on it timed under that mod.
+    /// </summary>
+    /// <remarks>
+    /// Every constructor has already run, so what this pass costs is the other mods' hooks on
+    /// it. Each hook is timed under its own mod for the duration of the call; whatever cannot
+    /// be is named on the call's own category instead.
+    /// </remarks>
+    private static void CallAllWithHooksTimed()
+    {
+        var hookTiming = CallAllHookTiming.Install(CallAllMethod);
+        var passCategory = CallAllPassCategoryFor(hookTiming.UntimedOwners);
+        var timed = false;
+        try
+        {
+            // The call runs whatever its timing does, or no other mod's hook on it would fire.
+            timed = StartPassTiming(passCategory, StartupImpactProfilerUtil.StartBaseGameProfiler);
+            StaticConstructorOnStartupUtility.CallAll();
+        }
+        finally
+        {
+            // The patches come off whatever happens, or they would stay on other mods' hook
+            // methods for the rest of the session.
+            try
+            {
+                if (timed)
+                {
+                    StartupImpactProfilerUtil.StopBaseGameProfiler(passCategory);
+                }
+            }
+            catch (Exception e)
+            {
+                LoadingProgressMod.Warning(
+                    $"Could not time the static constructor pass: {e.Message}"
+                );
+            }
+            finally
+            {
+                hookTiming.Remove();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Opens the pass's own category with <paramref name="start"/> and, once it is open, hands
+    /// it to the hook timing, which pauses it while each hook runs. Returns whether it opened.
+    /// When it did not, the hooks have no category to pause, so they leave the base game's
+    /// timer alone.
+    /// </summary>
+    internal static bool StartPassTiming(string passCategory, Action<string> start)
+    {
+        try
+        {
+            start(passCategory);
+        }
+        catch (Exception e)
+        {
+            LoadingProgressMod.Warning($"Could not time the static constructor pass: {e.Message}");
+            return false;
+        }
+
+        CallAllHookTiming.BaseCategory = passCategory;
+        return true;
+    }
+
+    /// <summary>
+    /// The category for the engine's own CallAll pass: the call itself, naming whichever hooks
+    /// could not be timed under their own mods, so their time still has an address.
+    /// </summary>
+    internal static string CallAllPassCategoryFor(IReadOnlyList<string> untimedOwners) =>
+        untimedOwners.Count == 0
+            ? CallAllPassCategory
+            : $"{CallAllPassWithUntimedHooksKey}|{string.Join(", ", untimedOwners)}";
 }
 
 internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patches
