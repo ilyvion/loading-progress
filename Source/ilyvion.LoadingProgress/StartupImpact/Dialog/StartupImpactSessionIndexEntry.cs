@@ -80,6 +80,21 @@ internal sealed class StartupImpactSessionIndexEntry : IExposable
     public StartupImpactSessionIndexEntry() { }
 
     /// <summary>
+    /// The history's note on a boot that never finished, from the last stage it recorded:
+    /// where it stopped, or that it stopped after loading, before the main menu was usable.
+    /// </summary>
+    internal static string UnfinishedNote(string? lastStage) =>
+        string.IsNullOrEmpty(lastStage)
+            ? "LoadingProgress.StartupImpact.History.Note.Unfinished".Translate().ToString()
+        : lastStage == nameof(LoadingStage.Finished)
+            ? "LoadingProgress.StartupImpact.History.Note.UnfinishedAfterLoading"
+                .Translate()
+                .ToString()
+        : "LoadingProgress.StartupImpact.History.Note.UnfinishedAt"
+            .Translate(TranslateStage(lastStage!))
+            .ToString();
+
+    /// <summary>
     /// The loading stage an unfinished boot reached, in the player's language.
     /// </summary>
     /// <remarks>
@@ -97,21 +112,6 @@ internal sealed class StartupImpactSessionIndexEntry : IExposable
     /// every stage; and Translate pseudo-translates a fallback result in dev
     /// mode, which would garble the one case this exists to serve.
     /// </remarks>
-    /// <summary>
-    /// The history's note on a boot that never finished, from the last stage it recorded:
-    /// where it stopped, or that it stopped after loading, before the main menu was usable.
-    /// </summary>
-    internal static string UnfinishedNote(string? lastStage) =>
-        string.IsNullOrEmpty(lastStage)
-            ? "LoadingProgress.StartupImpact.History.Note.Unfinished".Translate().ToString()
-        : lastStage == nameof(LoadingStage.Finished)
-            ? "LoadingProgress.StartupImpact.History.Note.UnfinishedAfterLoading"
-                .Translate()
-                .ToString()
-        : "LoadingProgress.StartupImpact.History.Note.UnfinishedAt"
-            .Translate(TranslateStage(lastStage!))
-            .ToString();
-
     internal static string TranslateStage(string stageName)
     {
         if (string.IsNullOrEmpty(stageName))
