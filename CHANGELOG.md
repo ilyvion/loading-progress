@@ -29,6 +29,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A startup impact category started while another was open for the same mod, or for the base game, lost the open one's time up to that point, so the open one was credited only with what it ran after the other stopped.
 - A timed step that threw, such as a mod constructor that failed or a mod whose defs could not be loaded, left its startup impact category open, so the time it had run was never recorded.
 
+## [0.17.1] - 2026-10-08
+
+### Fixed
+
+- Fixed an error during startup that could stop the loading window from showing progress while mods' content was being loaded.
+
 ## [0.17.0] - 2026-10-03
 
 ### Added
@@ -371,7 +377,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First implementation of the mod.
 
-[Unreleased]: https://github.com/ilyvion/loading-progress/compare/v0.17.0...HEAD
+[Unreleased]: https://github.com/ilyvion/loading-progress/compare/v0.17.1...HEAD
+[0.17.1]: https://github.com/ilyvion/loading-progress/compare/v0.17.0..v0.17.1
 [0.17.0]: https://github.com/ilyvion/loading-progress/compare/v0.16.0..v0.17.0
 [0.16.0]: https://github.com/ilyvion/loading-progress/compare/v0.15.0..v0.16.0
 [0.15.0]: https://github.com/ilyvion/loading-progress/compare/v0.14.0..v0.15.0
