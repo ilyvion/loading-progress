@@ -18,6 +18,31 @@ internal sealed class ProfilerBar
     /// </summary>
     public IReadOnlyDictionary<string, string>? TooltipDetails { get; set; }
 
+    /// <summary>
+    /// Whether each segment wide enough for it carries its time as a label.
+    /// </summary>
+    public bool ShowSegmentLabels { get; set; }
+
+    /// <summary>
+    /// Writes a segment's time across it, when it fits.
+    /// </summary>
+    private static void DrawSegmentLabel(Rect rect, string text)
+    {
+        var font = Text.Font;
+        var anchor = Text.Anchor;
+        var color = GUI.color;
+        Text.Font = GameFont.Small;
+        Text.Anchor = TextAnchor.MiddleCenter;
+        if (Text.CalcSize(text).x + 8f <= rect.width)
+        {
+            GUI.color = Color.white;
+            Widgets.Label(rect, text);
+        }
+        Text.Font = font;
+        Text.Anchor = anchor;
+        GUI.color = color;
+    }
+
     public static string TimeText(float ms) =>
         TimeText(ms, LoadingProgressMod.Settings.ShowStartupImpactTimesInSecondsOnly);
 
@@ -158,6 +183,10 @@ internal sealed class ProfilerBar
 
                 var color = categoryColors.TryGetValue(categories[i], out var c) ? c : DefaultColor;
                 DrawSegment(textRect, color);
+                if (ShowSegmentLabels)
+                {
+                    DrawSegmentLabel(textRect, TimeText(impact));
+                }
 
                 TooltipHandler.TipRegion(textRect, new TipSignal(Tooltip(categories[i], impact)));
 
@@ -216,6 +245,10 @@ internal sealed class ProfilerBar
 
                 var color = categoryColors.TryGetValue(categories[i], out var c) ? c : DefaultColor;
                 DrawSegment(textRect, color);
+                if (ShowSegmentLabels)
+                {
+                    DrawSegmentLabel(textRect, TimeText(impact));
+                }
 
                 TooltipHandler.TipRegion(textRect, new TipSignal(Tooltip(categories[i], impact)));
 

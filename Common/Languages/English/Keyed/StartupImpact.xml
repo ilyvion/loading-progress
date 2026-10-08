@@ -49,6 +49,7 @@
     <LoadingProgress.StartupImpact.Remaining.ByStage>Remaining time by loading stage, largest first:</LoadingProgress.StartupImpact.Remaining.ByStage>
     <LoadingProgress.StartupImpact.Remaining.AfterLoading>After loading, until the main menu was usable</LoadingProgress.StartupImpact.Remaining.AfterLoading>
     <LoadingProgress.StartupImpact.Remaining.SecondPass>{0} (second pass)</LoadingProgress.StartupImpact.Remaining.SecondPass>
+    <LoadingProgress.StartupImpact.StartupRemaining>Remaining time: {0}</LoadingProgress.StartupImpact.StartupRemaining>
     <LoadingProgress.StartupImpact.PostLoadLongEvent>After loading: {0}</LoadingProgress.StartupImpact.PostLoadLongEvent>
     <LoadingProgress.StartupImpact.PostLoadLongEvent.Grouped>After loading</LoadingProgress.StartupImpact.PostLoadLongEvent.Grouped>
     <LoadingProgress.StartupImpact.Seconds>{0} s</LoadingProgress.StartupImpact.Seconds>

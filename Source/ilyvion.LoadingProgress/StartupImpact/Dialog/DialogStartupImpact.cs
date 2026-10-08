@@ -641,6 +641,7 @@ internal sealed class DialogStartupImpact : Window
 
         Rect profileRect = new(0, y, area.width, BarHeight);
         profilerBar.TooltipDetails = _sessionViewData.RemainingTooltipDetails;
+        profilerBar.ShowSegmentLabels = true;
         profilerBar.Draw(
             profileRect,
             _sessionViewData.MetricsTotal,
@@ -648,6 +649,7 @@ internal sealed class DialogStartupImpact : Window
             _sessionViewData.TotalWindow,
             CategoryColors
         );
+        profilerBar.ShowSegmentLabels = false;
         profilerBar.TooltipDetails = null;
         y += profileRect.height + InnerSpacing;
 
@@ -708,6 +710,8 @@ internal sealed class DialogStartupImpact : Window
             _sessionViewData.CategoryColorsNonMods
         );
         y += BarHeight + OuterSpacing;
+
+        y = DrawRemainingSection(y, area.width, profilerBar);
 
         Rect modsTitleRect = new(0, y, area.width, TitleHeight);
         Widgets.Label(
@@ -942,6 +946,46 @@ internal sealed class DialogStartupImpact : Window
             )
         );
         GUI.color = Color.white;
+    }
+
+    /// <summary>
+    /// The remaining part of the startup time as a section of its own: a heading with its
+    /// total, and a bar with one segment per loading stage the time fell in, largest first,
+    /// with what came after loading finished as a segment of its own. Returns the y
+    /// to continue drawing at; a session saved before stages were kept draws nothing here.
+    /// </summary>
+    /// <remarks>
+    /// This time has no owner, so no hide button can take any of it away: the hooks, deferred
+    /// tasks and long events that could be traced to a mod sit on that mod's row instead.
+    /// </remarks>
+    private float DrawRemainingSection(float y, float width, ProfilerBar profilerBar)
+    {
+        if (_sessionViewData.CategoriesRemaining.Count == 0)
+        {
+            return y;
+        }
+
+        Rect titleRect = new(0, y, width, TitleHeight);
+        Widgets.Label(
+            titleRect,
+            "LoadingProgress.StartupImpact.StartupRemaining".Translate(
+                ProfilerBar.TimeText(_sessionViewData.RemainingLoadingTime)
+            )
+        );
+        y += titleRect.height;
+
+        Rect barRect = new(0, y, width, BarHeight);
+        profilerBar.ShowSegmentLabels = true;
+        profilerBar.Draw(
+            barRect,
+            _sessionViewData.MetricsRemaining,
+            _sessionViewData.CategoriesRemaining,
+            _sessionViewData.RemainingLoadingTime,
+            _sessionViewData.CategoryColorsRemaining,
+            translateCategories: false
+        );
+        profilerBar.ShowSegmentLabels = false;
+        return y + BarHeight + OuterSpacing;
     }
 
     /// <summary>

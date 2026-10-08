@@ -48,6 +48,7 @@ internal static class StartupImpactHtmlExporter
         _ = sb.Append(',');
         AppendNumber(sb, "timeToMenuMs", sessionData.TimeToMenu);
         _ = sb.Append(',');
+        AppendRemainingByStage(sb, viewData, defaultColor);
         AppendNumber(sb, "windowMs", viewData.TotalWindow);
         _ = sb.Append(',');
         AppendNumber(sb, "remainingMs", viewData.RemainingLoadingTime);
@@ -343,6 +344,12 @@ internal static class StartupImpactHtmlExporter
         _ = sb.Append(',');
         AppendString(sb, "footer", "LoadingProgress.StartupImpact.HtmlReport.Footer".Translate());
         _ = sb.Append(',');
+        AppendString(
+            sb,
+            "remainingTitle",
+            "LoadingProgress.StartupImpact.StartupRemaining".Translate()
+        );
+        _ = sb.Append(',');
         AppendString(sb, "secondsFormat", "LoadingProgress.StartupImpact.Seconds".Translate());
         _ = sb.Append(',');
         AppendString(
@@ -393,6 +400,44 @@ internal static class StartupImpactHtmlExporter
         $"#{(int)Mathf.Round(Mathf.Clamp01(c.r) * 255):x2}"
         + $"{(int)Mathf.Round(Mathf.Clamp01(c.g) * 255):x2}"
         + $"{(int)Mathf.Round(Mathf.Clamp01(c.b) * 255):x2}";
+
+    /// <summary>
+    /// The remaining time by loading stage, largest first, as the segments of the report's
+    /// remaining bar, so it can say where the time no category accounts for went.
+    /// </summary>
+    private static void AppendRemainingByStage(
+        StringBuilder sb,
+        StartupImpactSessionViewData viewData,
+        Color defaultColor
+    )
+    {
+        _ = sb.Append("\"remainingByStage\":[");
+        var first = true;
+        foreach (var entry in viewData.RemainingByStage)
+        {
+            if (!first)
+            {
+                _ = sb.Append(',');
+            }
+            first = false;
+            _ = sb.Append('{');
+            AppendString(sb, "label", entry.Label);
+            _ = sb.Append(',');
+            AppendString(
+                sb,
+                "color",
+                ColorToHex(
+                    viewData.CategoryColorsRemaining.TryGetValue(entry.Label, out var c)
+                        ? c
+                        : defaultColor
+                )
+            );
+            _ = sb.Append(',');
+            AppendNumber(sb, "valueMs", entry.Ms);
+            _ = sb.Append('}');
+        }
+        _ = sb.Append("],");
+    }
 
     private static void AppendNumber(StringBuilder sb, string key, float value)
     {
@@ -718,6 +763,9 @@ internal static class StartupImpactHtmlExporter
 
   <h2 id="baseGameTitle"></h2>
   <div class="basegame-bar-cell" id="baseGameBar"></div>
+
+  <h2 id="remainingTitle" style="display:none"></h2>
+  <div class="bar" id="remainingBar" style="display:none"></div>
 
   <h2 id="modsTitle"></h2>
   <div class="bar" id="modsBar"></div>
@@ -1190,9 +1238,24 @@ internal static class StartupImpactHtmlExporter
     renderBar(document.getElementById("modsBar"), segments, total);
   }
 
+  // The remaining time has no owner, so hiding a mod changes none of it; the bar is still
+  // redrawn with the rest so the log scale applies to it too.
+  function renderRemainingBar() {
+    if (!DATA.remainingByStage.length) {
+      return;
+    }
+    var title = document.getElementById("remainingTitle");
+    title.textContent = DATA.strings.remainingTitle.replace("{0}", timeText(DATA.remainingMs));
+    title.style.display = "";
+    var bar = document.getElementById("remainingBar");
+    bar.style.display = "";
+    renderBar(bar, DATA.remainingByStage, DATA.remainingMs);
+  }
+
   function renderAll() {
     renderTotalBar();
     renderBaseGameBar();
+    renderRemainingBar();
     renderModsBar();
     renderTable();
   }

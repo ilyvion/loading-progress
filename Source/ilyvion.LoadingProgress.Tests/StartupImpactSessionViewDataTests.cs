@@ -91,6 +91,31 @@ internal sealed class StartupImpactSessionViewDataTests
         Expect.IsTrue(entries[1].Label.Contains(entries[0].Label, StringComparison.Ordinal));
     }
 
+    // The bar as the window draws it, from this startup's own session: every entry a segment
+    // with a colour, largest first, and the remaining total, which the bar spans, their sum.
+    [Test]
+    public static void TheRemainingBarCarriesEveryEntryLargestFirstAndTheTotalIsTheirSum()
+    {
+        var viewData = new StartupImpactSessionViewData(
+            StartupImpactSessionData.FromCurrentSession()
+        );
+
+        Expect.IsTrue(viewData.CategoriesRemaining.Count == viewData.RemainingByStage.Count);
+        Expect.IsTrue(viewData.MetricsRemaining.Count == viewData.RemainingByStage.Count);
+        foreach (var category in viewData.CategoriesRemaining)
+        {
+            Expect.IsTrue(viewData.CategoryColorsRemaining.ContainsKey(category));
+        }
+        for (var i = 1; i < viewData.MetricsRemaining.Count; i++)
+        {
+            Expect.IsTrue(viewData.MetricsRemaining[i] <= viewData.MetricsRemaining[i - 1]);
+        }
+        Expect.AreApproximatelyEqual(
+            viewData.MetricsRemaining.Sum(),
+            viewData.RemainingLoadingTime
+        );
+    }
+
     // A session saved before stages were kept has no entries to add up, so its remaining time
     // is what the window leaves once the timed steps have had theirs, and never less than none.
     [Test]

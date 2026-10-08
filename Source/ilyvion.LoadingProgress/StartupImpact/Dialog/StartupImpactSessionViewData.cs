@@ -40,6 +40,9 @@ internal sealed class StartupImpactSessionViewData
     private readonly List<float> metricsMods = [];
     private readonly Dictionary<string, Color> categoryColorsMods = [];
     private readonly List<RemainingEntry> remainingByStage = [];
+    private readonly List<string> categoriesRemaining = [];
+    private readonly List<float> metricsRemaining = [];
+    private readonly Dictionary<string, Color> categoryColorsRemaining = [];
 
     internal IReadOnlyList<StartupImpactSessionModViewData> ModViewData => modViewData.AsReadOnly();
 
@@ -58,6 +61,10 @@ internal sealed class StartupImpactSessionViewData
     public IReadOnlyList<string> CategoriesMods => categoriesMods.AsReadOnly();
     public IReadOnlyList<float> MetricsMods => metricsMods.AsReadOnly();
     public IReadOnlyDictionary<string, Color> CategoryColorsMods => categoryColorsMods.AsReadOnly();
+    public IReadOnlyList<string> CategoriesRemaining => categoriesRemaining.AsReadOnly();
+    public IReadOnlyList<float> MetricsRemaining => metricsRemaining.AsReadOnly();
+    public IReadOnlyDictionary<string, Color> CategoryColorsRemaining =>
+        categoryColorsRemaining.AsReadOnly();
 
     /// <summary>
     /// The span the totals bar covers, which the window's title gives as the startup time: see
@@ -67,7 +74,8 @@ internal sealed class StartupImpactSessionViewData
 
     /// <summary>
     /// The remaining part of the startup time, the part no category timed: see
-    /// <see cref="RemainingTotal"/>. The totals bar's last segment.
+    /// <see cref="RemainingTotal"/>. The totals bar's last segment, the remaining heading's
+    /// total and what the remaining bar spans.
     /// </summary>
     public float RemainingLoadingTime =>
         metricsTotal.Count == CategoriesTotal.Length ? metricsTotal[^1] : 0f;
@@ -181,7 +189,7 @@ internal sealed class StartupImpactSessionViewData
             BasegameLoadingTime,
             RemainingTotal(
                 sessionData.StageTimings.Count > 0,
-                remainingByStage.Select(entry => entry.Ms),
+                metricsRemaining,
                 TotalWindow,
                 totalLoadingTime
             ),
@@ -243,6 +251,9 @@ internal sealed class StartupImpactSessionViewData
     private void CalculateRemainingByStage()
     {
         remainingByStage.Clear();
+        categoriesRemaining.Clear();
+        metricsRemaining.Clear();
+        categoryColorsRemaining.Clear();
         RemainingTooltipDetails = null;
 
         remainingByStage.AddRange(
@@ -256,6 +267,13 @@ internal sealed class StartupImpactSessionViewData
         if (remainingByStage.Count == 0)
         {
             return;
+        }
+
+        foreach (var entry in remainingByStage)
+        {
+            categoriesRemaining.Add(entry.Label);
+            metricsRemaining.Add(entry.Ms);
+            categoryColorsRemaining[entry.Label] = StartupImpactProfilerUtil.HashColor(entry.Key);
         }
 
         var sb = new StringBuilder(

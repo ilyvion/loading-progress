@@ -112,7 +112,7 @@ internal sealed class StartupImpactSessionTotalsTests
 
         Expect.AreApproximatelyEqual(2000f, viewData.RemainingLoadingTime);
         Expect.AreApproximatelyEqual(
-            viewData.RemainingByStage.Sum(entry => entry.Ms),
+            viewData.MetricsRemaining.Sum(),
             viewData.RemainingLoadingTime
         );
         Expect.AreApproximatelyEqual(2000f, viewData.MetricsTotal[3]);
