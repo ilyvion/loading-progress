@@ -89,7 +89,7 @@ internal static partial class LongEventHandler_ExecuteToExecuteWhenFinished_Patc
             // Find all possible candidates, both from the wrapping type and all nested types.
             var candidates = Utilities.FindInTypeAndInnerTypeMethods(
                 typeof(ModContentPack),
-                m => !m.IsGenericMethod
+                m => !m.ContainsGenericParameters
             );
 
             //check all candidates for the target instructions, return those that match.
