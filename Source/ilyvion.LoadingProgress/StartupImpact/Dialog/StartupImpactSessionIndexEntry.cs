@@ -172,10 +172,11 @@ internal sealed class StartupImpactSessionIndexEntry : IExposable
     /// Its own method so the unit is asserted in one place. LoadingTime comes
     /// from ProfilerStopwatch, which returns milliseconds, while
     /// Settings.LoadingTimes holds seconds; reading this one as seconds renders
-    /// a ten second load as nearly three hours.
+    /// a ten second load as nearly three hours. Rounded as the startup impact window rounds the
+    /// same time: see <see cref="ProfilerBar.WholeSecondsText"/>.
     /// </remarks>
     internal static string FormatLoadingTime(float loadingTimeMilliseconds) =>
-        Utilities.FormatDuration(TimeSpan.FromMilliseconds(loadingTimeMilliseconds));
+        ProfilerBar.WholeSecondsText(loadingTimeMilliseconds);
 
     /// <summary>
     /// How a stored session's time is written wherever it is shown.

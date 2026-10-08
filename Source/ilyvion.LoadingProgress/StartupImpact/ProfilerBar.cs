@@ -66,12 +66,27 @@ internal sealed class ProfilerBar
         );
 
     /// <summary>
+    /// <paramref name="ms"/> in whole tenths of a second, rounded as the startup impact window
+    /// shows its times.
+    /// </summary>
+    internal static long Tenths(float ms) =>
+        (long)Math.Round(ms / 100.0, MidpointRounding.AwayFromZero);
+
+    /// <summary>
+    /// <paramref name="ms"/> to the second, as <see cref="Utilities.FormatDuration"/> writes a
+    /// duration, rounded to the tenth first as <see cref="ClockTimeText"/> rounds it, so a time
+    /// shown both ways reads the same seconds: 109,960 ms is 01:50 beside 1:50.0, not 01:49.
+    /// </summary>
+    internal static string WholeSecondsText(float ms) =>
+        Utilities.FormatDuration(TimeSpan.FromMilliseconds(Tenths(ms) * 100.0));
+
+    /// <summary>
     /// <c>m:ss.f</c>, or <c>h:mm:ss.f</c> from an hour up, for durations of at least a minute
     /// once rounded to tenths of a second; <see langword="null"/> below that.
     /// </summary>
     internal static string? ClockTimeText(float ms)
     {
-        var tenths = (long)Math.Round(ms / 100.0, MidpointRounding.AwayFromZero);
+        var tenths = Tenths(ms);
         if (tenths < 600)
         {
             return null;

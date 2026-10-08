@@ -31,6 +31,16 @@ internal sealed class ProfilerBarTimeTextTests
     public static void JustUnderAnHourRoundsUpToAnHour() =>
         Expect.AreEqual("1:00:00.0", ProfilerBar.ClockTimeText(3_599_960f));
 
+    // The main menu's corner and the history used to drop the fraction of a second, so a time
+    // the startup impact window rounded up to 1:50.0 read 01:49 there.
+    [Test]
+    public static void ATimeToTheSecondReadsTheSecondsTheWindowShows()
+    {
+        Expect.AreEqual("1:50.0", ProfilerBar.ClockTimeText(109_960f));
+        Expect.AreEqual("01:50", ProfilerBar.WholeSecondsText(109_960f));
+        Expect.AreEqual("01:49", ProfilerBar.WholeSecondsText(109_940f));
+    }
+
     [Test]
     public static void TimeTextUsesClockTextFromAMinuteUp() =>
         Expect.AreEqual("5:24.3", ProfilerBar.TimeText(324_300f, secondsOnly: false));

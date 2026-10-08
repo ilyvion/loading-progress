@@ -1,4 +1,4 @@
-using System.Diagnostics;
+using ilyvion.LoadingProgress.StartupImpact;
 using static ilyvion.LoadingProgress.Constants;
 
 namespace ilyvion.LoadingProgress;
@@ -46,7 +46,8 @@ internal sealed partial class LoadingProgressWindow
     /// </summary>
     internal const string LoadingFinishedLabel = "Misc Init (InitializingInterface)";
 
-    internal static Stopwatch? _loadingStopwatch;
+    // Whether the window has drawn: its first frame takes the estimate and the mod list's hash.
+    private static bool _drawn;
     internal static TimeSpan? _lastLoadingTime;
     internal static int _currentModHash;
 
@@ -76,13 +77,15 @@ internal sealed partial class LoadingProgressWindow
         LoadingTimeTextFor(CurrentLoadingTime, _loadingTimeNotRecorded);
 
     /// <summary>
-    /// The loading time's text: the time, or that none was recorded when
-    /// <paramref name="notRecorded"/>, as for a startup that never reached the main menu;
-    /// null while there is neither, as before the startup ends.
+    /// The loading time's text: the time, to the second as the startup impact window rounds it,
+    /// or that none was recorded when <paramref name="notRecorded"/>, as for a startup that
+    /// never reached the main menu; null while there is neither, as before the startup ends.
     /// </summary>
     internal static string? LoadingTimeTextFor(TimeSpan? loadingTime, bool notRecorded) =>
         loadingTime is { } time
-            ? "LoadingProgress.LoadingTime".Translate(Utilities.FormatDuration(time)).ToString()
+            ? "LoadingProgress.LoadingTime"
+                .Translate(ProfilerBar.WholeSecondsText((float)time.TotalMilliseconds))
+                .ToString()
         : notRecorded ? "LoadingProgress.LoadingTimeNotRecorded".Translate().ToString()
         : null;
 
@@ -133,20 +136,21 @@ internal sealed partial class LoadingProgressWindow
             : Translations.GetTranslation("LoadingProgress.FinishingUp");
 
     /// <summary>
-    /// Stops the clock as the startup ends, and with <paramref name="recordLoadingTime"/>
-    /// records the loading time, less <paramref name="pausedMs"/> the game sat paused in the
-    /// background. Only a startup that reached the main menu has one: one that went straight
-    /// into a game, or whose menu never settled, leaves without recording a time, which would
-    /// stop short of the menu or take in however long it waited.
+    /// Ends the window's part in the startup, and with <paramref name="recordLoadingTime"/>
+    /// records <paramref name="loadingMs"/> as the loading time. Only a startup that reached
+    /// the main menu has one: one that went straight into a game, or whose menu never settled,
+    /// leaves without recording a time, which would stop short of the menu or take in however
+    /// long it waited.
     /// </summary>
     /// <remarks>
     /// The long events other mods run after the interface begins initializing, and any stall
     /// on the menu's first frame, are part of the player's wait, so the time shown and
-    /// estimated runs to here rather than to the end of loading. The startup impact window
-    /// counts to the same idle frame, so the two figures agree, and the corner shows the same
-    /// time.
+    /// estimated runs to here rather than to the end of loading. The post-load tracker reads
+    /// Startup Impact's clock once, at the idle frame the startup impact window takes its time
+    /// to the menu from, and hands both the same reading through <see cref="LoadingMs"/>, so
+    /// the two figures are the same, and the corner shows it too.
     /// </remarks>
-    internal static void CompleteStartup(float pausedMs, bool recordLoadingTime)
+    internal static void CompleteStartup(float loadingMs, bool recordLoadingTime)
     {
         if (StartupComplete)
         {
@@ -154,14 +158,11 @@ internal sealed partial class LoadingProgressWindow
         }
         StartupComplete = true;
 
-        if (_loadingStopwatch is { } loadingStopwatch)
+        if (_drawn)
         {
-            loadingStopwatch.Stop();
             if (recordLoadingTime)
             {
-                RecordLoadingTime(
-                    Math.Max(0f, (float)loadingStopwatch.Elapsed.TotalSeconds - (pausedMs / 1000f))
-                );
+                RecordLoadingTime(loadingMs / 1000f);
             }
             else
             {
@@ -170,6 +171,23 @@ internal sealed partial class LoadingProgressWindow
         }
         Translations.Clear();
     }
+
+    /// <summary>
+    /// The time the startup has taken so far, as the window shows it: see
+    /// <see cref="LoadingMs"/>.
+    /// </summary>
+    internal static TimeSpan Elapsed =>
+        TimeSpan.FromMilliseconds(
+            LoadingMs(LoadingProgressMod.instance.StartupImpact.ElapsedMs, PostLoadTracker.PausedMs)
+        );
+
+    /// <summary>
+    /// The loading time from <paramref name="clockMs"/>, the reading of Startup Impact's clock,
+    /// which starts in Loading Progress's constructor, less <paramref name="pausedMs"/> the
+    /// game sat paused in the background after loading.
+    /// </summary>
+    internal static float LoadingMs(float clockMs, float pausedMs) =>
+        Math.Max(0f, clockMs - pausedMs);
 
     private static void RecordLoadingTime(float elapsedSeconds)
     {
@@ -210,9 +228,9 @@ internal sealed partial class LoadingProgressWindow
 
     internal static void DrawContents(Rect rect)
     {
-        if (_loadingStopwatch is null)
+        if (!_drawn)
         {
-            _loadingStopwatch = Stopwatch.StartNew();
+            _drawn = true;
             var avgTime = LoadingProgressMod.Settings.AverageLoadingTime;
             _lastLoadingTime = avgTime.HasValue ? TimeSpan.FromSeconds(avgTime.Value) : null;
             _currentModHash = StableListHasher.ComputeListHash(
@@ -309,7 +327,7 @@ internal sealed partial class LoadingProgressWindow
             loadingTimeRect.y += progressRect.height + VerticalWidgetMargin;
             loadingTimeRect.height = Text.LineHeight;
 
-            var elapsed = _loadingStopwatch.Elapsed;
+            var elapsed = Elapsed;
             if (_lastLoadingTime.HasValue)
             {
                 var totalSeconds = (float)_lastLoadingTime.Value.TotalSeconds;

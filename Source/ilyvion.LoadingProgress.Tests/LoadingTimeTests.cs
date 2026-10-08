@@ -7,9 +7,9 @@ namespace ilyvion.LoadingProgress.Tests;
 [WarningsAllowed(TestStartup.OtherModsWarnings)]
 internal sealed class LoadingTimeTests
 {
-    // Room for the frame between the two timers starting and the settings write between them
-    // stopping.
-    private const double AllowedDifferenceMilliseconds = 1000;
+    // Both read Startup Impact's clock at the same frame; the corner's time keeps whole
+    // milliseconds.
+    private const double AllowedDifferenceMilliseconds = 2;
 
     private const int MaxFramesToWaitForTheStartupToComplete = 1200;
 

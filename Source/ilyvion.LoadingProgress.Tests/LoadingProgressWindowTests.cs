@@ -113,6 +113,18 @@ internal sealed class LoadingProgressWindowTests
         );
     }
 
+    // The window used to keep a clock of its own, started on its first frame, after Loading
+    // Progress's constructor had started Startup Impact's and applied its patches (about 0.2 s
+    // later on a 230-mod list), and the time it showed counted the time the game sat paused
+    // while the time it recorded did not. It now reads Startup Impact's clock, less the
+    // pauses, for both.
+    [Test]
+    public static void TheLoadingTimeIsStartupImpactsClockLessThePauses()
+    {
+        Expect.AreApproximatelyEqual(115000f, LoadingProgressWindow.LoadingMs(120000f, 5000f));
+        Expect.AreApproximatelyEqual(0f, LoadingProgressWindow.LoadingMs(1000f, 5000f));
+    }
+
     private static Settings History(params float[] samples)
     {
         var settings = new Settings { LoadingTimesMeasuredToMenu = true, LastLoadingModHash = 7 };

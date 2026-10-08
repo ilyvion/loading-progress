@@ -153,14 +153,15 @@ internal sealed class StartupImpact
     }
 
     /// <summary>
-    /// Takes the time to the main menu, less <paramref name="pausedMs"/> the game sat paused in
-    /// the background on the way.
+    /// Takes the time to the main menu: <paramref name="loadingMs"/>, the clock less the time
+    /// the game sat paused in the background on the way, the same reading the loading window
+    /// records, never less than the loading time.
     /// </summary>
-    internal void MarkMenuReached(float pausedMs)
+    internal void MarkMenuReached(float loadingMs)
     {
         if (LoadingTimeMeasured)
         {
-            TimeToMenu = Math.Max(TotalLoadingTime, ElapsedMs - pausedMs);
+            TimeToMenu = Math.Max(TotalLoadingTime, loadingMs);
         }
     }
 

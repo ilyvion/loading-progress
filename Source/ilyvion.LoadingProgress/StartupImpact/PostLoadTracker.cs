@@ -69,7 +69,11 @@ internal static class PostLoadTracker
     private static float _frameEndMs = -1f;
     private static float _frameStartMs = -1f;
     private static bool _unfocusedSinceFrameEnd;
-    private static float _pausedMs;
+
+    /// <summary>
+    /// The time the game has sat paused in the background since loading finished, so far.
+    /// </summary>
+    internal static float PausedMs { get; private set; }
 
     private static float RealtimeMs => Time.realtimeSinceStartup * 1000f;
 
@@ -98,7 +102,7 @@ internal static class PostLoadTracker
             _unfocusedSinceFrameEnd,
             Application.runInBackground
         );
-        _pausedMs += paused;
+        PausedMs += paused;
 
         // Straight into a game: there is no idle menu to wait for, and the game's loading is not
         // the startup's. This is checked before the current event is timed, so that none of the
@@ -117,7 +121,7 @@ internal static class PostLoadTracker
             return;
         }
 
-        var active = now - _pausedMs;
+        var active = now - PausedMs;
         if (_tailStartMs < 0f)
         {
             _tailStartMs = active;
@@ -347,15 +351,21 @@ internal static class PostLoadTracker
             Application.focusChanged -= OnFocusChanged;
         }
 
-        // The time to the menu is taken before the window's bookkeeping, which writes the
-        // settings, and the session is saved even if that bookkeeping throws.
+        // One reading of the clock serves the time to the menu and the window's loading time,
+        // so the two are the same figure. The time to the menu is taken before the window's
+        // bookkeeping, which writes the settings, and the session is saved even if that
+        // bookkeeping throws.
+        var loadingMs = LoadingProgressWindow.LoadingMs(
+            LoadingProgressMod.instance.StartupImpact.ElapsedMs,
+            PausedMs
+        );
         if (menuReached)
         {
-            startupImpact?.MarkMenuReached(_pausedMs);
+            startupImpact?.MarkMenuReached(loadingMs);
         }
         try
         {
-            LoadingProgressWindow.CompleteStartup(_pausedMs, recordLoadingTime: menuReached);
+            LoadingProgressWindow.CompleteStartup(loadingMs, recordLoadingTime: menuReached);
         }
         finally
         {
