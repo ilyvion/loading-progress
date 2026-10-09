@@ -41,7 +41,14 @@ internal sealed class Profiler(string measurementTarget) : IDisposable
         profiler.Push(category);
     }
 
-    public float Stop(string category)
+    public float Stop(string category) => Stop(category, 0f);
+
+    /// <summary>
+    /// Stops <paramref name="category"/> and takes <paramref name="discountMs"/> back off the
+    /// category the stop recorded into: see <see cref="Discount"/>. That is the one on top of
+    /// the stack, which a stop naming another, logged as a mismatch, records into instead.
+    /// </summary>
+    public float Stop(string category, float discountMs)
     {
         if (!LoadingProgressMod.Settings.TrackStartupLoadingImpact)
         {
@@ -50,6 +57,7 @@ internal sealed class Profiler(string measurementTarget) : IDisposable
 
         var ms = _threadLocalProfiler.Value.Stop(category, out var actualCategory);
         Record(actualCategory, ms);
+        Discount(actualCategory, discountMs);
         return ms;
     }
 

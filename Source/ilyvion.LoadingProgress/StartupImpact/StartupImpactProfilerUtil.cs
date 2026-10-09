@@ -49,22 +49,15 @@ internal static class StartupImpactProfilerUtil
 
     /// <summary>
     /// Stops <paramref name="category"/> on the timer <see cref="Start"/> uses for the same
-    /// owner, and takes <paramref name="discountMs"/> back off it: time it was open that was
-    /// not the startup's, such as the game sitting paused in the background.
+    /// owner, and takes <paramref name="discountMs"/> back off what the stop recorded: time it
+    /// was open that was not the startup's, such as the game sitting paused in the background.
     /// </summary>
     public static void Stop(
         ModContentPack? owner,
         bool isBaseGame,
         string category,
         float discountMs = 0f
-    )
-    {
-        if (ProfilerFor(owner, isBaseGame) is { } profiler)
-        {
-            _ = profiler.Stop(category);
-            profiler.Discount(category, discountMs);
-        }
-    }
+    ) => _ = ProfilerFor(owner, isBaseGame)?.Stop(category, discountMs);
 
     /// <summary>
     /// The timer <see cref="Start"/> and <see cref="Stop"/> use for an owner: the mod's, else
