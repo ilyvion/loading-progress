@@ -202,8 +202,7 @@ internal sealed partial class LoadingProgressWindow
     /// </summary>
     internal static void AddLoadingTimeSample(Settings settings, float elapsedSeconds, int modHash)
     {
-        // Samples from earlier versions ran only to the interface starting to initialize, so
-        // they read short against what is measured now; the history starts afresh once.
+        // Samples not measured to the usable main menu are cleared, once.
         if (!settings.LoadingTimesMeasuredToMenu)
         {
             settings.LoadingTimes.Clear();
