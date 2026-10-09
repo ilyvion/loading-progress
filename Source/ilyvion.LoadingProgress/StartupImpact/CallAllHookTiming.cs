@@ -20,6 +20,10 @@ internal sealed class CallAllHookTiming
         "LoadingProgress.StartupImpact.StaticConstructorOnStartupUtilityCallAllHook";
     internal const string HarmonyId = "ilyvion.LoadingProgress.CallAllHookTiming";
 
+    // The stage-ledger stage the timing patches go on and come off in, so their cost is an
+    // entry of its own in the remaining time.
+    internal const string Stage = "LoadingProgress.StartupImpact.Remaining.CallAllHookTiming";
+
     private static readonly Dictionary<MethodBase, Timed> _timed = [];
     private static int _depth;
     private static bool _warnedFromHook;

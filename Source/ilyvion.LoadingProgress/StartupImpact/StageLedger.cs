@@ -57,6 +57,29 @@ internal sealed class StageLedger
     }
 
     /// <summary>
+    /// Runs <paramref name="work"/> as <paramref name="stage"/>, reading the time from
+    /// <paramref name="nowMs"/>, then begins again the stage that was running before it.
+    /// </summary>
+    public void RunAsStage(string stage, Func<float> nowMs, Action work)
+    {
+        string resumed;
+        lock (_lock)
+        {
+            resumed = _entries[^1].Stage;
+        }
+
+        Begin(stage, nowMs());
+        try
+        {
+            work();
+        }
+        finally
+        {
+            Begin(resumed, nowMs());
+        }
+    }
+
+    /// <summary>
     /// Credits <paramref name="ms"/> timed milliseconds that ended at <paramref name="stopMs"/>
     /// to the stages they ran in, each the part that overlapped it. A part an earlier stretch
     /// already credited is not credited again.

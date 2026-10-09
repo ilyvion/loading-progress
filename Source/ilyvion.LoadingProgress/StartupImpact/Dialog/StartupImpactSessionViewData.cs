@@ -462,7 +462,8 @@ internal sealed class StartupImpactSessionViewData
     /// The remaining entries a session's stages and its time to the menu give, largest first:
     /// each stage's wall time less what categories accounted for in it, and what came after
     /// loading finished less what was timed there, the long events and the deferred actions
-    /// they queued. A stage the ledger began more than once, as the second delayed-initialization
+    /// they queued. Putting on and taking off the timing of other mods' hooks on the static
+    /// constructor pass is a stage of its own. A stage the ledger began more than once, as the second delayed-initialization
     /// pass can be when a static constructor queues a deferred action, is one entry with its
     /// parts summed. Anything under a millisecond is left out.
     /// </summary>
@@ -490,7 +491,10 @@ internal sealed class StartupImpactSessionViewData
             var remainingMs = remainingByStage[stage];
             if (remainingMs >= 1f)
             {
-                var label = StartupImpactSessionIndexEntry.TranslateStage(stage);
+                var label =
+                    stage == CallAllHookTiming.Stage
+                        ? CallAllHookTiming.Stage.Translate().ToString()
+                        : StartupImpactSessionIndexEntry.TranslateStage(stage);
                 if (stage == nameof(LoadingStage.ExecuteToExecuteWhenFinished2))
                 {
                     label = SecondPassKey.Translate(label);

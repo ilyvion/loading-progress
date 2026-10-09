@@ -214,7 +214,12 @@ internal sealed class StaticConstructorOnStartupUtilityReplacement
     /// </remarks>
     private static void CallAllWithHooksTimed()
     {
-        var hookTiming = CallAllHookTiming.Install(CallAllMethod);
+        var startupImpact = LoadingProgressMod.instance.StartupImpact;
+        CallAllHookTiming hookTiming = null!;
+        startupImpact.RunAsStage(
+            CallAllHookTiming.Stage,
+            () => hookTiming = CallAllHookTiming.Install(CallAllMethod)
+        );
         var passCategory = CallAllPassCategoryFor(hookTiming.UntimedOwners);
         var timed = false;
         try
@@ -242,7 +247,7 @@ internal sealed class StaticConstructorOnStartupUtilityReplacement
             }
             finally
             {
-                hookTiming.Remove();
+                startupImpact.RunAsStage(CallAllHookTiming.Stage, hookTiming.Remove);
             }
         }
     }

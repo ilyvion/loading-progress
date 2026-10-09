@@ -112,6 +112,22 @@ internal sealed class StartupImpact
         }
     }
 
+    /// <summary>
+    /// Runs <paramref name="work"/> as a stage of its own in the ledger, named
+    /// <paramref name="stage"/>, between two parts of the stage that was running.
+    /// </summary>
+    internal void RunAsStage(string stage, Action work)
+    {
+        if (WasTrackingEnabledAtStartup)
+        {
+            StageLedger.RunAsStage(stage, () => ElapsedMs, work);
+        }
+        else
+        {
+            work();
+        }
+    }
+
     public void FinishLoading()
     {
         if (!LoadingTimeMeasured)

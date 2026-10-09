@@ -115,6 +115,27 @@ internal sealed class StartupImpactSessionViewDataTests
         Expect.IsTrue(secondPass.Ms == 800f);
     }
 
+    [Test]
+    public static void TimingTheStaticConstructorPassHooksIsAnEntryOfItsOwn()
+    {
+        var entries = StartupImpactSessionViewData.RemainingEntries(
+            [
+                new(nameof(LoadingStage.ExecuteToExecuteWhenFinished2), 300f, 0f),
+                new(CallAllHookTiming.Stage, 200f, 0f),
+                new(nameof(LoadingStage.ExecuteToExecuteWhenFinished2), 100f, 0f),
+                new(CallAllHookTiming.Stage, 50f, 0f),
+            ],
+            0f,
+            0f,
+            0f
+        );
+
+        Expect.AreEqual(2, entries.Count);
+        var hookTiming = entries.Single(entry => entry.Key == CallAllHookTiming.Stage);
+        Expect.IsTrue(hookTiming.Ms == 250f);
+        Expect.AreEqual(CallAllHookTiming.Stage.Translate().ToString(), hookTiming.Label);
+    }
+
     // The bar as the window draws it, from this startup's own session: every entry a segment
     // with a colour, largest first, and the remaining total, which the bar spans, their sum.
     [Test]

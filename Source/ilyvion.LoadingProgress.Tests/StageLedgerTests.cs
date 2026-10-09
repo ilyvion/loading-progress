@@ -161,4 +161,44 @@ internal sealed class StageLedgerTests
 
         Expect.AreApproximatelyEqual(0f, ledger.Entries[1].WallMs);
     }
+
+    [Test]
+    public static void WorkRunAsAStageSplitsTheRunningStageAroundIt()
+    {
+        var ledger = new StageLedger("Initializing");
+        ledger.Begin("ExecuteToExecuteWhenFinished2", 1000f);
+        var now = 1100f;
+        ledger.RunAsStage("HookTiming", () => now, () => now = 1400f);
+        ledger.Close(1500f);
+
+        var entries = ledger.Entries;
+        Expect.AreEqual(4, entries.Count);
+        Expect.AreEqual("HookTiming", entries[2].Stage);
+        Expect.AreApproximatelyEqual(300f, entries[2].RemainingMs);
+        Expect.AreEqual("ExecuteToExecuteWhenFinished2", entries[3].Stage);
+        Expect.AreApproximatelyEqual(100f, entries[3].WallMs);
+    }
+
+    [Test]
+    public static void TheRunningStageResumesWhenWorkRunAsAStageThrows()
+    {
+        var ledger = new StageLedger("Initializing");
+        ledger.Begin("ExecuteToExecuteWhenFinished2", 1000f);
+        var now = 1100f;
+        try
+        {
+            ledger.RunAsStage(
+                "HookTiming",
+                () => now,
+                () =>
+                {
+                    now = 1400f;
+                    throw new InvalidOperationException();
+                }
+            );
+        }
+        catch (InvalidOperationException) { }
+
+        Expect.AreEqual("ExecuteToExecuteWhenFinished2", ledger.Entries[^1].Stage);
+    }
 }
