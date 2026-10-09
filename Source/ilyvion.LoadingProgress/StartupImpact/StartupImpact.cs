@@ -63,12 +63,11 @@ internal sealed class StartupImpact
     /// process so every session taken from this boot carries one timestamp.
     /// </summary>
     /// <remarks>
-    /// Set when loading finishes, the point the figures stop changing. It falls
-    /// back to first use because a session can still be captured when tracking
-    /// was off and FinishLoading never ran, and handing out a fresh time on
-    /// every read would make one run look like several: the history identifies
-    /// a session by when it was captured, and the picker lists that as when the
-    /// run happened.
+    /// Set when loading finishes. It falls back to first use because a session
+    /// can still be captured when tracking was off and FinishLoading never ran,
+    /// and handing out a fresh time on every read would make one run look like
+    /// several: the history identifiesa session by when it was captured, and the
+    /// picker lists that as when the run happened.
     /// </remarks>
     internal DateTime SessionCapturedAtUtc => _sessionCapturedAtUtc ??= DateTime.UtcNow;
 
