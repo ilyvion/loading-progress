@@ -114,42 +114,24 @@ internal sealed class StageLedgerTests
         Expect.AreApproximatelyEqual(1000f, entries[1].WallMs);
     }
 
-    // Regression. A category on one timer that runs inside one on another, as a mod's
-    // TryRegister does inside the base game's ParseAndProcessXML, covers the same wall time
-    // twice. Both used to be credited in full, which floored the stage's remaining time at
-    // zero and hid what in it was untimed.
+    // Consecutive stretches, one of them crossing a stage boundary: each stage is credited
+    // with the time they covered there.
     [Test]
-    public static void AStretchTwoCategoriesBothCoverIsCreditedOnce()
-    {
-        var ledger = new StageLedger("Initializing");
-        ledger.Begin("ParseAndProcessXml", 1000f);
-        ledger.Attribute(100f, 1200f);
-        ledger.Attribute(500f, 1500f);
-        ledger.Close(1600f);
-
-        var entry = ledger.Entries[1];
-        Expect.AreApproximatelyEqual(500f, entry.AttributedMs);
-        Expect.AreApproximatelyEqual(100f, entry.RemainingMs);
-    }
-
-    // Several stretches inside one that crosses a stage boundary: each stage is credited with
-    // the time any of them covered there, and none of it twice.
-    [Test]
-    public static void StretchesInsideOneThatCrossesAStageAreCreditedOnceEach()
+    public static void ConsecutiveStretchesAreEachCreditedToTheStagesTheyRanIn()
     {
         var ledger = new StageLedger("Initializing");
         ledger.Begin("ParseAndProcessXml", 1000f);
         ledger.Attribute(50f, 1150f);
         ledger.Attribute(50f, 1250f);
         ledger.Begin("XmlInheritanceResolve", 1300f);
+        ledger.Attribute(100f, 1350f);
         ledger.Attribute(50f, 1400f);
-        ledger.Attribute(400f, 1450f);
         ledger.Close(1500f);
 
         var entries = ledger.Entries;
-        Expect.AreApproximatelyEqual(250f, entries[1].AttributedMs);
-        Expect.AreApproximatelyEqual(150f, entries[2].AttributedMs);
-        Expect.AreApproximatelyEqual(50f, entries[2].RemainingMs);
+        Expect.AreApproximatelyEqual(150f, entries[1].AttributedMs);
+        Expect.AreApproximatelyEqual(100f, entries[2].AttributedMs);
+        Expect.AreApproximatelyEqual(100f, entries[2].RemainingMs);
     }
 
     [Test]

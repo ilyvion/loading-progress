@@ -6,18 +6,12 @@ namespace ilyvion.LoadingProgress.StartupImpact;
 /// <remarks>
 /// Every loading stage runs from its start to the next stage's start on the tracking clock,
 /// and every category stopped on the active thread credits the stretch it timed to the stages
-/// that stretch overlapped. A stretch two categories both cover is credited once. What is
-/// left of a stage is the time it spent in nothing Startup Impact names, which is where a
-/// regression that shows in no breakdown can hide.
+/// that stretch overlapped. What is left of a stage is the time it spent in nothing Startup
+/// Impact names, which is where a regression that shows in no breakdown can hide.
 /// </remarks>
 internal sealed class StageLedger
 {
     private readonly List<StageLedgerEntry> _entries = [];
-
-    // The stretches already credited, in order, none overlapping. Every stretch ends at the
-    // clock's reading when its category stopped, so the ones a new stretch overlaps are the
-    // last ones here.
-    private readonly List<(float StartMs, float EndMs)> _credited = [];
 
     private readonly object _lock = new();
     private bool _closed;
@@ -81,16 +75,13 @@ internal sealed class StageLedger
 
     /// <summary>
     /// Credits <paramref name="ms"/> timed milliseconds that ended at <paramref name="stopMs"/>
-    /// to the stages they ran in, each the part that overlapped it. A part an earlier stretch
-    /// already credited is not credited again.
+    /// to the stages they ran in, each the part that overlapped it.
     /// </summary>
     /// <remarks>
     /// A category that starts in one stage and stops in the next would otherwise credit all of
     /// its time to the later stage: the earlier one would look unaccounted for, and the later
-    /// one's excess would be lost to the floor at zero. Categories on different timers can
-    /// cover the same stretch, as a mod's <c>TryRegister</c> does inside the base game's
-    /// <c>ParseAndProcessXML</c>, and crediting it twice would hide a stage's untimed time in
-    /// the same way.
+    /// one's excess would be lost to the floor at zero. No two stretches overlap, since only the
+    /// innermost open category on a thread runs and only the active thread is attributed.
     /// </remarks>
     public void Attribute(float ms, float stopMs)
     {
@@ -102,42 +93,19 @@ internal sealed class StageLedger
             }
 
             var startMs = stopMs - ms;
-            var mergedStartMs = startMs;
-            var uncoveredEndMs = stopMs;
-            while (_credited.Count > 0 && _credited[^1].EndMs > startMs)
+            for (var i = _entries.Count - 1; i >= 0; i--)
             {
-                var (creditedStart, creditedEnd) = _credited[^1];
-                _credited.RemoveAt(_credited.Count - 1);
-                if (creditedEnd < uncoveredEndMs)
+                var entry = _entries[i];
+                var entryEndMs = entry.EndedMs < 0f ? stopMs : Math.Min(entry.EndedMs, stopMs);
+                var overlap = entryEndMs - Math.Max(entry.StartedMs, startMs);
+                if (overlap > 0f)
                 {
-                    Credit(creditedEnd, uncoveredEndMs);
+                    entry.AttributedMs += overlap;
                 }
-                uncoveredEndMs = Math.Max(creditedStart, startMs);
-                mergedStartMs = Math.Min(mergedStartMs, creditedStart);
-            }
-            if (startMs < uncoveredEndMs)
-            {
-                Credit(startMs, uncoveredEndMs);
-            }
-            _credited.Add((mergedStartMs, stopMs));
-        }
-    }
-
-    // Credits the stretch from startMs to endMs to the stages it overlaps.
-    private void Credit(float startMs, float endMs)
-    {
-        for (var i = _entries.Count - 1; i >= 0; i--)
-        {
-            var entry = _entries[i];
-            var entryEndMs = entry.EndedMs < 0f ? endMs : Math.Min(entry.EndedMs, endMs);
-            var overlap = entryEndMs - Math.Max(entry.StartedMs, startMs);
-            if (overlap > 0f)
-            {
-                entry.AttributedMs += overlap;
-            }
-            if (entry.StartedMs <= startMs)
-            {
-                break;
+                if (entry.StartedMs <= startMs)
+                {
+                    break;
+                }
             }
         }
     }
@@ -156,7 +124,6 @@ internal sealed class StageLedger
 
             EndCurrent(nowMs);
             _closed = true;
-            _credited.Clear();
         }
     }
 
