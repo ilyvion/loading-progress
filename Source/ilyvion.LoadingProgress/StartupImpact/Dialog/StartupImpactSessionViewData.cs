@@ -462,7 +462,9 @@ internal sealed class StartupImpactSessionViewData
     /// The remaining entries a session's stages and its time to the menu give, largest first:
     /// each stage's wall time less what categories accounted for in it, and what came after
     /// loading finished less what was timed there, the long events and the deferred actions
-    /// they queued. Anything under a millisecond is left out.
+    /// they queued. A stage the ledger began more than once, as the second delayed-initialization
+    /// pass can be when a static constructor queues a deferred action, is one entry with its
+    /// parts summed. Anything under a millisecond is left out.
     /// </summary>
     internal static IReadOnlyList<RemainingEntry> RemainingEntries(
         IEnumerable<StartupImpactStageData> stages,
@@ -471,17 +473,29 @@ internal sealed class StartupImpactSessionViewData
         float postLoadAttributedMs
     )
     {
-        List<RemainingEntry> entries = [];
+        List<string> order = [];
+        Dictionary<string, float> remainingByStage = [];
         foreach (var stage in stages)
         {
-            if (stage.RemainingMs >= 1f)
+            if (!remainingByStage.TryGetValue(stage.Stage, out var sum))
             {
-                var label = StartupImpactSessionIndexEntry.TranslateStage(stage.Stage);
-                if (stage.Stage == nameof(LoadingStage.ExecuteToExecuteWhenFinished2))
+                order.Add(stage.Stage);
+            }
+            remainingByStage[stage.Stage] = sum + stage.RemainingMs;
+        }
+
+        List<RemainingEntry> entries = [];
+        foreach (var stage in order)
+        {
+            var remainingMs = remainingByStage[stage];
+            if (remainingMs >= 1f)
+            {
+                var label = StartupImpactSessionIndexEntry.TranslateStage(stage);
+                if (stage == nameof(LoadingStage.ExecuteToExecuteWhenFinished2))
                 {
                     label = SecondPassKey.Translate(label);
                 }
-                entries.Add(new RemainingEntry(stage.Stage, label, stage.RemainingMs));
+                entries.Add(new RemainingEntry(stage, label, remainingMs));
             }
         }
 

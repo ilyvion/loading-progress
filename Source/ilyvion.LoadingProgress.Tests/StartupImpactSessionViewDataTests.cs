@@ -91,6 +91,30 @@ internal sealed class StartupImpactSessionViewDataTests
         Expect.IsTrue(entries[1].Label.Contains(entries[0].Label, StringComparison.Ordinal));
     }
 
+    // The ledger can begin the second pass twice, once when a static constructor queues a
+    // deferred action and again when the pass resumes after the atlas baking. That used to
+    // list the stage twice, each line with part of its time.
+    [Test]
+    public static void AStageBegunTwiceIsOneEntry()
+    {
+        var entries = StartupImpactSessionViewData.RemainingEntries(
+            [
+                new(nameof(LoadingStage.ExecuteToExecuteWhenFinished2), 300f, 0f),
+                new(nameof(LoadingStage.AtlasBaking), 1000f, 0f),
+                new(nameof(LoadingStage.ExecuteToExecuteWhenFinished2), 500f, 0f),
+            ],
+            0f,
+            0f,
+            0f
+        );
+
+        Expect.AreEqual(2, entries.Count);
+        var secondPass = entries.Single(entry =>
+            entry.Key == nameof(LoadingStage.ExecuteToExecuteWhenFinished2)
+        );
+        Expect.IsTrue(secondPass.Ms == 800f);
+    }
+
     // The bar as the window draws it, from this startup's own session: every entry a segment
     // with a colour, largest first, and the remaining total, which the bar spans, their sum.
     [Test]
