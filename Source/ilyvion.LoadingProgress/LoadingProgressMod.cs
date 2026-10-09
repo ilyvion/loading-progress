@@ -1,4 +1,6 @@
 ﻿using System.Diagnostics;
+// The StartupImpact field below hides the namespace of the same name inside this class.
+using ProfilerUtil = ilyvion.LoadingProgress.StartupImpact.StartupImpactProfilerUtil;
 
 namespace ilyvion.LoadingProgress;
 
@@ -19,10 +21,7 @@ internal sealed class LoadingProgressMod : Mod
         // The patch that times every other mod's constructor is applied below, so this one is
         // the only constructor it can never see; it is credited by hand instead.
         const string ownConstructor = "LoadingProgress.StartupImpact.ModConstructor";
-        global::ilyvion.LoadingProgress.StartupImpact.StartupImpactProfilerUtil.StartModProfiler(
-            content,
-            ownConstructor
-        );
+        ProfilerUtil.StartModProfiler(content, ownConstructor);
         try
         {
             harmony = new(content.PackageId);
@@ -35,10 +34,7 @@ internal sealed class LoadingProgressMod : Mod
         }
         finally
         {
-            global::ilyvion.LoadingProgress.StartupImpact.StartupImpactProfilerUtil.StopModProfiler(
-                content,
-                ownConstructor
-            );
+            ProfilerUtil.StopModProfiler(content, ownConstructor);
         }
 
         Message(
