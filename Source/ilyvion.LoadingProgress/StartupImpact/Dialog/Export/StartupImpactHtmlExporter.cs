@@ -1343,7 +1343,8 @@ internal static class StartupImpactHtmlExporter
   document.getElementById("baseGameTitle").textContent =
     DATA.strings.baseGameTitle.replace("{0}", timeText(DATA.baseGame.loadingTimeMs));
   // The base game's time on other threads when its bar for that is shown, as in the window,
-  // and its largest step when it is not.
+  // and its largest step when it is not. The export writes that time as 0 when the setting
+  // to show it is off, so the check below follows the setting.
   document.getElementById("baseGameDetail").textContent = DATA.baseGame.offThreadTotalImpactMs > 1
     ? DATA.strings.onOtherThreadsDetail.replace("{0}", timeText(DATA.baseGame.offThreadTotalImpactMs))
     : DATA.largestBaseGameStepText || "";
