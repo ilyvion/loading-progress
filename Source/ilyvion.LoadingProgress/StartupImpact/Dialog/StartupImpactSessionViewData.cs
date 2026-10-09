@@ -470,21 +470,11 @@ internal sealed class StartupImpactSessionViewData
         float postLoadAttributedMs
     )
     {
-        List<string> order = [];
-        Dictionary<string, float> remainingByStage = [];
-        foreach (var stage in stages)
-        {
-            if (!remainingByStage.TryGetValue(stage.Stage, out var sum))
-            {
-                order.Add(stage.Stage);
-            }
-            remainingByStage[stage.Stage] = sum + stage.RemainingMs;
-        }
-
         List<RemainingEntry> entries = [];
-        foreach (var stage in order)
+        foreach (var parts in stages.GroupBy(stage => stage.Stage))
         {
-            var remainingMs = remainingByStage[stage];
+            var stage = parts.Key;
+            var remainingMs = parts.Aggregate(0f, (sum, part) => sum + part.RemainingMs);
             if (remainingMs >= 1f)
             {
                 var label =

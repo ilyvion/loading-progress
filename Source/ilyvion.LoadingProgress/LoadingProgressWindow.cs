@@ -173,13 +173,15 @@ internal sealed partial class LoadingProgressWindow
     }
 
     /// <summary>
-    /// The time the startup has taken so far, as the window shows it: see
-    /// <see cref="LoadingMs"/>.
+    /// The time the startup has taken so far, in milliseconds: see <see cref="LoadingMs"/>.
     /// </summary>
-    internal static TimeSpan Elapsed =>
-        TimeSpan.FromMilliseconds(
-            LoadingMs(LoadingProgressMod.instance.StartupImpact.ElapsedMs, PostLoadTracker.PausedMs)
-        );
+    internal static float ElapsedMs =>
+        LoadingMs(LoadingProgressMod.instance.StartupImpact.ElapsedMs, PostLoadTracker.PausedMs);
+
+    /// <summary>
+    /// <see cref="ElapsedMs"/>, as the window shows it.
+    /// </summary>
+    internal static TimeSpan Elapsed => TimeSpan.FromMilliseconds(ElapsedMs);
 
     /// <summary>
     /// The loading time from <paramref name="clockMs"/>, the reading of Startup Impact's clock,

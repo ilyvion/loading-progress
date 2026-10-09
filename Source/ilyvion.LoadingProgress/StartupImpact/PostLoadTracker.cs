@@ -61,9 +61,9 @@ internal static class PostLoadTracker
 
     private static bool _done;
     private static LongEventHandler.QueuedLongEvent? _current;
-    private static ModContentPack? _currentOwner;
-    private static bool _currentIsBaseGame;
-    private static string? _currentCategory;
+
+    // What _current is timed under, once its timing has started.
+    private static (ModContentPack? Owner, bool IsBaseGame, string Category)? _currentTiming;
 
     private static float _lastIdleFrameMs = -1f;
     private static int _idleFrames;
@@ -81,20 +81,13 @@ internal static class PostLoadTracker
 
     internal static void Update()
     {
-        if (_done)
+        if (!IsFollowingTheTail)
         {
             return;
         }
 
-        // Timing needs tracking; the window's tail runs with or without it.
         var startupImpact = LoadingProgressMod.instance?.StartupImpact;
-        var timing = IsTimingTheTail;
         var finished = LoadingProgressWindow.CurrentStage == LoadingStage.Finished;
-        if (!timing && !finished)
-        {
-            return;
-        }
-
         WatchFrames();
 
         // Straight into a game: there is no idle menu to wait for, and the game's loading is not
@@ -165,10 +158,7 @@ internal static class PostLoadTracker
     /// </summary>
     internal static void BeginFrame()
     {
-        if (
-            _done
-            || (!IsTimingTheTail && LoadingProgressWindow.CurrentStage != LoadingStage.Finished)
-        )
+        if (!IsFollowingTheTail)
         {
             return;
         }
@@ -283,6 +273,11 @@ internal static class PostLoadTracker
         && LoadingProgressMod.instance?.StartupImpact
             is { WasTrackingEnabledAtStartup: true, LoadingTimeMeasured: true };
 
+    // Whether the tracker follows the wait after loading: timing needs tracking, while the
+    // window's tail runs with or without it.
+    private static bool IsFollowingTheTail =>
+        IsTimingTheTail || (!_done && LoadingProgressWindow.CurrentStage == LoadingStage.Finished);
+
     /// <summary>
     /// Runs the deferred actions queued after loading as the engine does, each timed under the
     /// mod it is credited to, under <see cref="Category"/>. The long event they run after is
@@ -366,26 +361,19 @@ internal static class PostLoadTracker
 
     // Timing never keeps the work it times from running: the tracker's own steps are logged
     // when they fail, with what that leaves untimed, and the frame or the pass goes on.
-    private static void StopCurrentQuietly(float discountMs, string failure)
-    {
-        try
-        {
-            StopCurrent(discountMs);
-        }
-        catch (Exception e)
-        {
-            LoadingProgressMod.Warning($"{failure}: {e.Message}");
-        }
-    }
+    private static void StopCurrentQuietly(float discountMs, string failure) =>
+        Quietly(() => StopCurrent(discountMs), failure);
 
     private static void StartCurrentQuietly(
         LongEventHandler.QueuedLongEvent queuedEvent,
         string failure
-    )
+    ) => Quietly(() => StartCurrent(queuedEvent), failure);
+
+    private static void Quietly(Action step, string failure)
     {
         try
         {
-            StartCurrent(queuedEvent);
+            step();
         }
         catch (Exception e)
         {
@@ -428,10 +416,7 @@ internal static class PostLoadTracker
         // so the two are the same figure. The time to the menu is taken before the window's
         // bookkeeping, which writes the settings, and the session is saved even if that
         // bookkeeping throws.
-        var loadingMs = LoadingProgressWindow.LoadingMs(
-            LoadingProgressMod.instance.StartupImpact.ElapsedMs,
-            PausedMs
-        );
+        var loadingMs = LoadingProgressWindow.ElapsedMs;
         if (menuReached)
         {
             startupImpact?.MarkMenuReached(loadingMs);
@@ -554,7 +539,7 @@ internal static class PostLoadTracker
         var category = $"{Category}|{Describe(queuedEvent)}";
         var owner = OwnerOf(queuedEvent, out var isBaseGame);
         StartTiming(owner, isBaseGame, category);
-        (_currentOwner, _currentIsBaseGame, _currentCategory) = (owner, isBaseGame, category);
+        _currentTiming = (owner, isBaseGame, category);
     }
 
     /// <summary>
@@ -580,20 +565,17 @@ internal static class PostLoadTracker
             return;
         }
 
-        var (owner, isBaseGame, category) = (_currentOwner, _currentIsBaseGame, _currentCategory);
-        ForgetCurrent();
-        if (category != null)
+        var timing = _currentTiming;
+        (_current, _currentTiming) = (null, null);
+        if (timing is { } started)
         {
-            StartupImpactProfilerUtil.Stop(owner, isBaseGame, category, discountMs);
+            StartupImpactProfilerUtil.Stop(
+                started.Owner,
+                started.IsBaseGame,
+                started.Category,
+                discountMs
+            );
         }
-    }
-
-    private static void ForgetCurrent()
-    {
-        _current = null;
-        _currentOwner = null;
-        _currentIsBaseGame = false;
-        _currentCategory = null;
     }
 
     internal static ModContentPack? OwnerOf(

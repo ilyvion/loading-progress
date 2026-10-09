@@ -225,17 +225,9 @@ internal sealed class StaticConstructorOnStartupUtilityReplacement
         try
         {
             // The call runs whatever its timing does, or no other mod's hook on it would fire.
-            try
-            {
-                StartupImpactProfilerUtil.StartBaseGameProfiler(passCategory);
-                timed = true;
-            }
-            catch (Exception e)
-            {
-                LoadingProgressMod.Warning(
-                    $"Could not time the static constructor pass: {e.Message}"
-                );
-            }
+            timed = PassTimingStep(() =>
+                StartupImpactProfilerUtil.StartBaseGameProfiler(passCategory)
+            );
             StaticConstructorOnStartupUtility.CallAll();
         }
         finally
@@ -246,19 +238,31 @@ internal sealed class StaticConstructorOnStartupUtilityReplacement
             {
                 if (timed)
                 {
-                    StartupImpactProfilerUtil.StopBaseGameProfiler(passCategory);
+                    _ = PassTimingStep(() =>
+                        StartupImpactProfilerUtil.StopBaseGameProfiler(passCategory)
+                    );
                 }
-            }
-            catch (Exception e)
-            {
-                LoadingProgressMod.Warning(
-                    $"Could not time the static constructor pass: {e.Message}"
-                );
             }
             finally
             {
                 startupImpact.RunAsStage(CallAllHookTiming.Stage, hookTiming.Remove);
             }
+        }
+    }
+
+    // Starts or stops the pass's category, logging a failure instead of letting it through.
+    // Returns whether the step ran without throwing.
+    private static bool PassTimingStep(Action step)
+    {
+        try
+        {
+            step();
+            return true;
+        }
+        catch (Exception e)
+        {
+            LoadingProgressMod.Warning($"Could not time the static constructor pass: {e.Message}");
+            return false;
         }
     }
 
