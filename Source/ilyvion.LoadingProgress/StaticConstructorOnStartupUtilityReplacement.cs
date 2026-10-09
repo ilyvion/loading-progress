@@ -225,7 +225,17 @@ internal sealed class StaticConstructorOnStartupUtilityReplacement
         try
         {
             // The call runs whatever its timing does, or no other mod's hook on it would fire.
-            timed = StartPassTiming(passCategory, StartupImpactProfilerUtil.StartBaseGameProfiler);
+            try
+            {
+                StartupImpactProfilerUtil.StartBaseGameProfiler(passCategory);
+                timed = true;
+            }
+            catch (Exception e)
+            {
+                LoadingProgressMod.Warning(
+                    $"Could not time the static constructor pass: {e.Message}"
+                );
+            }
             StaticConstructorOnStartupUtility.CallAll();
         }
         finally
@@ -250,28 +260,6 @@ internal sealed class StaticConstructorOnStartupUtilityReplacement
                 startupImpact.RunAsStage(CallAllHookTiming.Stage, hookTiming.Remove);
             }
         }
-    }
-
-    /// <summary>
-    /// Opens the pass's own category with <paramref name="start"/> and, once it is open, hands
-    /// it to the hook timing, which pauses it while each hook runs. Returns whether it opened.
-    /// When it did not, the hooks have no category to pause, so they leave the base game's
-    /// timer alone.
-    /// </summary>
-    internal static bool StartPassTiming(string passCategory, Action<string> start)
-    {
-        try
-        {
-            start(passCategory);
-        }
-        catch (Exception e)
-        {
-            LoadingProgressMod.Warning($"Could not time the static constructor pass: {e.Message}");
-            return false;
-        }
-
-        CallAllHookTiming.BaseCategory = passCategory;
-        return true;
     }
 
     /// <summary>

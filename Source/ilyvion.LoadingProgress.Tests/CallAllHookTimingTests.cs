@@ -207,49 +207,6 @@ internal sealed class CallAllHookTimingTests
         }
     }
 
-    // The pass's category used to be handed to the hook timing before it was started. When
-    // starting it failed, each hook still stopped it and started it again, and it stayed open
-    // over the rest of loading.
-    [Test]
-    [WarningsAllowed("Could not time the static constructor pass")]
-    public static void APassWhoseTimingFailsGivesTheHooksNothingToPause()
-    {
-        CallAllHookTiming.BaseCategory = null;
-        try
-        {
-            var timed = StaticConstructorOnStartupUtilityReplacement.StartPassTiming(
-                TestBaseCategory,
-                static _ => throw new InvalidOperationException("A start that fails, for the test.")
-            );
-
-            Expect.IsFalse(timed);
-            Expect.IsNull(CallAllHookTiming.BaseCategory);
-        }
-        finally
-        {
-            CallAllHookTiming.BaseCategory = null;
-        }
-    }
-
-    [Test]
-    public static void APassWhoseTimingStartsIsHandedToTheHooks()
-    {
-        try
-        {
-            var timed = StaticConstructorOnStartupUtilityReplacement.StartPassTiming(
-                TestBaseCategory,
-                static _ => { }
-            );
-
-            Expect.IsTrue(timed);
-            Expect.AreEqual(TestBaseCategory, CallAllHookTiming.BaseCategory);
-        }
-        finally
-        {
-            CallAllHookTiming.BaseCategory = null;
-        }
-    }
-
     // The usual case: every hook is timed under its own mod, and the call names no one.
     [Test]
     public static void ThePassNamesNoOneWhenEveryHookIsTimed()
@@ -436,7 +393,6 @@ internal sealed class CallAllHookTimingTests
     private static void TimedCall(Action? call = null)
     {
         var timing = CallAllHookTiming.Install(TargetMethod);
-        CallAllHookTiming.BaseCategory = TestBaseCategory;
         StartupImpactProfilerUtil.StartBaseGameProfiler(TestBaseCategory);
         try
         {

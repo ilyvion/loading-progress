@@ -11,8 +11,8 @@ namespace ilyvion.LoadingProgress.StartupImpact;
 /// is the hooks, and one base-game heading naming their owners cannot be hidden along with the
 /// mod a hook belongs to. Patching the patch methods themselves, with a prefix and a
 /// finalizer, puts each hook's time on its own mod under its own category, and the patches
-/// come off again as soon as the call returns. The base-game category covering the call is
-/// paused while a hook runs, so no millisecond is counted twice.
+/// come off again as soon as the call returns. A hook's category pauses the base-game category
+/// covering the call while the hook runs, so no millisecond is counted twice.
 /// </remarks>
 internal sealed class CallAllHookTiming
 {
@@ -25,7 +25,6 @@ internal sealed class CallAllHookTiming
     internal const string Stage = "LoadingProgress.StartupImpact.Remaining.CallAllHookTiming";
 
     private static readonly Dictionary<MethodBase, Timed> _timed = [];
-    private static int _depth;
     private static bool _warnedFromHook;
 
     private readonly Harmony _harmony = new(HarmonyId);
@@ -42,11 +41,6 @@ internal sealed class CallAllHookTiming
     /// under the base-game category for the call.
     /// </summary>
     internal IReadOnlyList<string> UntimedOwners => _untimedOwners.AsReadOnly();
-
-    /// <summary>
-    /// The base-game category the call runs under, paused while a timed hook runs.
-    /// </summary>
-    internal static string? BaseCategory { get; set; }
 
     /// <summary>
     /// Patches every prefix, postfix, finalizer, inner prefix and inner postfix other mods have
@@ -72,7 +66,6 @@ internal sealed class CallAllHookTiming
     )
     {
         var timing = new CallAllHookTiming();
-        _depth = 0;
         _warnedFromHook = false;
         try
         {
@@ -288,8 +281,6 @@ internal sealed class CallAllHookTiming
             }
             _rebuilt = null;
         }
-        BaseCategory = null;
-        _depth = 0;
     }
 
     private void AddUntimed(string owner)
@@ -304,22 +295,10 @@ internal sealed class CallAllHookTiming
     private static void NoOpPrefix() { }
 
     // Hands the finalizer whether the hook's category was started.
-    private static void Prefix(MethodBase __originalMethod, out bool __state)
-    {
-        __state = false;
-        if (!_timed.TryGetValue(__originalMethod, out var timed))
-        {
-            return;
-        }
-
-        if (_depth++ == 0 && BaseCategory is { } paused)
-        {
-            _ = Quietly(() => StartupImpactProfilerUtil.StopBaseGameProfiler(paused));
-        }
-        __state = Quietly(() =>
-            StartupImpactProfilerUtil.StartModProfiler(timed.Mod, timed.Category)
-        );
-    }
+    private static void Prefix(MethodBase __originalMethod, out bool __state) =>
+        __state =
+            _timed.TryGetValue(__originalMethod, out var timed)
+            && Quietly(() => StartupImpactProfilerUtil.StartModProfiler(timed.Mod, timed.Category));
 
     // Stops the hook's category only if the prefix started it: a start that threw opened
     // nothing, and a stop would close whatever category the mod had open below it. It returns
@@ -328,18 +307,9 @@ internal sealed class CallAllHookTiming
     // drops the frames below it, where the mod's error is.
     private static void Finalizer(MethodBase __originalMethod, bool __state)
     {
-        if (_timed.TryGetValue(__originalMethod, out var timed))
+        if (__state && _timed.TryGetValue(__originalMethod, out var timed))
         {
-            if (__state)
-            {
-                _ = Quietly(() =>
-                    StartupImpactProfilerUtil.StopModProfiler(timed.Mod, timed.Category)
-                );
-            }
-            if (--_depth == 0 && BaseCategory is { } paused)
-            {
-                _ = Quietly(() => StartupImpactProfilerUtil.StartBaseGameProfiler(paused));
-            }
+            _ = Quietly(() => StartupImpactProfilerUtil.StopModProfiler(timed.Mod, timed.Category));
         }
     }
 
