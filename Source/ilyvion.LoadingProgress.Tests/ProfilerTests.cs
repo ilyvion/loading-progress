@@ -90,6 +90,50 @@ internal sealed class ProfilerTests
         Expect.GreaterThanOrEqualTo(inner, 19f);
     }
 
+    // A category on one timer started inside a category on another pauses it, as one on the
+    // same timer does, so each stretch counts once: a mod's step inside a base-game step is
+    // the mod's time and not the base game's as well. Here the outer timer's category holds a
+    // category on the inner timer, which holds another on the outer timer. Both timers used to
+    // count the time they shared, so the outer category came to 100 ms and the inner to 50.
+    [Test]
+    public static IEnumerator ACategoryOnAnotherTimerPausesTheOneItStartsInside()
+    {
+        if (!LoadingProgressMod.Settings.TrackStartupLoadingImpact)
+        {
+            Test.Skip(TestStartup.TrackingOff);
+            yield break;
+        }
+
+        var framesWaited = 0;
+        while (TestStartup.StillStartingUp(ref framesWaited))
+        {
+            yield return null;
+        }
+
+        using var outerTimer = new Profiler("outer timer");
+        using var innerTimer = new Profiler("inner timer");
+        outerTimer.Start("outer");
+        Spin(30);
+        innerTimer.Start("inner");
+        Spin(20);
+        outerTimer.Start("nested");
+        Spin(10);
+        _ = outerTimer.Stop("nested");
+        Spin(20);
+        _ = innerTimer.Stop("inner");
+        Spin(30);
+        _ = outerTimer.Stop("outer");
+
+        Expect.IsTrue(outerTimer.Metrics.TryGetValue("outer", out var outer));
+        Expect.IsTrue(innerTimer.Metrics.TryGetValue("inner", out var inner));
+        Expect.IsTrue(outerTimer.Metrics.TryGetValue("nested", out var nested));
+        Expect.GreaterThanOrEqualTo(outer, 59f);
+        Expect.LessThanOrEqualTo(outer, 80f);
+        Expect.GreaterThanOrEqualTo(inner, 39f);
+        Expect.LessThanOrEqualTo(inner, 48f);
+        Expect.GreaterThanOrEqualTo(nested, 9f);
+    }
+
     // The profiler records the open category's time before it opens the new one. In the other
     // order, a start whose recording throws would leave the new category open with no stop
     // coming for it, and the open category's stop would close and record it instead, with a

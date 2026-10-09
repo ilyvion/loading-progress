@@ -70,6 +70,43 @@ internal abstract class SingleThreadedProfiler(string measurementTarget)
     }
 
     /// <summary>
+    /// Ends the open category's current stretch and stops the clock, for a category on
+    /// another timer that starts inside it. <see cref="Resume"/> starts the clock again; a
+    /// start or stop in between finds it stopped and adds nothing for the pause.
+    /// </summary>
+    /// <returns>The same as <see cref="Interrupt"/>.</returns>
+    public float Pause(out string? paused)
+    {
+        lock (_modificationLock)
+        {
+            if (_categories.Count == 0)
+            {
+                paused = null;
+                return 0f;
+            }
+
+            var ms = Stop();
+            Total += ms;
+            paused = _categories[0];
+            return ms;
+        }
+    }
+
+    /// <summary>
+    /// Starts the clock again for the open category <see cref="Pause"/> stopped it for.
+    /// </summary>
+    public void Resume()
+    {
+        lock (_modificationLock)
+        {
+            if (_categories.Count > 0)
+            {
+                Start();
+            }
+        }
+    }
+
+    /// <summary>
     /// The second half of <see cref="Start(string, out string?)"/>: opens
     /// <paramref name="category"/> on the clock <see cref="Interrupt"/> started.
     /// </summary>

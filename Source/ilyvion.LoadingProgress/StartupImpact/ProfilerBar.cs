@@ -313,7 +313,8 @@ internal sealed class ProfilerBar
     /// rect. The log scale caps its fill instead.
     /// </summary>
     /// <remarks>
-    /// The totals bar's segments can come to a little more than the startup time: see
+    /// The totals bar's segments can come to a little more than the startup time in a session
+    /// saved before timers paused each other: see
     /// <see cref="Dialog.StartupImpactSessionViewData.RemainingTotal"/>.
     /// </remarks>
     internal static float LinearSpan(float span, float segmentsTotal) =>

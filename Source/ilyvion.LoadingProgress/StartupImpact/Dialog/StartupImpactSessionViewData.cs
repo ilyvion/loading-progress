@@ -109,12 +109,12 @@ internal sealed class StartupImpactSessionViewData
     /// <paramref name="timedTotal"/>.
     /// </summary>
     /// <remarks>
-    /// The two differ by the time categories on two timers both cover, as a mod's
-    /// <c>TryRegister</c> does inside the base game's <c>ParseAndProcessXML</c>. The mod's
-    /// total and the base game's each count it, while the stage ledger credits it once, so
-    /// the entries hold all the time no category timed and the window's leftover falls short
-    /// of it by the shared time. The totals bar's segments then come to that much more than
-    /// the window.
+    /// A category on one timer pauses one open on another, so no stretch is in two totals and
+    /// the two agree. A session saved before that can differ by the time categories on two
+    /// timers both covered, as a mod's <c>TryRegister</c> did inside the base game's
+    /// <c>ParseAndProcessXML</c>: the mod's total and the base game's each counted it, while
+    /// the stage ledger credited it once, so its totals bar's segments come to that much more
+    /// than the window.
     /// </remarks>
     internal static float RemainingTotal(
         bool stagesKept,
