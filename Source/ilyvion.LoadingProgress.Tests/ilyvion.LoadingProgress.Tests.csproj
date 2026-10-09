@@ -18,6 +18,8 @@
     -->
     <ItemGroup>
         <Publicize Include="Assembly-CSharp:Verse.LongEventHandler.UpdateCurrentEnumeratorEvent" />
+        <Publicize Include="Assembly-CSharp:Verse.LongEventHandler.UpdateCurrentAsynchronousEvent" />
+        <Publicize Include="Assembly-CSharp:Verse.LongEventHandler.UpdateCurrentSynchronousEvent" />
         <Publicize Include="Assembly-CSharp:Verse.LongEventHandler+QueuedLongEvent" />
         <Publicize Include="Assembly-CSharp:Verse.LongEventHandler.toExecuteWhenFinished" />
     </ItemGroup>

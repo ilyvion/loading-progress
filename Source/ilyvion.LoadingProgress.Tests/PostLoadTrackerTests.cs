@@ -131,39 +131,11 @@ internal sealed class PostLoadTrackerTests
             PostLoadTracker.PauseIn(-1f, 601000f, unfocusedSinceFrameEnd: true, false)
         );
 
-    // A synchronous long event runs inside LongEventsUpdate, before the tracker looks in its
-    // postfix. The pause used to be measured up to that look, so an event that ran for seconds
-    // in the frame after a pause was taken off with it; it ends where the frame's long events
-    // begin.
+    // A synchronous long event runs inside LongEventsUpdate, so the pause is measured in the
+    // tracker's prefix on it, where the frame's long events begin, and an event that runs for
+    // seconds in the frame after a pause is not taken off with it.
     [Test]
-    public static void AnEventInTheFrameAfterAPauseIsNotPartOfIt() =>
-        Expect.AreApproximatelyEqual(
-            60000f,
-            PostLoadTracker.PauseBeforeThisFrame(
-                1000f,
-                61000f,
-                64000f,
-                unfocusedSinceFrameEnd: true,
-                false
-            )
-        );
-
-    [Test]
-    public static void WithNoFrameStartThePauseRunsToNow() =>
-        Expect.AreApproximatelyEqual(
-            63000f,
-            PostLoadTracker.PauseBeforeThisFrame(
-                1000f,
-                -1f,
-                64000f,
-                unfocusedSinceFrameEnd: true,
-                false
-            )
-        );
-
-    // The frame start comes from the tracker's prefix on LongEventsUpdate.
-    [Test]
-    public static void TheFrameStartIsRecordedBeforeTheFramesLongEvents()
+    public static void ThePauseIsMeasuredBeforeTheFramesLongEvents()
     {
         var patches = Harmony.GetPatchInfo(
             AccessTools.Method(typeof(LongEventHandler), nameof(LongEventHandler.LongEventsUpdate))
@@ -175,6 +147,112 @@ internal sealed class PostLoadTrackerTests
                 patch.PatchMethod.DeclaringType == typeof(LongEventHandler_LongEventsUpdate_Patches)
             )
         );
+    }
+
+    // An event's category used to open in the frame it was picked from the queue, the frame
+    // before its work ran, so that frame's drawing of the loading window and the start of the
+    // next were credited to the event's mod. Each kind of event is timed where the engine runs
+    // its work.
+    [Test]
+    public static void EachKindOfEventIsTimedWhereItsWorkRuns()
+    {
+        string[] methods =
+        [
+            nameof(LongEventHandler.UpdateCurrentSynchronousEvent),
+            nameof(LongEventHandler.UpdateCurrentAsynchronousEvent),
+            nameof(LongEventHandler.UpdateCurrentEnumeratorEvent),
+        ];
+        foreach (var method in methods)
+        {
+            var patches = Harmony.GetPatchInfo(
+                AccessTools.Method(typeof(LongEventHandler), method)
+            );
+
+            Expect.IsNotNull(patches);
+            Expect.IsTrue(
+                patches.Prefixes.Any(patch =>
+                    patch.PatchMethod.DeclaringType
+                    == typeof(LongEventHandler_UpdateCurrentEvent_Patches)
+                )
+            );
+            Expect.IsTrue(
+                patches.Postfixes.Any(patch =>
+                    patch.PatchMethod.DeclaringType
+                    == typeof(LongEventHandler_UpdateCurrentEvent_Patches)
+                )
+            );
+        }
+    }
+
+    [Test]
+    public static void EveryCallIntoAnEnumeratorEventRunsSomeOfItsSteps() =>
+        Expect.IsTrue(
+            PostLoadTracker.StartsTimingThisCall(
+                isEnumerator: true,
+                isAsynchronous: false,
+                threadStarted: false,
+                waitingToBeDisplayed: true
+            )
+        );
+
+    // A synchronous event with text waits a frame for its text to be drawn; that frame is
+    // the loading window's, not the event's.
+    [Test]
+    public static void ASynchronousEventWaitingToBeDisplayedIsNotTimed()
+    {
+        Expect.IsFalse(
+            PostLoadTracker.StartsTimingThisCall(
+                isEnumerator: false,
+                isAsynchronous: false,
+                threadStarted: false,
+                waitingToBeDisplayed: true
+            )
+        );
+        Expect.IsTrue(
+            PostLoadTracker.StartsTimingThisCall(
+                isEnumerator: false,
+                isAsynchronous: false,
+                threadStarted: false,
+                waitingToBeDisplayed: false
+            )
+        );
+    }
+
+    [Test]
+    public static void AnAsynchronousEventIsTimedFromItsThreadsStart()
+    {
+        Expect.IsTrue(
+            PostLoadTracker.StartsTimingThisCall(
+                isEnumerator: false,
+                isAsynchronous: true,
+                threadStarted: false,
+                waitingToBeDisplayed: false
+            )
+        );
+        Expect.IsFalse(
+            PostLoadTracker.StartsTimingThisCall(
+                isEnumerator: false,
+                isAsynchronous: true,
+                threadStarted: true,
+                waitingToBeDisplayed: false
+            )
+        );
+    }
+
+    [Test]
+    public static void AnAsynchronousEventStaysTimedUntilTheEngineFinishesIt()
+    {
+        Expect.IsTrue(PostLoadTracker.StaysOpenAfterThisCall(isAsynchronous: true, true));
+        Expect.IsFalse(PostLoadTracker.StaysOpenAfterThisCall(isAsynchronous: true, false));
+    }
+
+    // An enumerator event stays current across frames, but only its steps in each frame are
+    // its own.
+    [Test]
+    public static void AnyOtherEventStopsBeingTimedWhenTheCallIntoItReturns()
+    {
+        Expect.IsFalse(PostLoadTracker.StaysOpenAfterThisCall(isAsynchronous: false, true));
+        Expect.IsFalse(PostLoadTracker.StaysOpenAfterThisCall(isAsynchronous: false, false));
     }
 
     // With the initialization patches off in the settings, nothing used to make the main
@@ -218,7 +296,7 @@ internal sealed class PostLoadTrackerTests
         }
     }
 
-    // An event that was current through a pause is stopped with the pause taken back off, on
+    // An asynchronous event open through a pause is stopped with the pause taken back off, on
     // the timer it was started on. A pause longer than the event leaves it nothing.
     [Test]
     public static IEnumerator APauseIsTakenOffTheTimerTheEventRanOn()

@@ -12,12 +12,15 @@ namespace ilyvion.LoadingProgress.StartupImpact;
 /// Loading is over, and the tracking clock stops, where the interface begins initializing,
 /// the window's Finished stage. What runs after, the rest of the interface's initialization
 /// and the windows and setup other mods queue for after loading, is time the player still
-/// waits through, with the loading window on screen. Each such event is timed from the frame
-/// it became the current one to the frame it stopped being it, and credited to the mod whose
-/// code it runs, under its own category, so it shows beside everything else that mod cost.
-/// The engine's own events go under the base game, and one whose code no mod loaded is left
-/// untimed, as a deferred action from such code is. The interface's own event is timed from
-/// the clock stop instead, since it finishes within the frame the clock stops in. The
+/// waits through, with the loading window on screen. Each such event's own work is timed,
+/// and credited to the mod whose code it runs, under its own category, so it shows beside
+/// everything else that mod cost: a synchronous event's run, an enumerator event's steps in
+/// each frame, and an asynchronous event from its thread's start to the frame the engine
+/// finishes it in, since its work runs beside the frames. The rest of each frame, drawing
+/// the loading window among it, is no event's. The engine's own events go under the base
+/// game, and one whose code no mod loaded is left untimed, as a deferred action from such
+/// code is. The interface's own event is timed from the clock stop instead, since the clock
+/// stops partway through it. The
 /// deferred actions an event queues run when it finishes; each is timed under the mod it is
 /// credited to, the way deferred actions during loading are, with the event paused meanwhile.
 /// That needs the deferred-action patch, which the settings for the initialization patches
@@ -67,7 +70,6 @@ internal static class PostLoadTracker
 
     private static bool _watchingFrames;
     private static float _frameEndMs = -1f;
-    private static float _frameStartMs = -1f;
     private static bool _unfocusedSinceFrameEnd;
 
     /// <summary>
@@ -94,21 +96,9 @@ internal static class PostLoadTracker
         }
 
         WatchFrames();
-        var now = RealtimeMs;
-        var paused = PauseBeforeThisFrame(
-            _frameEndMs,
-            _frameStartMs,
-            now,
-            _unfocusedSinceFrameEnd,
-            Application.runInBackground
-        );
-        PausedMs += paused;
 
         // Straight into a game: there is no idle menu to wait for, and the game's loading is not
-        // the startup's. This is checked before the current event is timed, so that none of the
-        // game's loading is timed as the startup's either: a quicktest asks for the game's scene
-        // while the interface initializes, and a save loaded at startup is an event that loads
-        // that scene.
+        // the startup's.
         if (
             HasLeftForAGame(
                 Current.ProgramState,
@@ -117,11 +107,11 @@ internal static class PostLoadTracker
             )
         )
         {
-            Finish(startupImpact, paused, menuReached: false);
+            Finish(startupImpact, menuReached: false);
             return;
         }
 
-        var active = now - PausedMs;
+        var active = RealtimeMs - PausedMs;
         if (_tailStartMs < 0f)
         {
             _tailStartMs = active;
@@ -131,25 +121,11 @@ internal static class PostLoadTracker
             LoadingProgressMod.Warning(
                 $"The main menu had not settled {MaxTailMs / 60000f} minutes after loading, so the startup ends without a time to it."
             );
-            Finish(startupImpact, paused, menuReached: false);
+            Finish(startupImpact, menuReached: false);
             return;
         }
 
         var current = LongEventHandler.currentEvent;
-        if (timing && (!ReferenceEquals(current, _current) || paused > 0f))
-        {
-            // An event that was current through a pause has the pause taken back off its
-            // time, and goes on being timed from here. A failure here leaves the rest of the
-            // frame's work, the in-game window and the settle check among it, to run.
-            StopCurrentQuietly(paused, "Could not stop timing an event after loading");
-            if (current != null)
-            {
-                StartCurrentQuietly(
-                    current,
-                    "Could not time an event after loading, so it runs untimed"
-                );
-            }
-        }
         if (finished && current != null)
         {
             LoadingProgressWindow.ShowPostLoadEvent(current);
@@ -172,9 +148,7 @@ internal static class PostLoadTracker
             _lastIdleFrameMs = active;
             if (settled)
             {
-                // This frame's pause, if any, came off the event that was current through it
-                // above, so nothing is left to take off.
-                Finish(startupImpact, 0f, menuReached: true);
+                Finish(startupImpact, menuReached: true);
             }
         }
         else
@@ -185,24 +159,106 @@ internal static class PostLoadTracker
     }
 
     /// <summary>
-    /// Notes when this frame's long-event work begins. A pause in the background ends there,
-    /// and what the frame goes on to run, such as a synchronous event that takes seconds, is
-    /// the startup's own time.
+    /// Takes the pause before this frame, if any, out of the wait after loading, where this
+    /// frame's long-event work begins. An asynchronous event open through the pause has it
+    /// taken back off its time, and goes on being timed from here.
     /// </summary>
-    internal static void MarkFrameStart()
+    internal static void BeginFrame()
     {
-        if (!_done)
+        if (
+            _done
+            || (!IsTimingTheTail && LoadingProgressWindow.CurrentStage != LoadingStage.Finished)
+        )
         {
-            _frameStartMs = RealtimeMs;
+            return;
+        }
+
+        var paused = PauseIn(
+            _frameEndMs,
+            RealtimeMs,
+            _unfocusedSinceFrameEnd,
+            Application.runInBackground
+        );
+        PausedMs += paused;
+        if (paused > 0f && _current is { } open)
+        {
+            StopCurrentQuietly(paused, "Could not stop timing an event after loading");
+            StartCurrentQuietly(
+                open,
+                "Could not go on timing an event after loading, so the rest of it is untimed"
+            );
         }
     }
 
     /// <summary>
+    /// Starts timing the current event's work in this frame, when the wait after loading is
+    /// being timed, the event does not load the game's scene and
+    /// <see cref="StartsTimingThisCall"/> says this call into it starts its work.
+    /// </summary>
+    internal static void BeginEventWork()
+    {
+        if (
+            _current != null
+            || !IsTimingTheTail
+            || LongEventHandler.currentEvent is not { } current
+            || HasLeftForAGame(Current.ProgramState, QuickStarter.quickStarted, current.levelToLoad)
+            || !StartsTimingThisCall(
+                isEnumerator: current.eventActionEnumerator != null,
+                isAsynchronous: current.doAsynchronously,
+                threadStarted: LongEventHandler.eventThread != null,
+                waitingToBeDisplayed: current.ShouldWaitUntilDisplayed
+            )
+        )
+        {
+            return;
+        }
+
+        StartCurrentQuietly(current, "Could not time an event after loading, so it runs untimed");
+    }
+
+    /// <summary>
+    /// Stops timing the current event once the engine's call into it returns, unless
+    /// <see cref="StaysOpenAfterThisCall"/> says its work goes on beside the frames.
+    /// </summary>
+    internal static void EndEventWork()
+    {
+        if (
+            _current is { } open
+            && !StaysOpenAfterThisCall(
+                open.doAsynchronously,
+                stillCurrent: ReferenceEquals(LongEventHandler.currentEvent, open)
+            )
+        )
+        {
+            StopCurrentQuietly(0f, "Could not stop timing an event after loading");
+        }
+    }
+
+    /// <summary>
+    /// Whether the engine's call into the current event starts its work: every call into an
+    /// enumerator event runs some of its steps, an asynchronous event's work begins with the
+    /// call that starts its thread, and a synchronous event runs once its text has been
+    /// displayed.
+    /// </summary>
+    internal static bool StartsTimingThisCall(
+        bool isEnumerator,
+        bool isAsynchronous,
+        bool threadStarted,
+        bool waitingToBeDisplayed
+    ) => isEnumerator || (isAsynchronous ? !threadStarted : !waitingToBeDisplayed);
+
+    /// <summary>
+    /// Whether an event's timing stays open after the engine's call into it returns: an
+    /// asynchronous event's thread works on until the engine finishes the event.
+    /// </summary>
+    internal static bool StaysOpenAfterThisCall(bool isAsynchronous, bool stillCurrent) =>
+        isAsynchronous && stillCurrent;
+
+    /// <summary>
     /// Starts timing the long event running when the clock stops: the interface's own
-    /// initialization. The clock stops at a profiler label inside that event, and the event
-    /// finishes, with the deferred tasks it queues, within the same frame, so Update would
-    /// never see it as current. It runs inside that event, before the engine assigns the
-    /// interface, so a failure to start is logged rather than let through to it.
+    /// initialization. The clock stops at a profiler label inside that event, after its work
+    /// began untimed. It runs inside that event, before the engine assigns the interface, so a
+    /// failure to start is logged rather than let through to it.
     /// </summary>
     internal static void StartAtClockStop()
     {
@@ -357,16 +413,11 @@ internal static class PostLoadTracker
     /// <summary>
     /// Ends the tail: the window leaves, and records its loading time when the menu was
     /// reached, as the startup takes its time to the menu; then the startup saves its session
-    /// once. The event current until now is stopped with <paramref name="pausedThisFrame"/>,
-    /// the pause before this frame, taken back off its time.
+    /// once. An asynchronous event still being timed is stopped.
     /// </summary>
-    private static void Finish(
-        StartupImpact? startupImpact,
-        float pausedThisFrame,
-        bool menuReached
-    )
+    private static void Finish(StartupImpact? startupImpact, bool menuReached)
     {
-        StopCurrentQuietly(pausedThisFrame, "Could not stop timing the last event after loading");
+        StopCurrentQuietly(0f, "Could not stop timing the last event after loading");
         _done = true;
         if (_watchingFrames)
         {
@@ -424,26 +475,6 @@ internal static class PostLoadTracker
     internal static bool IsMenuSettled(float lastIdleFrameMs, float nowMs, int idleFrames) =>
         lastIdleFrameMs >= 0f
         && (nowMs - lastIdleFrameMs < QuickFrameMs || idleFrames >= SlowMenuIdleFrames);
-
-    /// <summary>
-    /// The pause before this frame: the wait from the end of the last frame to
-    /// <paramref name="frameStartMs"/>, where this frame's long events begin, or to
-    /// <paramref name="nowMs"/> when no frame start was recorded. What the frame's long events
-    /// then run, such as a synchronous event that takes seconds, is not part of it.
-    /// </summary>
-    internal static float PauseBeforeThisFrame(
-        float frameEndMs,
-        float frameStartMs,
-        float nowMs,
-        bool unfocusedSinceFrameEnd,
-        bool runInBackground
-    ) =>
-        PauseIn(
-            frameEndMs,
-            frameStartMs >= 0f ? frameStartMs : nowMs,
-            unfocusedSinceFrameEnd,
-            runInBackground
-        );
 
     /// <summary>
     /// How much of the wait from the end of the last frame to <paramref name="frameStartMs"/>,
@@ -514,8 +545,8 @@ internal static class PostLoadTracker
     /// </summary>
     /// <remarks>
     /// The event becomes the current one first, and its category is kept only once its timing
-    /// has started. An event whose start throws therefore stays current, untimed: it is not
-    /// tried again on every frame, and nothing is stopped for it.
+    /// has started. An event whose start throws therefore stays current, untimed, until its
+    /// work in the frame ends, and nothing is stopped for it.
     /// </remarks>
     internal static void StartCurrent(LongEventHandler.QueuedLongEvent queuedEvent)
     {
