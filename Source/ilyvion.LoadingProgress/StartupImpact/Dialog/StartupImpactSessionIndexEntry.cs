@@ -171,7 +171,8 @@ internal sealed class StartupImpactSessionIndexEntry : IExposable
     /// </summary>
     /// <remarks>
     /// Its own method so the unit is asserted in one place. LoadingTime comes
-    /// from ProfilerStopwatch, which returns milliseconds, while
+    /// from <see cref="StartupImpactSessionViewData.Span(StartupImpactSessionData)"/>,
+    /// which returns milliseconds, while
     /// Settings.LoadingTimes holds seconds; reading this one as seconds renders
     /// a ten second load as nearly three hours. Rounded as the startup impact window rounds the
     /// same time: see <see cref="ProfilerBar.WholeSecondsText"/>.

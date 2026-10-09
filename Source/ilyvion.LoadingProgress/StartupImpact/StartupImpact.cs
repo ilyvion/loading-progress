@@ -66,7 +66,7 @@ internal sealed class StartupImpact
     /// Set when loading finishes. It falls back to first use because a session
     /// can still be captured when tracking was off and FinishLoading never ran,
     /// and handing out a fresh time on every read would make one run look like
-    /// several: the history identifiesa session by when it was captured, and the
+    /// several: the history identifies a session by when it was captured, and the
     /// picker lists that as when the run happened.
     /// </remarks>
     internal DateTime SessionCapturedAtUtc => _sessionCapturedAtUtc ??= DateTime.UtcNow;
@@ -135,7 +135,7 @@ internal sealed class StartupImpact
             _ = _loadingProfiler.Stop("loading");
             TotalLoadingTime = _loadingProfiler.Total;
             StageLedger.Close(ElapsedMs);
-            _sessionCapturedAtUtc = DateTime.UtcNow;
+            _sessionCapturedAtUtc ??= DateTime.UtcNow;
 
             LoadingProgressMod.instance.harmony.UnpatchCategory(
                 Assembly.GetExecutingAssembly(),
