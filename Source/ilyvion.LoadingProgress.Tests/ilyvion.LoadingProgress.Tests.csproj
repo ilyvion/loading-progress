@@ -19,6 +19,7 @@
     <ItemGroup>
         <Publicize Include="Assembly-CSharp:Verse.LongEventHandler.UpdateCurrentEnumeratorEvent" />
         <Publicize Include="Assembly-CSharp:Verse.LongEventHandler+QueuedLongEvent" />
+        <Publicize Include="Assembly-CSharp:Verse.LongEventHandler.toExecuteWhenFinished" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\ilyvion.LoadingProgress\ilyvion.LoadingProgress.csproj">

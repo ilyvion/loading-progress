@@ -56,6 +56,7 @@ internal sealed class StartupImpact
 
     private DateTime? _sessionCapturedAtUtc;
     private bool _previousUnfinishedBootRecorded;
+    private readonly EventThreadWait _endOfStartupSave = new();
 
     /// <summary>
     /// When this startup's session was captured, fixed for the life of the
@@ -176,9 +177,10 @@ internal sealed class StartupImpact
     /// </summary>
     /// <remarks>
     /// Saving uses Scribe. An asynchronous long event whose thread is still running may be
-    /// using it, as loading a save does, so the saving then waits until that event has
-    /// finished. The marker stays until then, so a game that stops first leaves it, and the
-    /// next startup records this one as a startup that never finished.
+    /// using it, as loading a save does, so the saving then waits until that thread has
+    /// stopped, checked each frame by <see cref="UpdateEndOfStartup"/>. The marker stays until
+    /// then, so a game that stops first leaves it, and the next startup records this one as a
+    /// startup that never finished.
     /// </remarks>
     internal void FinishStartup()
     {
@@ -187,21 +189,14 @@ internal sealed class StartupImpact
             return;
         }
 
-        if (SavingMustWait(LongEventHandler.eventThread))
-        {
-            LongEventHandler.ExecuteWhenFinished(SaveAtStartupEnd);
-        }
-        else
-        {
-            SaveAtStartupEnd();
-        }
+        _endOfStartupSave.RunWhenStopped(SaveAtStartupEnd, LongEventHandler.eventThread);
     }
 
     /// <summary>
-    /// Whether the end of the startup's saving has to wait for the current long event: its
-    /// thread is running, and could be using Scribe. One queued but not yet started cannot be.
+    /// Runs the end of the startup's saving if it is waiting for a long event's thread and
+    /// that thread has stopped. Called on the main thread every frame.
     /// </summary>
-    internal static bool SavingMustWait(Thread? eventThread) => eventThread is { IsAlive: true };
+    internal void UpdateEndOfStartup() => _endOfStartupSave.Update(LongEventHandler.eventThread);
 
     // This startup's session, when saving it automatically is on; then the marker, since the
     // boot it describes is over and recorded. The previous unfinished startup is recorded

@@ -15,6 +15,7 @@ internal static class LongEventHandler_LongEventsUpdate_Patches
     private static void Postfix()
     {
         PostLoadTracker.Update();
+        LoadingProgressMod.instance?.StartupImpact?.UpdateEndOfStartup();
         InGameLoadingSession.Update();
     }
 }
