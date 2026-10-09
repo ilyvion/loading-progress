@@ -975,10 +975,13 @@ internal static class StartupImpactHtmlExporter
       container.appendChild(el);
     }
 
+    // A linear bar spans its segments when they come to more than its stated width, as the
+    // window's ProfilerBar.LinearSpan does, so none runs past the end and out of sight.
     if (!state.useLog) {
+      var span = Math.max(1, maxImpactMs, sumLinear);
       segments.forEach(function (seg, i) {
         if (values[i] <= 0) { return; }
-        appendSegment(seg, 100 * values[i] / Math.max(1, maxImpactMs));
+        appendSegment(seg, 100 * values[i] / span);
       });
       return;
     }
