@@ -231,9 +231,10 @@ internal static class StartupImpactSessionStorage
             var id = NewId(savedAt);
 
             // Copy the file Save just wrote rather than serialising the same session a second
-            // time. On a 229-mod list that is 219 KB through Scribe, and it lands after
-            // FinishLoading has stopped the clock -- unmeasured, but still time the player
-            // waits at a frozen screen.
+            // time. On a 229-mod list that is 219 KB through Scribe, and an automatic save runs
+            // where the startup ends, usually on the frame the main menu counts as usable, after
+            // the time to it is taken -- unmeasured, but still time the player waits at a
+            // frozen menu.
             File.Copy(SaveFilePath, SessionFilePath(id), true);
 
             entries.Insert(0, StartupImpactSessionIndexEntry.ForCompletedSession(id, sessionData));
