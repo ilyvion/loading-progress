@@ -48,10 +48,7 @@ internal static class Mod_Constructor_Patches
     ) => Stop(modContentPack, ref __state);
 
     // The engine catches a mod constructor that throws and goes on loading, and a postfix does
-    // not run then, so the finalizer closes the category. On a normal return the postfix has
-    // closed it, at its place among other mods' postfixes: those Harmony orders after it, at
-    // the same priority or a lower one, stay outside it, and a higher-priority one runs inside
-    // it, as does a prefix ordered after this one.
+    // not run then, so the finalizer closes the category.
     internal static void Finalizer(
         [HarmonyArgument(0)] ModContentPack modContentPack,
         bool __state
