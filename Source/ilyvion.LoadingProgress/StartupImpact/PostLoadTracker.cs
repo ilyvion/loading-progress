@@ -139,11 +139,15 @@ internal static class PostLoadTracker
         if (timing && (!ReferenceEquals(current, _current) || paused > 0f))
         {
             // An event that was current through a pause has the pause taken back off its
-            // time, and goes on being timed from here.
-            StopCurrent(paused);
+            // time, and goes on being timed from here. A failure here leaves the rest of the
+            // frame's work, the in-game window and the settle check among it, to run.
+            StopCurrentQuietly(paused, "Could not stop timing an event after loading");
             if (current != null)
             {
-                StartCurrent(current);
+                StartCurrentQuietly(
+                    current,
+                    "Could not time an event after loading, so it runs untimed"
+                );
             }
         }
         if (finished && current != null)
@@ -197,13 +201,17 @@ internal static class PostLoadTracker
     /// Starts timing the long event running when the clock stops: the interface's own
     /// initialization. The clock stops at a profiler label inside that event, and the event
     /// finishes, with the deferred tasks it queues, within the same frame, so Update would
-    /// never see it as current.
+    /// never see it as current. It runs inside that event, before the engine assigns the
+    /// interface, so a failure to start is logged rather than let through to it.
     /// </summary>
     internal static void StartAtClockStop()
     {
         if (!_done && _current == null && LongEventHandler.currentEvent is { } current)
         {
-            StartCurrent(current);
+            StartCurrentQuietly(
+                current,
+                "Could not time the interface's initialization, so it runs untimed"
+            );
         }
     }
 
@@ -266,16 +274,7 @@ internal static class PostLoadTracker
 
         TimeOnThisThread();
         var resume = _current;
-        try
-        {
-            StopCurrent(0f);
-        }
-        catch (Exception e)
-        {
-            LoadingProgressMod.Warning(
-                $"Could not pause timing the current event for its deferred actions: {e.Message}"
-            );
-        }
+        StopCurrentQuietly(0f, "Could not pause timing the current event for its deferred actions");
 
         DeepProfiler.Start("ExecuteToExecuteWhenFinished()");
         try
@@ -301,17 +300,40 @@ internal static class PostLoadTracker
             actions.Clear();
             if (resume != null)
             {
-                try
-                {
-                    StartCurrent(resume);
-                }
-                catch (Exception e)
-                {
-                    LoadingProgressMod.Warning(
-                        $"Could not go on timing the current event after its deferred actions, so the rest of it is untimed: {e.Message}"
-                    );
-                }
+                StartCurrentQuietly(
+                    resume,
+                    "Could not go on timing the current event after its deferred actions, so the rest of it is untimed"
+                );
             }
+        }
+    }
+
+    // Timing never keeps the work it times from running: the tracker's own steps are logged
+    // when they fail, with what that leaves untimed, and the frame or the pass goes on.
+    private static void StopCurrentQuietly(float discountMs, string failure)
+    {
+        try
+        {
+            StopCurrent(discountMs);
+        }
+        catch (Exception e)
+        {
+            LoadingProgressMod.Warning($"{failure}: {e.Message}");
+        }
+    }
+
+    private static void StartCurrentQuietly(
+        LongEventHandler.QueuedLongEvent queuedEvent,
+        string failure
+    )
+    {
+        try
+        {
+            StartCurrent(queuedEvent);
+        }
+        catch (Exception e)
+        {
+            LoadingProgressMod.Warning($"{failure}: {e.Message}");
         }
     }
 
@@ -344,7 +366,7 @@ internal static class PostLoadTracker
         bool menuReached
     )
     {
-        StopCurrent(pausedThisFrame);
+        StopCurrentQuietly(pausedThisFrame, "Could not stop timing the last event after loading");
         _done = true;
         if (_watchingFrames)
         {
