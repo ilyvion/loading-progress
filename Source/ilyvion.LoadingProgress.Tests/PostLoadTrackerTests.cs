@@ -118,6 +118,21 @@ internal sealed class PostLoadTrackerTests
         );
 
     [Test]
+    public static void WatchingFocusThatSubscribesSaysSo() =>
+        Expect.IsTrue(PostLoadTracker.TryWatchFocus(() => { }));
+
+    // A focus event the engine doesn't have fails when the subscribing method is called; the
+    // wait after loading goes on without it.
+    [Test]
+    [WarningsAllowed("Could not watch for the game going into the background")]
+    public static void WatchingFocusThatFailsIsLoggedAndGoesOn() =>
+        Expect.IsFalse(
+            PostLoadTracker.TryWatchFocus(() =>
+                throw new MissingMethodException("UnityEngine.Application", "add_focusChanged")
+            )
+        );
+
+    [Test]
     public static void AnOrdinaryFrameIsNoPause() =>
         Expect.AreApproximatelyEqual(
             0f,

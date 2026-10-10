@@ -69,6 +69,7 @@ internal static class PostLoadTracker
     private static int _idleFrames;
 
     private static bool _watchingFrames;
+    private static bool _watchingFocus;
     private static float _frameEndMs = -1f;
     private static bool _unfocusedSinceFrameEnd;
 
@@ -407,9 +408,9 @@ internal static class PostLoadTracker
     {
         StopCurrentQuietly(0f, "Could not stop timing the last event after loading");
         _done = true;
-        if (_watchingFrames)
+        if (_watchingFocus)
         {
-            Application.focusChanged -= OnFocusChanged;
+            UnwatchFocus();
         }
 
         // One reading of the clock serves the time to the menu and the window's loading time,
@@ -491,9 +492,38 @@ internal static class PostLoadTracker
         }
 
         _watchingFrames = true;
-        Application.focusChanged += OnFocusChanged;
+        _watchingFocus = TryWatchFocus(WatchFocus);
         _ = Find.Root.StartCoroutine(FrameEnds());
     }
+
+    /// <summary>
+    /// Runs <paramref name="watchFocus"/>, which subscribes to the game going into the
+    /// background, and says whether it did; when it fails, that is logged, and time spent in the
+    /// background after loading counts toward the time to the menu.
+    /// </summary>
+    internal static bool TryWatchFocus(Action watchFocus)
+    {
+        try
+        {
+            watchFocus();
+            return true;
+        }
+        catch (Exception e)
+        {
+            LoadingProgressMod.Warning(
+                $"Could not watch for the game going into the background, so time spent there after loading counts toward the time to the menu: {e.Message}"
+            );
+            return false;
+        }
+    }
+
+    // The engine's focus event is only referenced from these two, so a missing one fails when
+    // they are called rather than when their callers are compiled.
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void WatchFocus() => Application.focusChanged += OnFocusChanged;
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void UnwatchFocus() => Application.focusChanged -= OnFocusChanged;
 
     private static void OnFocusChanged(bool focused)
     {
