@@ -1,4 +1,5 @@
 using System.Reflection.Emit;
+using ilyvion.LoadingProgress.StartupImpact.Patches;
 
 namespace ilyvion.LoadingProgress;
 
@@ -6,20 +7,20 @@ internal sealed class ReloadContentIntReplacement
 {
     public static IEnumerable ReloadContentInt(ModContentPack modContentPack)
     {
-        var info = LoadingProgressMod.instance.StartupImpact.Modlist.GetModInfoFor(modContentPack);
-
         yield return "audio clips";
-        info?.Start("LoadingProgress.StartupImpact.ModContentPackReloadContentInt.AudioClips");
         DeepProfiler.Start("Reload audio clips");
         try
         {
-            modContentPack.audioClips.ReloadAll(false);
+            ModContentPack_ReloadContentInt_Patches.ReloadAudioClips(
+                modContentPack.audioClips,
+                false,
+                modContentPack
+            );
         }
         finally
         {
             DeepProfiler.End();
         }
-        _ = info?.Stop("LoadingProgress.StartupImpact.ModContentPackReloadContentInt.AudioClips");
         // Re-yield the same label so the caller gets a chance to repaint with it still
         // showing, before we move on and set the *next* label. Without this, a slow step
         // here gets displayed under the following step's name; see the comment on the
@@ -27,39 +28,46 @@ internal sealed class ReloadContentIntReplacement
         yield return "audio clips";
 
         yield return "textures";
-        info?.Start("LoadingProgress.StartupImpact.ModContentPackReloadContentInt.Textures");
         DeepProfiler.Start("Reload textures");
         try
         {
-            modContentPack.textures.ReloadAll(false);
+            ModContentPack_ReloadContentInt_Patches.ReloadTextures(
+                modContentPack.textures,
+                false,
+                modContentPack
+            );
         }
         finally
         {
             DeepProfiler.End();
         }
-        _ = info?.Stop("LoadingProgress.StartupImpact.ModContentPackReloadContentInt.Textures");
         yield return "textures";
 
         yield return "strings";
-        info?.Start("LoadingProgress.StartupImpact.ModContentPackReloadContentInt.Strings");
         DeepProfiler.Start("Reload strings");
         try
         {
-            modContentPack.strings.ReloadAll(false);
+            ModContentPack_ReloadContentInt_Patches.ReloadStrings(
+                modContentPack.strings,
+                false,
+                modContentPack
+            );
         }
         finally
         {
             DeepProfiler.End();
         }
-        _ = info?.Stop("LoadingProgress.StartupImpact.ModContentPackReloadContentInt.Strings");
         yield return "strings";
 
         yield return "asset bundles";
-        info?.Start("LoadingProgress.StartupImpact.ModContentPackReloadContentInt.AssetBundles");
         DeepProfiler.Start("Reload asset bundles");
         try
         {
-            modContentPack.assetBundles.ReloadAll(false);
+            ModContentPack_ReloadContentInt_Patches.ReloadAssetBundles(
+                modContentPack.assetBundles,
+                false,
+                modContentPack
+            );
             modContentPack.allAssetNamesInBundleCached = null;
             modContentPack.allAssetNamesInBundleCachedTrie = null;
         }
@@ -67,7 +75,6 @@ internal sealed class ReloadContentIntReplacement
         {
             DeepProfiler.End();
         }
-        _ = info?.Stop("LoadingProgress.StartupImpact.ModContentPackReloadContentInt.AssetBundles");
         yield return "asset bundles";
     }
 }

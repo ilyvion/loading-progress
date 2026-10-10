@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A startup impact category started while another was open for the same mod, or for the base game, lost the open one's time up to that point, so the open one was credited only with what it ran after the other stopped.
 - A timed step that threw, such as a mod constructor that failed or a mod whose defs could not be loaded, left its startup impact category open, so the time it had run was never recorded.
 - A mod's step that ran inside a base-game step, as a mod's XML inheritance registration does while the base game parses the XML, was counted in both the mod's startup impact and the base game's, so together they could come to more than the time they took. The step that ran is now credited with it, and the one around it leaves that stretch out, as a category on the same timer already did.
+- A mod's audio, textures, strings and asset bundles loaded early by another mod, as Faster Game Loading does, were not timed under the mod they belong to, so a patch that takes over the game's texture loading had its whole time credited to it as hook time instead of to each mod's texture loading, labelled as replaced by it. That time is now listed under each mod's loading steps, as time on another thread.
 
 ## [0.17.1] - 2026-10-08
 
