@@ -17,6 +17,9 @@ internal sealed class StartupImpactSessionData : IExposable
     private long savedAtUtcTicks;
     private int modListHash;
 
+    private List<StartupImpactStageData> stageTimings = [];
+    private float timeToMenu;
+
     public float LoadingTime => loadingTime;
     public IReadOnlyDictionary<string, float> Metrics => metrics.AsReadOnly();
     public float TotalImpact => totalImpact;
@@ -42,6 +45,40 @@ internal sealed class StartupImpactSessionData : IExposable
     /// sessions can be told apart as comparable or not.
     /// </summary>
     public int ModListHash => modListHash;
+
+    /// <summary>
+    /// Every loading stage this session went through, with how long it ran and how much of
+    /// that a category accounted for. Empty for sessions saved before stages were kept.
+    /// </summary>
+    public IReadOnlyList<StartupImpactStageData> StageTimings => stageTimings.AsReadOnly();
+
+    /// <summary>
+    /// Milliseconds from the start of tracking to the frame the main menu was usable, or 0
+    /// for a session that never recorded one: one saved before this was measured, or a
+    /// startup that went straight into a game.
+    /// </summary>
+    public float TimeToMenu => timeToMenu;
+
+    /// <summary>
+    /// A session made from given figures rather than from this startup, the way
+    /// <see cref="StartupImpactSessionModData.FromValues"/> makes a mod's.
+    /// </summary>
+    internal static StartupImpactSessionData FromValues(
+        float loadingTime,
+        float timeToMenu,
+        Dictionary<string, float> metrics,
+        IEnumerable<StartupImpactSessionModData> mods,
+        IEnumerable<StartupImpactStageData> stageTimings
+    ) =>
+        new()
+        {
+            loadingTime = loadingTime,
+            timeToMenu = timeToMenu,
+            metrics = metrics,
+            totalImpact = metrics.Values.Sum(),
+            mods = [.. mods],
+            stageTimings = [.. stageTimings],
+        };
 
     internal static StartupImpactSessionData FromCurrentSession()
     {
@@ -70,6 +107,11 @@ internal sealed class StartupImpactSessionData : IExposable
             patchOperationsApplied = LoadingSessionStats.PatchOperationsApplied,
             savedAtUtcTicks = startupImpact.SessionCapturedAtUtc.Ticks,
             modListHash = CurrentModListHash(),
+            stageTimings =
+            [
+                .. startupImpact.StageLedger.Entries.Select(StartupImpactStageData.FromLedgerEntry),
+            ],
+            timeToMenu = startupImpact.TimeToMenu,
         };
 
         return startupImpactSessionData;
@@ -104,6 +146,15 @@ internal sealed class StartupImpactSessionData : IExposable
         Scribe_Values.Look(ref patchOperationsApplied, "patchOperationsApplied");
         Scribe_Values.Look(ref savedAtUtcTicks, "savedAtUtcTicks");
         Scribe_Values.Look(ref modListHash, "modListHash");
+
+        Scribe_Collections.Look(ref stageTimings, "stageTimings", LookMode.Deep);
+        Scribe_Values.Look(ref timeToMenu, "timeToMenu");
+
+        // A session saved before stages were kept has no list to read back.
+        if (Scribe.mode == LoadSaveMode.PostLoadInit)
+        {
+            stageTimings ??= [];
+        }
     }
 
     /// <summary>

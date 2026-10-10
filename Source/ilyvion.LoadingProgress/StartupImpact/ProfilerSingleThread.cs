@@ -22,25 +22,98 @@ internal abstract class SingleThreadedProfiler(string measurementTarget)
         get => field == null ? "" : $"{field} profiler";
     } = measurementTarget;
 
-    public void Start(string category)
+    public void Start(string category) => _ = Start(category, out _);
+
+    /// <summary>
+    /// Starts timing <paramref name="category"/>, inside whatever category is open.
+    /// </summary>
+    /// <returns>
+    /// The milliseconds the open category ran since it last started, which are that
+    /// category's, with its name in <paramref name="interrupted"/>; 0 and null when no
+    /// category was open.
+    /// </returns>
+    public float Start(string category, out string? interrupted)
     {
+        interrupted = null;
         if (string.IsNullOrEmpty(category))
         {
-            return;
+            return 0f;
         }
 
+        var ms = Interrupt(out interrupted);
+        Push(category);
+        return ms;
+    }
+
+    /// <summary>
+    /// The first half of <see cref="Start(string, out string?)"/>: ends the open category's
+    /// current stretch and starts the clock for a category about to start inside it, which
+    /// <see cref="Push"/> then opens. Until it does, the open category is still the one on top.
+    /// </summary>
+    /// <returns>The same as <see cref="Start(string, out string?)"/>.</returns>
+    public float Interrupt(out string? interrupted)
+    {
+        lock (_modificationLock)
+        {
+            if (_categories.Count == 0)
+            {
+                interrupted = null;
+                Start();
+                return 0f;
+            }
+
+            var ms = StopAndStart();
+            Total += ms;
+            interrupted = _categories[0];
+            return ms;
+        }
+    }
+
+    /// <summary>
+    /// Ends the open category's current stretch and stops the clock, for a category on
+    /// another timer that starts inside it. <see cref="Resume"/> starts the clock again; a
+    /// start or stop in between finds it stopped and adds nothing for the pause.
+    /// </summary>
+    /// <returns>The same as <see cref="Interrupt"/>.</returns>
+    public float Pause(out string? paused)
+    {
+        lock (_modificationLock)
+        {
+            if (_categories.Count == 0)
+            {
+                paused = null;
+                return 0f;
+            }
+
+            var ms = Stop();
+            Total += ms;
+            paused = _categories[0];
+            return ms;
+        }
+    }
+
+    /// <summary>
+    /// Starts the clock again for the open category <see cref="Pause"/> stopped it for.
+    /// </summary>
+    public void Resume()
+    {
         lock (_modificationLock)
         {
             if (_categories.Count > 0)
             {
-                var ms = StopAndStart();
-                Total += ms;
-            }
-            else
-            {
                 Start();
             }
+        }
+    }
 
+    /// <summary>
+    /// The second half of <see cref="Start(string, out string?)"/>: opens
+    /// <paramref name="category"/> on the clock <see cref="Interrupt"/> started.
+    /// </summary>
+    public void Push(string category)
+    {
+        lock (_modificationLock)
+        {
             _categories.Insert(0, category);
         }
     }

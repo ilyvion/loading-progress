@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using ilyvion.LoadingProgress.StartupImpact;
 
 namespace ilyvion.LoadingProgress;
 
@@ -54,6 +55,9 @@ internal static class DeepProfiler_Start_Patches
             )
             {
                 LoadingProgressMod.instance.StartupImpact.FinishLoading();
+                // The label opens inside the interface's own long event, whose rest runs before
+                // the post-load tracker next looks, so its timing starts here.
+                PostLoadTracker.StartAtClockStop();
             }
             InGameLoadingSession.OnProfilerLabel(label);
         }

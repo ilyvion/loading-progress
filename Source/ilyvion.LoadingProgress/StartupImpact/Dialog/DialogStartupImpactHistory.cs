@@ -61,6 +61,13 @@ internal sealed class DialogStartupImpactHistory : Window
     private readonly UiTable _table;
     private readonly int _currentModListHash;
 
+    // The two notes that read the same on every row they are on. The window draws them on
+    // every frame, row by row, so they are translated once per window.
+    private readonly string _differentListNote =
+        "LoadingProgress.StartupImpact.History.Note.DifferentList".Translate();
+    private readonly string _toEndOfLoadingNote =
+        "LoadingProgress.StartupImpact.History.Note.ToEndOfLoading".Translate();
+
     /// <summary>
     /// The footer line. Falls back to the summary once it has been on screen
     /// long enough, the same way the startup impact window's own status does,
@@ -470,16 +477,16 @@ internal sealed class DialogStartupImpactHistory : Window
             _ => throw new ArgumentOutOfRangeException(nameof(group), group, null),
         };
 
-    private static string NoteFor(StartupImpactSessionIndexEntry entry, bool comparable) =>
+    // A session not timed to the main menu, one from before that was measured or one that went
+    // into a game or whose menu never settled, says so rather than passing for a comparable run.
+    private string NoteFor(StartupImpactSessionIndexEntry entry, bool comparable) =>
         entry.Completed
-            ? comparable
-                ? string.Empty
-                : "LoadingProgress.StartupImpact.History.Note.DifferentList".Translate().ToString()
-            : string.IsNullOrEmpty(entry.LastStage)
-                ? "LoadingProgress.StartupImpact.History.Note.Unfinished".Translate().ToString()
-                : "LoadingProgress.StartupImpact.History.Note.UnfinishedAt"
-                    .Translate(StartupImpactSessionIndexEntry.TranslateStage(entry.LastStage))
-                    .ToString();
+            ? !comparable
+                ? _differentListNote
+                : entry.MeasuredToMenu
+                    ? string.Empty
+                    : _toEndOfLoadingNote
+            : StartupImpactSessionIndexEntry.UnfinishedNote(entry.LastStage);
 
     private static Color NoteColorFor(StartupImpactSessionIndexEntry entry, bool comparable) =>
         !entry.Completed ? UnfinishedColor

@@ -46,6 +46,26 @@ internal static class StartupImpactHtmlExporter
 
         AppendNumber(sb, "loadingTimeMs", sessionData.LoadingTime);
         _ = sb.Append(',');
+        AppendNumber(sb, "timeToMenuMs", sessionData.TimeToMenu);
+        _ = sb.Append(',');
+        AppendRemainingByStage(sb, viewData, defaultColor);
+        AppendNumber(sb, "windowMs", viewData.TotalWindow);
+        _ = sb.Append(',');
+        AppendNumber(sb, "remainingMs", viewData.RemainingLoadingTime);
+        _ = sb.Append(',');
+
+        // The folded sections' texts as the window has them, with times written as the report
+        // writes its own. None depends on which mods are hidden, so the report shows them as
+        // they are.
+        var texts = viewData.Texts(secondsOnly);
+        AppendString(sb, "baseGameBreakdownText", texts.BaseGameBreakdown);
+        _ = sb.Append(',');
+        AppendString(sb, "largestBaseGameStepText", texts.LargestBaseGameStep);
+        _ = sb.Append(',');
+        AppendString(sb, "remainingBreakdownText", texts.RemainingBreakdown);
+        _ = sb.Append(',');
+        AppendString(sb, "largestRemainingEntryText", texts.LargestRemainingEntry);
+        _ = sb.Append(',');
 
         AppendKey(sb, "secondsOnly");
         _ = sb.Append(secondsOnly ? "true," : "false,");
@@ -337,6 +357,26 @@ internal static class StartupImpactHtmlExporter
         _ = sb.Append(',');
         AppendString(sb, "footer", "LoadingProgress.StartupImpact.HtmlReport.Footer".Translate());
         _ = sb.Append(',');
+        AppendString(
+            sb,
+            "remainingTitle",
+            "LoadingProgress.StartupImpact.StartupRemaining".Translate()
+        );
+        _ = sb.Append(',');
+        AppendString(
+            sb,
+            "onOtherThreadsDetail",
+            "LoadingProgress.StartupImpact.Section.OnOtherThreads".Translate()
+        );
+        _ = sb.Append(',');
+        AppendString(
+            sb,
+            "onOtherThreadsTip",
+            "LoadingProgress.StartupImpact.OnOtherThreads.Tip".Translate()
+        );
+        _ = sb.Append(',');
+        AppendString(sb, "sectionTip", "LoadingProgress.StartupImpact.Section.Tip".Translate());
+        _ = sb.Append(',');
         AppendString(sb, "secondsFormat", "LoadingProgress.StartupImpact.Seconds".Translate());
         _ = sb.Append(',');
         AppendString(
@@ -388,6 +428,44 @@ internal static class StartupImpactHtmlExporter
         + $"{(int)Mathf.Round(Mathf.Clamp01(c.g) * 255):x2}"
         + $"{(int)Mathf.Round(Mathf.Clamp01(c.b) * 255):x2}";
 
+    /// <summary>
+    /// The remaining time by loading stage, largest first, as the segments of the report's
+    /// remaining bar, so it can say where the time no category accounts for went.
+    /// </summary>
+    private static void AppendRemainingByStage(
+        StringBuilder sb,
+        StartupImpactSessionViewData viewData,
+        Color defaultColor
+    )
+    {
+        _ = sb.Append("\"remainingByStage\":[");
+        var first = true;
+        foreach (var entry in viewData.RemainingByStage)
+        {
+            if (!first)
+            {
+                _ = sb.Append(',');
+            }
+            first = false;
+            _ = sb.Append('{');
+            AppendString(sb, "label", entry.Label);
+            _ = sb.Append(',');
+            AppendString(
+                sb,
+                "color",
+                ColorToHex(
+                    viewData.CategoryColorsRemaining.TryGetValue(entry.Label, out var c)
+                        ? c
+                        : defaultColor
+                )
+            );
+            _ = sb.Append(',');
+            AppendNumber(sb, "valueMs", entry.Ms);
+            _ = sb.Append('}');
+        }
+        _ = sb.Append("],");
+    }
+
     private static void AppendNumber(StringBuilder sb, string key, float value)
     {
         AppendKey(sb, key);
@@ -400,10 +478,17 @@ internal static class StartupImpactHtmlExporter
         _ = sb.Append(value.ToString(CultureInfo.InvariantCulture));
     }
 
-    private static void AppendString(StringBuilder sb, string key, string value)
+    private static void AppendString(StringBuilder sb, string key, string? value)
     {
         AppendKey(sb, key);
-        AppendJsonString(sb, value);
+        if (value == null)
+        {
+            _ = sb.Append("null");
+        }
+        else
+        {
+            AppendJsonString(sb, value);
+        }
     }
 
     private static void AppendKey(StringBuilder sb, string key)
@@ -412,7 +497,10 @@ internal static class StartupImpactHtmlExporter
         _ = sb.Append(':');
     }
 
-    private static void AppendJsonString(StringBuilder sb, string value)
+    /// <summary>
+    /// Writes <paramref name="value"/> as a JSON string, quotes included.
+    /// </summary>
+    internal static void AppendJsonString(StringBuilder sb, string value)
     {
         _ = sb.Append('"');
         foreach (var ch in value)
@@ -476,6 +564,16 @@ internal static class StartupImpactHtmlExporter
   }
   h1 { font-size: 20px; }
   h2 { font-size: 16px; margin-top: 18px; }
+  details.section > summary { cursor: pointer; list-style: none; }
+  details.section > summary::-webkit-details-marker { display: none; }
+  details.section > summary h2 { display: inline-block; }
+  details.section > summary h2::before { content: "\25B8"; display: inline-block; width: 1em; }
+  details.section[open] > summary h2::before { content: "\25BE"; }
+  details.section > summary .section-detail {
+    margin-left: 10px;
+    color: var(--text-dim);
+    font-size: 13px;
+  }
   .titlebar-row {
     display: flex;
     align-items: flex-start;
@@ -677,6 +775,7 @@ internal static class StartupImpactHtmlExporter
     border-radius: 4px;
     font-size: 12px;
     line-height: 1.4;
+    white-space: pre-line;
     pointer-events: none;
     z-index: 1000;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
@@ -710,8 +809,15 @@ internal static class StartupImpactHtmlExporter
   <div class="bar" id="totalBar"></div>
   <div class="session-stats" id="sessionStats"></div>
 
-  <h2 id="baseGameTitle"></h2>
-  <div class="basegame-bar-cell" id="baseGameBar"></div>
+  <details class="section" id="baseGameSection">
+    <summary><h2 id="baseGameTitle"></h2><span class="section-detail" id="baseGameDetail"></span></summary>
+    <div class="basegame-bar-cell" id="baseGameBar"></div>
+  </details>
+
+  <details class="section" id="remainingSection" style="display:none">
+    <summary><h2 id="remainingTitle"></h2><span class="section-detail" id="remainingDetail"></span></summary>
+    <div class="bar" id="remainingBar"></div>
+  </details>
 
   <h2 id="modsTitle"></h2>
   <div class="bar" id="modsBar"></div>
@@ -838,7 +944,9 @@ internal static class StartupImpactHtmlExporter
     el.addEventListener("mouseleave", hideTooltip);
   });
 
-  function renderBar(container, segments, maxImpactMs) {
+  // A segment's tooltip is its label and time, then its own detail if it has one, then the
+  // line every segment of the bar ends with, if any (that the bar is time on other threads).
+  function renderBar(container, segments, maxImpactMs, tipSuffix) {
     container.innerHTML = "";
     var values = segments.map(function (s) { return Math.max(0, s.valueMs); });
     var sumLinear = values.reduce(function (a, b) { return a + b; }, 0);
@@ -855,16 +963,25 @@ internal static class StartupImpactHtmlExporter
       el.style.setProperty("--seg-color", seg.color);
       el.style.width = widthPercent + "%";
       var tipText = seg.label + ": " + timeText(seg.valueMs);
+      if (seg.detail) {
+        tipText += "\n" + seg.detail;
+      }
+      if (tipSuffix) {
+        tipText += "\n" + tipSuffix;
+      }
       el.addEventListener("mouseenter", function (evt) { showTooltip(evt, tipText); });
       el.addEventListener("mousemove", moveTooltip);
       el.addEventListener("mouseleave", hideTooltip);
       container.appendChild(el);
     }
 
+    // A linear bar spans its segments when they come to more than its stated width, as the
+    // window's ProfilerBar.LinearSpan does, so none runs past the end and out of sight.
     if (!state.useLog) {
+      var span = Math.max(1, maxImpactMs, sumLinear);
       segments.forEach(function (seg, i) {
         if (values[i] <= 0) { return; }
-        appendSegment(seg, 100 * values[i] / Math.max(1, maxImpactMs));
+        appendSegment(seg, 100 * values[i] / span);
       });
       return;
     }
@@ -891,21 +1008,26 @@ internal static class StartupImpactHtmlExporter
     });
   }
 
+  // Both of a row's bars on one scale, shared with the other rows; a hidden mod larger than
+  // the shared scale gets its own.
   function modMaxImpact(mod, sessionMaxImpact) {
-    return state.hidden.has(mod)
-      ? Math.max(sessionMaxImpact, mod.totalImpactMs)
-      : sessionMaxImpact;
+    var own = Math.max(mod.totalImpactMs, mod.offThreadTotalImpactMs);
+    return state.hidden.has(mod) ? Math.max(sessionMaxImpact, own) : sessionMaxImpact;
   }
 
   function computeSessionMaxImpact() {
     var max = 0;
     DATA.mods.forEach(function (mod) {
-      if (!state.hidden.has(mod) && mod.totalImpactMs > max) {
-        max = mod.totalImpactMs;
+      if (!state.hidden.has(mod)) {
+        max = Math.max(max, mod.totalImpactMs, mod.offThreadTotalImpactMs);
       }
     });
     return max;
   }
+
+  // The window's breakdowns of the folded sections, null when a section has none.
+  var baseGameBreakdown = DATA.baseGameBreakdownText;
+  var remainingBreakdown = DATA.remainingBreakdownText;
 
   function renderTotalBar() {
     var modsTotal = 0;
@@ -918,16 +1040,19 @@ internal static class StartupImpactHtmlExporter
       }
     });
     var baseGameTotal = DATA.baseGame.loadingTimeMs;
-    var untracked = Math.max(0, DATA.loadingTimeMs - (modsTotal + hiddenTotal + baseGameTotal));
+    // The window's own span: the time to the menu when the session recorded one, and never
+    // less than the timed steps.
+    var windowMs = DATA.windowMs;
 
+    // The base game's and the remaining segments list what their folded sections hold.
     var cats = DATA.totalCategories;
     var segments = [
       { label: cats[0].label, color: cats[0].color, valueMs: modsTotal },
       { label: cats[1].label, color: cats[1].color, valueMs: hiddenTotal },
-      { label: cats[2].label, color: cats[2].color, valueMs: baseGameTotal },
-      { label: cats[3].label, color: cats[3].color, valueMs: untracked }
+      { label: cats[2].label, color: cats[2].color, valueMs: baseGameTotal, detail: baseGameBreakdown },
+      { label: cats[3].label, color: cats[3].color, valueMs: DATA.remainingMs, detail: remainingBreakdown }
     ];
-    renderBar(document.getElementById("totalBar"), segments, DATA.loadingTimeMs);
+    renderBar(document.getElementById("totalBar"), segments, windowMs);
     document.getElementById("modsTitle").textContent = DATA.strings.modsTitle.replace("{0}", timeText(modsTotal));
   }
 
@@ -966,7 +1091,7 @@ internal static class StartupImpactHtmlExporter
     if (mod.offThreadTotalImpactMs > 1) {
       var offBar = document.createElement("div");
       offBar.className = "bar";
-      renderBar(offBar, mod.offThreadMetrics, Math.max(sessionMaxImpact, mod.offThreadTotalImpactMs));
+      renderBar(offBar, mod.offThreadMetrics, rowMaxImpact, DATA.strings.onOtherThreadsTip);
       barCell.appendChild(offBar);
     }
     var mainBar = document.createElement("div");
@@ -1080,7 +1205,7 @@ internal static class StartupImpactHtmlExporter
     if (phase.offThreadTotalImpactMs > 1) {
       var offBar = document.createElement("div");
       offBar.className = "bar";
-      renderBar(offBar, phase.offThreadSegments, maxImpact);
+      renderBar(offBar, phase.offThreadSegments, maxImpact, DATA.strings.onOtherThreadsTip);
       barCell.appendChild(offBar);
     }
     var mainBar = document.createElement("div");
@@ -1163,12 +1288,13 @@ internal static class StartupImpactHtmlExporter
     if (DATA.baseGame.offThreadTotalImpactMs > 1) {
       var offBar = document.createElement("div");
       offBar.className = "bar";
-      renderBar(offBar, DATA.baseGame.offThreadSegments, maxImpact);
+      renderBar(offBar, DATA.baseGame.offThreadSegments, maxImpact, DATA.strings.onOtherThreadsTip);
       container.appendChild(offBar);
     }
     var mainBar = document.createElement("div");
     mainBar.className = "bar";
-    renderBar(mainBar, DATA.baseGame.segments, DATA.baseGame.loadingTimeMs);
+    // Both bars on one scale: the longer spans the width, the other is drawn in proportion.
+    renderBar(mainBar, DATA.baseGame.segments, maxImpact);
     container.appendChild(mainBar);
   }
 
@@ -1182,15 +1308,30 @@ internal static class StartupImpactHtmlExporter
     renderBar(document.getElementById("modsBar"), segments, total);
   }
 
+  // The remaining time has no owner, so hiding a mod changes none of it; the bar is still
+  // redrawn with the rest so the log scale applies to it too.
+  function renderRemainingBar() {
+    if (!DATA.remainingByStage.length) {
+      return;
+    }
+    document.getElementById("remainingTitle").textContent =
+      DATA.strings.remainingTitle.replace("{0}", timeText(DATA.remainingMs));
+    document.getElementById("remainingDetail").textContent = DATA.largestRemainingEntryText || "";
+    document.getElementById("remainingSection").style.display = "";
+    var bar = document.getElementById("remainingBar");
+    renderBar(bar, DATA.remainingByStage, DATA.remainingMs);
+  }
+
   function renderAll() {
     renderTotalBar();
     renderBaseGameBar();
+    renderRemainingBar();
     renderModsBar();
     renderTable();
   }
 
   document.getElementById("title").textContent =
-    DATA.strings.title.replace("{0}", timeText(DATA.loadingTimeMs));
+    DATA.strings.title.replace("{0}", timeText(DATA.windowMs));
 
   if (DATA.sessionStats) {
     document.getElementById("sessionStats").textContent = DATA.strings.sessionStats
@@ -1201,6 +1342,34 @@ internal static class StartupImpactHtmlExporter
 
   document.getElementById("baseGameTitle").textContent =
     DATA.strings.baseGameTitle.replace("{0}", timeText(DATA.baseGame.loadingTimeMs));
+  // The base game's time on other threads when its bar for that is shown, as in the window,
+  // and its largest step when it is not. The export writes that time as 0 when the setting
+  // to show it is off, so the check below follows the setting.
+  document.getElementById("baseGameDetail").textContent = DATA.baseGame.offThreadTotalImpactMs > 1
+    ? DATA.strings.onOtherThreadsDetail.replace("{0}", timeText(DATA.baseGame.offThreadTotalImpactMs))
+    : DATA.largestBaseGameStepText || "";
+
+  // Hovering a section's heading says what a click does and, while the section is closed,
+  // shows the breakdown it holds, as the window's headings do.
+  function wireSectionTip(sectionId, breakdown) {
+    var section = document.getElementById(sectionId);
+    var summary = section.querySelector("summary");
+    function tipText() {
+      return !section.open && breakdown
+        ? breakdown + "\n\n" + DATA.strings.sectionTip
+        : DATA.strings.sectionTip;
+    }
+    summary.addEventListener("mouseenter", function (evt) { showTooltip(evt, tipText()); });
+    summary.addEventListener("mousemove", moveTooltip);
+    summary.addEventListener("mouseleave", hideTooltip);
+    section.addEventListener("toggle", function () {
+      if (summary.matches(":hover")) {
+        tooltipEl.textContent = tipText();
+      }
+    });
+  }
+  wireSectionTip("baseGameSection", baseGameBreakdown);
+  wireSectionTip("remainingSection", remainingBreakdown);
 
   document.getElementById("footer").textContent =
     DATA.strings.footer.replace("{0}", DATA.generatedAt);

@@ -13,6 +13,41 @@ internal sealed class ProfilerBar
     /// </summary>
     public float Tau { get; set; } = 1000f;
 
+    /// <summary>
+    /// Extra lines for a segment's tooltip, by category, shown under the usual label and time.
+    /// </summary>
+    public IReadOnlyDictionary<string, string>? TooltipDetails { get; set; }
+
+    /// <summary>
+    /// A line every segment's tooltip ends with, such as what the whole bar measures.
+    /// </summary>
+    public string? TooltipSuffix { get; set; }
+
+    /// <summary>
+    /// Whether each segment wide enough for it carries its time as a label.
+    /// </summary>
+    public bool ShowSegmentLabels { get; set; }
+
+    /// <summary>
+    /// Writes a segment's time across it, when it fits.
+    /// </summary>
+    private static void DrawSegmentLabel(Rect rect, string text)
+    {
+        var font = Text.Font;
+        var anchor = Text.Anchor;
+        var color = GUI.color;
+        Text.Font = GameFont.Small;
+        Text.Anchor = TextAnchor.MiddleCenter;
+        if (Text.CalcSize(text).x + 8f <= rect.width)
+        {
+            GUI.color = Color.white;
+            Widgets.Label(rect, text);
+        }
+        Text.Font = font;
+        Text.Anchor = anchor;
+        GUI.color = color;
+    }
+
     public static string TimeText(float ms) =>
         TimeText(ms, LoadingProgressMod.Settings.ShowStartupImpactTimesInSecondsOnly);
 
@@ -31,12 +66,27 @@ internal sealed class ProfilerBar
         );
 
     /// <summary>
+    /// <paramref name="ms"/> in whole tenths of a second, rounded as the startup impact window
+    /// shows its times.
+    /// </summary>
+    internal static long Tenths(float ms) =>
+        (long)Math.Round(ms / 100.0, MidpointRounding.AwayFromZero);
+
+    /// <summary>
+    /// <paramref name="ms"/> to the second, as <see cref="Utilities.FormatDuration"/> writes a
+    /// duration, rounded to the tenth first as <see cref="ClockTimeText"/> rounds it, so a time
+    /// shown both ways reads the same seconds: 109,960 ms is 01:50 beside 1:50.0, not 01:49.
+    /// </summary>
+    internal static string WholeSecondsText(float ms) =>
+        Utilities.FormatDuration(TimeSpan.FromMilliseconds(Tenths(ms) * 100.0));
+
+    /// <summary>
     /// <c>m:ss.f</c>, or <c>h:mm:ss.f</c> from an hour up, for durations of at least a minute
     /// once rounded to tenths of a second; <see langword="null"/> below that.
     /// </summary>
     internal static string? ClockTimeText(float ms)
     {
-        var tenths = (long)Math.Round(ms / 100.0, MidpointRounding.AwayFromZero);
+        var tenths = Tenths(ms);
         if (tenths < 600)
         {
             return null;
@@ -85,7 +135,7 @@ internal sealed class ProfilerBar
             DrawLinearScale(
                 metrics,
                 categories,
-                maxImpact,
+                LinearSpan(maxImpact, sumLinear),
                 categoryColors,
                 innerX,
                 innerY,
@@ -120,6 +170,16 @@ internal sealed class ProfilerBar
                 : category;
         }
 
+        string Tooltip(string category, float impact)
+        {
+            var text = $"{TooltipLabel(category)}: {TimeText(impact)}";
+            if (TooltipDetails != null && TooltipDetails.TryGetValue(category, out var detail))
+            {
+                text += "\n" + detail;
+            }
+            return TooltipSuffix != null ? text + "\n" + TooltipSuffix : text;
+        }
+
         void DrawLinearScale(
             IReadOnlyList<float> metrics,
             IReadOnlyList<string> categories,
@@ -145,11 +205,12 @@ internal sealed class ProfilerBar
 
                 var color = categoryColors.TryGetValue(categories[i], out var c) ? c : DefaultColor;
                 DrawSegment(textRect, color);
+                if (ShowSegmentLabels)
+                {
+                    DrawSegmentLabel(textRect, TimeText(impact));
+                }
 
-                TooltipHandler.TipRegion(
-                    textRect,
-                    new TipSignal($"{TooltipLabel(categories[i])}: {TimeText(impact)}")
-                );
+                TooltipHandler.TipRegion(textRect, new TipSignal(Tooltip(categories[i], impact)));
 
                 x += width;
             }
@@ -206,11 +267,12 @@ internal sealed class ProfilerBar
 
                 var color = categoryColors.TryGetValue(categories[i], out var c) ? c : DefaultColor;
                 DrawSegment(textRect, color);
+                if (ShowSegmentLabels)
+                {
+                    DrawSegmentLabel(textRect, TimeText(impact));
+                }
 
-                TooltipHandler.TipRegion(
-                    textRect,
-                    new TipSignal($"{TooltipLabel(categories[i])}: {TimeText(impact)}")
-                );
+                TooltipHandler.TipRegion(textRect, new TipSignal(Tooltip(categories[i], impact)));
 
                 xCursor += width;
                 drawn += width;
@@ -244,6 +306,19 @@ internal sealed class ProfilerBar
             GUI.color = stored;
         }
     }
+
+    /// <summary>
+    /// What a linear bar's full width stands for: <paramref name="span"/>, or the segments'
+    /// <paramref name="segmentsTotal"/> when they come to more, so the bar never runs past its
+    /// rect. The log scale caps its fill instead.
+    /// </summary>
+    /// <remarks>
+    /// The totals bar's segments can come to a little more than the startup time in a session
+    /// saved before timers paused each other: see
+    /// <see cref="Dialog.StartupImpactSessionViewData.RemainingTotal"/>.
+    /// </remarks>
+    internal static float LinearSpan(float span, float segmentsTotal) =>
+        Math.Max(span, segmentsTotal);
 
     /// <summary>
     /// Applies a log scaling transformation to the input value x, using tau as the scaling parameter.

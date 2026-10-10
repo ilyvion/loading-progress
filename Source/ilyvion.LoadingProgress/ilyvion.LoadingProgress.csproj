@@ -14,6 +14,9 @@
         <Publicize Include="Assembly-CSharp:Verse.LongEventHandler.DrawLongEventWindowContents" />
         <Publicize Include="Assembly-CSharp:Verse.LongEventHandler.currentEvent" />
         <Publicize Include="Assembly-CSharp:Verse.LongEventHandler.UpdateCurrentEnumeratorEvent" />
+        <Publicize Include="Assembly-CSharp:Verse.LongEventHandler.UpdateCurrentAsynchronousEvent" />
+        <Publicize Include="Assembly-CSharp:Verse.LongEventHandler.UpdateCurrentSynchronousEvent" />
+        <Publicize Include="Assembly-CSharp:Verse.LongEventHandler.eventThread" />
         <Publicize Include="Assembly-CSharp:Verse.LongEventHandler.ExecuteToExecuteWhenFinished" />
         <Publicize Include="Assembly-CSharp:Verse.LongEventHandler.executingToExecuteWhenFinished" />
         <Publicize Include="Assembly-CSharp:Verse.LongEventHandler.toExecuteWhenFinished" />
@@ -44,5 +47,6 @@
         <Publicize Include="Assembly-CSharp:Verse.MapDrawer.SectionCount" />
         <Publicize Include="Assembly-CSharp:Verse.PostLoadIniter.saveablesToPostLoad" />
         <Publicize Include="Assembly-CSharp:Verse.Map.loadedFullThings" />
+        <Publicize Include="Assembly-CSharp:Verse.QuickStarter.quickStarted" />
     </ItemGroup>
 </Project>

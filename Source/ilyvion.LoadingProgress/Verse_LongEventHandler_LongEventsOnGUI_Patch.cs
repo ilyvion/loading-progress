@@ -339,10 +339,9 @@ internal static class Verse_LongEventHandler_DrawOwnWindow_Patch
             return false;
         }
 
-        useInGameWindow =
-            LoadingProgressWindow.CurrentStage == LoadingStage.Finished
-            && InGameLoadingSession.IsActive;
-        return LoadingProgressWindow.CurrentStage != LoadingStage.Finished || useInGameWindow;
+        var ownWindow = LoadingProgressWindow.CurrentOwnWindow;
+        useInGameWindow = ownWindow == OwnWindow.InGame;
+        return ownWindow != OwnWindow.None;
     }
 
     internal static void Draw()
@@ -495,13 +494,12 @@ internal sealed class Verse_LongEventHandler_LongEventsOnGUI_Patch
             return num3;
         }
 
-        var useInGameWindow =
-            LoadingProgressWindow.CurrentStage == LoadingStage.Finished
-            && InGameLoadingSession.IsActive;
-        if (LoadingProgressWindow.CurrentStage == LoadingStage.Finished && !useInGameWindow)
+        var ownWindow = LoadingProgressWindow.CurrentOwnWindow;
+        if (ownWindow == OwnWindow.None)
         {
             return num3;
         }
+        var useInGameWindow = ownWindow == OwnWindow.InGame;
 
         var loadingProgressWindowSize = useInGameWindow
             ? InGameLoadingWindow.WindowSize
@@ -534,13 +532,12 @@ internal sealed class Verse_LongEventHandler_LongEventsOnGUI_Patch
 
     private static Rect AdjustStatusWindowRect(Rect r)
     {
-        var useInGameWindow =
-            LoadingProgressWindow.CurrentStage == LoadingStage.Finished
-            && InGameLoadingSession.IsActive;
-        if (LoadingProgressWindow.CurrentStage == LoadingStage.Finished && !useInGameWindow)
+        var ownWindow = LoadingProgressWindow.CurrentOwnWindow;
+        if (ownWindow == OwnWindow.None)
         {
             return r;
         }
+        var useInGameWindow = ownWindow == OwnWindow.InGame;
 
         var statusRectSize = LongEventHandler.StatusRectSize;
         var loadingProgressWindowSize = useInGameWindow

@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using ilyvion.LoadingProgress.StartupImpact.Dialog.Export;
+using Verse.Sound;
 
 namespace ilyvion.LoadingProgress.StartupImpact.Dialog;
 
@@ -209,6 +210,12 @@ internal sealed class DialogStartupImpact : Window
     private readonly StartupImpactSessionData _currentSessionData;
     private StartupImpactSessionData _sessionData;
     private StartupImpactSessionViewData _sessionViewData;
+
+    // The folded sections' texts, with times written as the setting asks now, like every
+    // other time the window draws.
+    private StartupImpactSessionViewData.SectionTexts SectionTexts =>
+        _sessionViewData.Texts(LoadingProgressMod.Settings.ShowStartupImpactTimesInSecondsOnly);
+
     private string _modFilter = "";
     private List<StartupImpactSessionModViewData> _filteredModViewData = [];
     private SortColumn _sortColumn = SortColumn.Impact;
@@ -485,7 +492,7 @@ internal sealed class DialogStartupImpact : Window
                         _table.Cell(0, row),
                         Textures.Eye,
                         info.HideInUi ? Color.white : Color.grey,
-                        tooltip: "LoadingProgress.StartupImpact.ToggleModVisibility.Tip".Translate()
+                        tooltip: _toggleModVisibilityTip
                     )
                 )
                 {
@@ -503,23 +510,30 @@ internal sealed class DialogStartupImpact : Window
 
                 var rect = _table.Cell(3, row);
                 var rect2 = rect;
+                // Both of the row's bars on one scale, shared with the other rows.
+                var rowSpan = Math.Max(
+                    _sessionViewData.MaxImpact,
+                    Math.Max(info.ModData.TotalImpact, info.ModData.OffThreadTotalImpact)
+                );
                 if (info.ModData.OffThreadTotalImpact > 1f)
                 {
                     rect2.yMin += rect.height / 2;
                     rect.yMax -= rect.height / 2;
+                    profilerBar.TooltipSuffix = _onOtherThreadsTip;
                     profilerBar.Draw(
                         rect2,
                         info.OffThreadMetrics,
                         _sessionViewData.Categories,
-                        Math.Max(_sessionViewData.MaxImpact, info.ModData.OffThreadTotalImpact),
+                        rowSpan,
                         CategoryColors
                     );
+                    profilerBar.TooltipSuffix = null;
                 }
                 profilerBar.Draw(
                     rect,
                     info.Metrics,
                     _sessionViewData.Categories,
-                    Math.Max(_sessionViewData.MaxImpact, info.ModData.TotalImpact),
+                    rowSpan,
                     CategoryColors
                 );
             }
@@ -549,6 +563,7 @@ internal sealed class DialogStartupImpact : Window
                 {
                     rect2.yMin += rect.height / 2;
                     rect.yMax -= rect.height / 2;
+                    profilerBar.TooltipSuffix = _onOtherThreadsTip;
                     profilerBar.Draw(
                         rect2,
                         phase.OffThreadMetrics,
@@ -557,6 +572,7 @@ internal sealed class DialogStartupImpact : Window
                         _phaseModColors,
                         translateCategories: false
                     );
+                    profilerBar.TooltipSuffix = null;
                 }
                 profilerBar.Draw(
                     rect,
@@ -634,19 +650,23 @@ internal sealed class DialogStartupImpact : Window
         Widgets.Label(
             titleRect,
             "LoadingProgress.StartupImpact.StartupTime".Translate(
-                ProfilerBar.TimeText(_sessionData.LoadingTime)
+                ProfilerBar.TimeText(_sessionViewData.TotalWindow)
             )
         );
         y += titleRect.height;
 
         Rect profileRect = new(0, y, area.width, BarHeight);
+        profilerBar.TooltipDetails = SectionTexts.TotalsTooltipDetails;
+        profilerBar.ShowSegmentLabels = true;
         profilerBar.Draw(
             profileRect,
             _sessionViewData.MetricsTotal,
             StartupImpactSessionViewData.CategoriesTotal,
-            _sessionData.LoadingTime,
+            _sessionViewData.TotalWindow,
             CategoryColors
         );
+        profilerBar.ShowSegmentLabels = false;
+        profilerBar.TooltipDetails = null;
         y += profileRect.height + InnerSpacing;
 
         if (
@@ -669,43 +689,8 @@ internal sealed class DialogStartupImpact : Window
             Text.Font = GameFont.Medium;
         }
 
-        Rect nonmodsTitleRect = new(0, y, area.width, TitleHeight);
-        Widgets.Label(
-            nonmodsTitleRect,
-            "LoadingProgress.StartupImpact.StartupNonmods".Translate(
-                ProfilerBar.TimeText(_sessionViewData.BasegameLoadingTime)
-            )
-        );
-        y += nonmodsTitleRect.height;
-
-        Rect nonmodsProfileRect = new(0, y, area.width, BarHeight);
-        var nonmodsOffThreadRect = nonmodsProfileRect;
-        if (
-            LoadingProgressMod.Settings.ShowBaseGameOffThreadImpact
-            && _sessionViewData.OffThreadBasegameLoadingTime > 1f
-        )
-        {
-            nonmodsOffThreadRect.yMin += nonmodsProfileRect.height / 2;
-            nonmodsProfileRect.yMax -= nonmodsProfileRect.height / 2;
-            profilerBar.Draw(
-                nonmodsOffThreadRect,
-                _sessionViewData.MetricsOffThreadNonMods,
-                _sessionViewData.CategoriesNonMods,
-                Math.Max(
-                    _sessionViewData.BasegameLoadingTime,
-                    _sessionViewData.OffThreadBasegameLoadingTime
-                ),
-                _sessionViewData.CategoryColorsNonMods
-            );
-        }
-        profilerBar.Draw(
-            nonmodsProfileRect,
-            _sessionViewData.MetricsNonMods,
-            _sessionViewData.CategoriesNonMods,
-            _sessionViewData.BasegameLoadingTime,
-            _sessionViewData.CategoryColorsNonMods
-        );
-        y += BarHeight + OuterSpacing;
+        y = DrawBaseGameSection(y, area.width, profilerBar);
+        y = DrawRemainingSection(y, area.width, profilerBar);
 
         Rect modsTitleRect = new(0, y, area.width, TitleHeight);
         Widgets.Label(
@@ -940,6 +925,197 @@ internal sealed class DialogStartupImpact : Window
             )
         );
         GUI.color = Color.white;
+    }
+
+    private const float SectionButtonSize = 18f;
+
+    // The line every segment of a bar for time on other threads ends its tooltip with, the
+    // one a section heading's tooltip ends with, and the tooltip of every mod row's
+    // visibility button. The window draws them on every frame, row by row, so they are
+    // translated once per window.
+    private readonly string _onOtherThreadsTip =
+        "LoadingProgress.StartupImpact.OnOtherThreads.Tip".Translate();
+    private readonly string _sectionTip = "LoadingProgress.StartupImpact.Section.Tip".Translate();
+    private readonly string _toggleModVisibilityTip =
+        "LoadingProgress.StartupImpact.ToggleModVisibility.Tip".Translate();
+
+    /// <summary>
+    /// A section's heading line: a reveal or collapse button, the title and a short detail
+    /// in grey. The whole line toggles the section, with the sound vanilla's tree lists make,
+    /// and hovering it shows the breakdown while the section is closed. Whether the section is
+    /// open is read with <paramref name="isOpen"/> and kept in the settings with
+    /// <paramref name="setOpen"/>, which are written when it changes. Returns whether the
+    /// section is open after this frame.
+    /// </summary>
+    private bool DrawSectionHeading(
+        float y,
+        float width,
+        string title,
+        string? detail,
+        string? breakdown,
+        Func<Settings, bool> isOpen,
+        Action<Settings, bool> setOpen
+    )
+    {
+        var settings = LoadingProgressMod.Settings;
+        var open = isOpen(settings);
+        Rect lineRect = new(0, y, width, TitleHeight);
+        Widgets.DrawHighlightIfMouseover(lineRect);
+        Rect buttonRect = new(
+            0,
+            y + ((TitleHeight - SectionButtonSize) / 2),
+            SectionButtonSize,
+            SectionButtonSize
+        );
+        var toggled = Widgets.ButtonImage(buttonRect, open ? TexButton.Collapse : TexButton.Reveal);
+
+        var textX = SectionButtonSize + InnerSpacing;
+        Rect textRect = new(textX, y, width - textX, TitleHeight);
+        Widgets.Label(textRect, title);
+        if (detail != null)
+        {
+            var detailX = textX + Text.CalcSize(title).x + OuterSpacing;
+            Text.Font = GameFont.Small;
+            GUI.color = Color.grey;
+            Widgets.Label(new Rect(detailX, y, width - detailX, TitleHeight), detail);
+            GUI.color = Color.white;
+            Text.Font = GameFont.Medium;
+        }
+
+        TooltipHandler.TipRegion(
+            lineRect,
+            !open && breakdown != null ? breakdown + "\n\n" + _sectionTip : _sectionTip
+        );
+        if (Widgets.ButtonInvisible(lineRect))
+        {
+            toggled = true;
+        }
+        if (!toggled)
+        {
+            return open;
+        }
+        (open ? SoundDefOf.TabClose : SoundDefOf.TabOpen).PlayOneShotOnCamera();
+        setOpen(settings, !open);
+        settings.Write();
+        return !open;
+    }
+
+    /// <summary>
+    /// The base game's section: a heading line with its total and its time on other threads
+    /// when the off-thread bar is shown, or its largest step when it is not; open, its bar of
+    /// steps and the bar of the same steps' time on other threads, both on one scale. Returns
+    /// the y to continue drawing at.
+    /// </summary>
+    private float DrawBaseGameSection(float y, float width, ProfilerBar profilerBar)
+    {
+        var showOffThread =
+            LoadingProgressMod.Settings.ShowBaseGameOffThreadImpact
+            && _sessionViewData.OffThreadBasegameLoadingTime > 1f;
+        var title = "LoadingProgress.StartupImpact.StartupNonmods".Translate(
+            ProfilerBar.TimeText(_sessionViewData.BasegameLoadingTime)
+        );
+        var texts = SectionTexts;
+        var detail = showOffThread
+            ? "LoadingProgress.StartupImpact.Section.OnOtherThreads"
+                .Translate(ProfilerBar.TimeText(_sessionViewData.OffThreadBasegameLoadingTime))
+                .ToString()
+            : texts.LargestBaseGameStep;
+        var open = DrawSectionHeading(
+            y,
+            width,
+            title,
+            detail,
+            texts.BaseGameBreakdown,
+            static settings => settings.ExpandBaseGameSection,
+            static (settings, value) => settings.ExpandBaseGameSection = value
+        );
+        y += TitleHeight;
+        if (!open)
+        {
+            return y + OuterSpacing;
+        }
+
+        Rect barRect = new(0, y, width, BarHeight);
+        var offThreadRect = barRect;
+        // The two bars share one scale: the longer spans the width and the other is drawn in
+        // proportion to it.
+        var span = StartupImpactSessionViewData.BaseGameBarSpan(
+            _sessionViewData.BasegameLoadingTime,
+            _sessionViewData.OffThreadBasegameLoadingTime,
+            showOffThread
+        );
+        if (showOffThread)
+        {
+            offThreadRect.yMin += barRect.height / 2;
+            barRect.yMax -= barRect.height / 2;
+            profilerBar.TooltipSuffix = _onOtherThreadsTip;
+            profilerBar.Draw(
+                offThreadRect,
+                _sessionViewData.MetricsOffThreadNonMods,
+                _sessionViewData.CategoriesNonMods,
+                span,
+                _sessionViewData.CategoryColorsNonMods
+            );
+            profilerBar.TooltipSuffix = null;
+        }
+        profilerBar.Draw(
+            barRect,
+            _sessionViewData.MetricsNonMods,
+            _sessionViewData.CategoriesNonMods,
+            span,
+            _sessionViewData.CategoryColorsNonMods
+        );
+        return y + BarHeight + OuterSpacing;
+    }
+
+    /// <summary>
+    /// The remaining part of the startup time as a section of its own: a heading line with
+    /// its total and its largest entry and, open, a bar with one segment per loading stage
+    /// the time fell in, largest first, with what came after loading finished as a segment of
+    /// its own. Returns the y to continue drawing at; a session saved before stages were kept
+    /// draws nothing here.
+    /// </summary>
+    /// <remarks>
+    /// This time has no owner, so no hide button can take any of it away: the hooks, deferred
+    /// tasks and long events that could be traced to a mod sit on that mod's row instead.
+    /// </remarks>
+    private float DrawRemainingSection(float y, float width, ProfilerBar profilerBar)
+    {
+        if (_sessionViewData.CategoriesRemaining.Count == 0)
+        {
+            return y;
+        }
+
+        var title = "LoadingProgress.StartupImpact.StartupRemaining".Translate(
+            ProfilerBar.TimeText(_sessionViewData.RemainingLoadingTime)
+        );
+        var open = DrawSectionHeading(
+            y,
+            width,
+            title,
+            SectionTexts.LargestRemainingEntry,
+            SectionTexts.RemainingBreakdown,
+            static settings => settings.ExpandRemainingSection,
+            static (settings, value) => settings.ExpandRemainingSection = value
+        );
+        y += TitleHeight;
+        if (!open)
+        {
+            return y + OuterSpacing;
+        }
+
+        Rect barRect = new(0, y, width, BarHeight);
+        profilerBar.ShowSegmentLabels = true;
+        profilerBar.Draw(
+            barRect,
+            _sessionViewData.MetricsRemaining,
+            _sessionViewData.CategoriesRemaining,
+            _sessionViewData.RemainingLoadingTime,
+            _sessionViewData.CategoryColorsRemaining,
+            translateCategories: false
+        );
+        profilerBar.ShowSegmentLabels = false;
+        return y + BarHeight + OuterSpacing;
     }
 
     /// <summary>

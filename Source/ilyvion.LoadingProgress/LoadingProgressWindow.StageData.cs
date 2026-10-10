@@ -604,37 +604,15 @@ internal sealed partial class LoadingProgressWindow
                 CurrentStage <= LoadingStage.GarbageCollection && value == LoadingFinishedLabel,
             value =>
             {
+                // Loading is over, but the startup is not: the interface's initialization and
+                // the long events other mods queue for after loading still run, with this
+                // window up and its clock going, until CompleteStartup at the frame the menu is
+                // usable. The activity line shows each of those events from here on.
                 CurrentStage = LoadingStage.Finished;
-                if (_loadingStopwatch is { } loadingStopwatch)
-                {
-                    var elapsed = loadingStopwatch.Elapsed;
-                    CurrentLoadingTime = elapsed;
-                    var elapsedSeconds = (float)elapsed.TotalSeconds;
-                    var settings = LoadingProgressMod.Settings;
-
-                    // Mod list changed: the existing list served as the estimate this load,
-                    // but we clear it so history reflects the new mod configuration.
-                    if (
-                        settings.ClearEstimatesOnModListChange
-                        && _currentModHash != settings.LastLoadingModHash
-                    )
-                    {
-                        settings.LoadingTimes.Clear();
-                    }
-
-                    settings.LoadingTimes.Add(elapsedSeconds);
-                    while (settings.LoadingTimes.Count > settings.LoadingTimesCapacity)
-                    {
-                        settings.LoadingTimes.RemoveAt(0);
-                    }
-
-                    settings.LastLoadingModHash = _currentModHash;
-                    settings.Write();
-                    loadingStopwatch.Stop();
-                    Translations.Clear();
-                }
+                _currentLoadingActivity = string.Empty;
             },
-            LoadingStage.Finished
+            LoadingStage.Finished,
+            activity => string.IsNullOrEmpty(activity) ? null : activity
         ),
     ];
 
@@ -680,14 +658,15 @@ internal sealed partial class LoadingProgressWindow
 
                 field = value;
 
+                // The ledger of time no category accounts for keeps its stages by the clock.
+                LoadingProgressMod.instance?.StartupImpact.NotifyStage(value);
+
                 // Record where a boot that never finishes got to. Guarded on IsActive so a
                 // disabled marker costs a bool read, not an enum name, on every transition.
-                //
-                // Finished is deliberately not recorded. It is set from
-                // InitializingInterface, a separately queued event that runs even when
-                // loading ended before the marker could be cleared, so recording it would
-                // replace the stage the boot stopped at with one it never reached.
-                if (StartupImpactCrashMarker.IsActive && value != LoadingStage.Finished)
+                if (
+                    StartupImpactCrashMarker.IsActive
+                    && StartupImpactCrashMarker.Records(value, PlayDataLoader.Loaded)
+                )
                 {
                     StartupImpactCrashMarker.RecordStage(value.ToString());
                 }

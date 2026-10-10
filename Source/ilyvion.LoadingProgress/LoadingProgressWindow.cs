@@ -1,7 +1,17 @@
-using System.Diagnostics;
+using ilyvion.LoadingProgress.StartupImpact;
 using static ilyvion.LoadingProgress.Constants;
 
 namespace ilyvion.LoadingProgress;
+
+/// <summary>
+/// Which of the mod's windows stands in for vanilla's status box.
+/// </summary>
+internal enum OwnWindow
+{
+    None,
+    Loading,
+    InGame,
+}
 
 internal sealed partial class LoadingProgressWindow
 {
@@ -36,20 +46,192 @@ internal sealed partial class LoadingProgressWindow
     /// </summary>
     internal const string LoadingFinishedLabel = "Misc Init (InitializingInterface)";
 
-    internal static Stopwatch? _loadingStopwatch;
+    // Whether the window has drawn: its first frame takes the estimate and the mod list's hash.
+    private static bool _drawn;
     internal static TimeSpan? _lastLoadingTime;
     internal static int _currentModHash;
 
     /// <summary>
-    /// How long this launch took to load, set once loading finishes.
+    /// How long this launch took to load, set once the startup has reached the main menu,
+    /// where the loading window records it. A startup that went straight into a game, or whose
+    /// menu never settled, records none.
     /// </summary>
     internal static TimeSpan? CurrentLoadingTime { get; private set; }
 
+    // Whether the startup ended with no loading time to record, not reaching the main menu.
+    private static bool _loadingTimeNotRecorded;
+
+    /// <summary>
+    /// Whether this startup is over: it has reached the main menu, gone straight into a game,
+    /// or waited for a menu that never settled as long as it waits. The loading window leaves
+    /// the screen then, and records a loading time only for the first.
+    /// </summary>
+    internal static bool StartupComplete { get; private set; }
+
+    /// <summary>
+    /// What the main menu's corner, the pause menu and the mod settings show for this launch's
+    /// loading time, each a way into its startup impact: see
+    /// <see cref="LoadingTimeTextFor"/>.
+    /// </summary>
+    internal static string? LoadingTimeText =>
+        LoadingTimeTextFor(CurrentLoadingTime, _loadingTimeNotRecorded);
+
+    /// <summary>
+    /// The loading time's text: the time, to the second as the startup impact window rounds it,
+    /// or that none was recorded when <paramref name="notRecorded"/>, as for a startup that
+    /// never reached the main menu; null while there is neither, as before the startup ends.
+    /// </summary>
+    internal static string? LoadingTimeTextFor(TimeSpan? loadingTime, bool notRecorded) =>
+        loadingTime is { } time
+            ? "LoadingProgress.LoadingTime"
+                .Translate(ProfilerBar.WholeSecondsText((float)time.TotalMilliseconds))
+                .ToString()
+        : notRecorded ? "LoadingProgress.LoadingTimeNotRecorded".Translate().ToString()
+        : null;
+
+    /// <summary>
+    /// Which of the mod's windows stands in for vanilla's status box right now.
+    /// </summary>
+    internal static OwnWindow CurrentOwnWindow =>
+        OwnWindowFor(
+            CurrentStage,
+            StartupComplete,
+            Current.ProgramState == ProgramState.Entry,
+            InGameLoadingSession.IsActive
+        );
+
+    /// <summary>
+    /// The loading window while loading runs and, at a startup, on through the long events
+    /// that follow it until the main menu is usable; the in-game window for a load or a
+    /// generation started after that; none once a startup has reached the menu.
+    /// </summary>
+    internal static OwnWindow OwnWindowFor(
+        LoadingStage stage,
+        bool startupComplete,
+        bool inEntry,
+        bool inGameSessionActive
+    ) =>
+        (stage, inGameSessionActive, startupComplete, inEntry) switch
+        {
+            (not LoadingStage.Finished, _, _, _) => OwnWindow.Loading,
+            (_, true, _, _) => OwnWindow.InGame,
+            (_, _, false, true) => OwnWindow.Loading,
+            _ => OwnWindow.None,
+        };
+
+    /// <summary>
+    /// Shows a long event that runs after loading on the activity line: its text, or a word
+    /// for one that has none, which vanilla's status box shows as a bare "...".
+    /// </summary>
+    internal static void ShowPostLoadEvent(LongEventHandler.QueuedLongEvent queuedEvent) =>
+        SetCurrentLoadingActivityRaw(ActivityFor(queuedEvent.eventText));
+
+    /// <summary>
+    /// The activity line for a long event after loading: its text, or a word for one that has
+    /// none.
+    /// </summary>
+    internal static string ActivityFor(string? eventText) =>
+        eventText is { Length: > 0 } text
+            ? text
+            : Translations.GetTranslation("LoadingProgress.FinishingUp");
+
+    /// <summary>
+    /// Ends the window's part in the startup, and with <paramref name="recordLoadingTime"/>
+    /// records <paramref name="loadingMs"/> as the loading time. Only a startup that reached
+    /// the main menu has one: one that went straight into a game, or whose menu never settled,
+    /// leaves without recording a time, which would stop short of the menu or take in however
+    /// long it waited.
+    /// </summary>
+    /// <remarks>
+    /// The long events other mods run after the interface begins initializing, and any stall
+    /// on the menu's first frame, are part of the player's wait, so the time shown and
+    /// estimated runs to here rather than to the end of loading. The post-load tracker reads
+    /// Startup Impact's clock once, at the idle frame the startup impact window takes its time
+    /// to the menu from, and hands both the same reading through <see cref="LoadingMs"/>, so
+    /// the two figures are the same, and the corner shows it too.
+    /// </remarks>
+    internal static void CompleteStartup(float loadingMs, bool recordLoadingTime)
+    {
+        if (StartupComplete)
+        {
+            return;
+        }
+        StartupComplete = true;
+
+        if (_drawn)
+        {
+            if (recordLoadingTime)
+            {
+                RecordLoadingTime(loadingMs / 1000f);
+            }
+            else
+            {
+                _loadingTimeNotRecorded = true;
+            }
+        }
+        Translations.Clear();
+    }
+
+    /// <summary>
+    /// The time the startup has taken so far, in milliseconds: see <see cref="LoadingMs"/>.
+    /// </summary>
+    internal static float ElapsedMs =>
+        LoadingMs(LoadingProgressMod.instance.StartupImpact.ElapsedMs, PostLoadTracker.PausedMs);
+
+    /// <summary>
+    /// <see cref="ElapsedMs"/>, as the window shows it.
+    /// </summary>
+    internal static TimeSpan Elapsed => TimeSpan.FromMilliseconds(ElapsedMs);
+
+    /// <summary>
+    /// The loading time from <paramref name="clockMs"/>, the reading of Startup Impact's clock,
+    /// which starts in Loading Progress's constructor, less <paramref name="pausedMs"/> the
+    /// game sat paused in the background after loading.
+    /// </summary>
+    internal static float LoadingMs(float clockMs, float pausedMs) =>
+        Math.Max(0f, clockMs - pausedMs);
+
+    private static void RecordLoadingTime(float elapsedSeconds)
+    {
+        CurrentLoadingTime = TimeSpan.FromSeconds(elapsedSeconds);
+        var settings = LoadingProgressMod.Settings;
+        AddLoadingTimeSample(settings, elapsedSeconds, _currentModHash);
+        settings.Write();
+    }
+
+    /// <summary>
+    /// Adds a loading time to the history the estimate is taken from.
+    /// </summary>
+    internal static void AddLoadingTimeSample(Settings settings, float elapsedSeconds, int modHash)
+    {
+        // Samples not measured to the usable main menu are cleared, once.
+        if (!settings.LoadingTimesMeasuredToMenu)
+        {
+            settings.LoadingTimes.Clear();
+            settings.LoadingTimesMeasuredToMenu = true;
+        }
+
+        // Mod list changed: the existing list served as the estimate this load, but we clear
+        // it so history reflects the new mod configuration.
+        if (settings.ClearEstimatesOnModListChange && modHash != settings.LastLoadingModHash)
+        {
+            settings.LoadingTimes.Clear();
+        }
+
+        settings.LoadingTimes.Add(elapsedSeconds);
+        while (settings.LoadingTimes.Count > settings.LoadingTimesCapacity)
+        {
+            settings.LoadingTimes.RemoveAt(0);
+        }
+
+        settings.LastLoadingModHash = modHash;
+    }
+
     internal static void DrawContents(Rect rect)
     {
-        if (_loadingStopwatch is null)
+        if (!_drawn)
         {
-            _loadingStopwatch = Stopwatch.StartNew();
+            _drawn = true;
             var avgTime = LoadingProgressMod.Settings.AverageLoadingTime;
             _lastLoadingTime = avgTime.HasValue ? TimeSpan.FromSeconds(avgTime.Value) : null;
             _currentModHash = StableListHasher.ComputeListHash(
@@ -146,7 +328,7 @@ internal sealed partial class LoadingProgressWindow
             loadingTimeRect.y += progressRect.height + VerticalWidgetMargin;
             loadingTimeRect.height = Text.LineHeight;
 
-            var elapsed = _loadingStopwatch.Elapsed;
+            var elapsed = Elapsed;
             if (_lastLoadingTime.HasValue)
             {
                 var totalSeconds = (float)_lastLoadingTime.Value.TotalSeconds;

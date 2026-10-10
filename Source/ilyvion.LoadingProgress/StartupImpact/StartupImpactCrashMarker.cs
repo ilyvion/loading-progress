@@ -26,10 +26,10 @@ internal static class StartupImpactCrashMarker
     /// stage name, so a disabled marker costs a bool read per stage change.
     /// </summary>
     /// <remarks>
-    /// Volatile because Clear runs from FinishLoading, which can be off the main
-    /// thread, while stage changes read this from the loading thread. A stale read
-    /// would rewrite the marker after the boot had finished, and the next startup
-    /// would then report a boot that never failed.
+    /// Volatile because most stage changes read this on the loading thread, while
+    /// Clear writes it on the main thread once the startup's session is saved. A
+    /// stale read would rewrite the marker after the boot had finished, and the
+    /// next startup would then report a boot that never failed.
     /// </remarks>
     internal static bool IsActive
     {
@@ -161,6 +161,17 @@ internal static class StartupImpactCrashMarker
             Write();
         }
     }
+
+    /// <summary>
+    /// Whether reaching <paramref name="stage"/> is written to the marker. The
+    /// marker stays until the startup's session is saved, so the end of loading
+    /// is written too, and a boot that stops in the wait after loading says so.
+    /// That stage is set by the interface's initialization, a separately queued
+    /// event that also runs after a load that failed, so it is written only once
+    /// the play data has loaded: a failed load keeps the stage it failed at.
+    /// </summary>
+    internal static bool Records(LoadingStage stage, bool playDataLoaded) =>
+        stage != LoadingStage.Finished || playDataLoaded;
 
     /// <summary>
     /// Records the stage this boot has reached, so a marker left behind says

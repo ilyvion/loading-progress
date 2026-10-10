@@ -30,7 +30,8 @@ internal static class Mod_Constructor_Patches
 
     internal static void Prefix(
         [HarmonyArgument(0)] ModContentPack modContentPack,
-        MethodBase __originalMethod
+        MethodBase __originalMethod,
+        out bool __state
     )
     {
         _currentModAssembly = __originalMethod.DeclaringType.Assembly;
@@ -38,12 +39,26 @@ internal static class Mod_Constructor_Patches
             modContentPack,
             "LoadingProgress.StartupImpact.ModConstructor"
         );
+        __state = true;
     }
 
-    internal static void Postfix([HarmonyArgument(0)] ModContentPack modContentPack)
+    internal static void Postfix(
+        [HarmonyArgument(0)] ModContentPack modContentPack,
+        ref bool __state
+    ) => Stop(modContentPack, ref __state);
+
+    // The engine catches a mod constructor that throws and goes on loading, and a postfix does
+    // not run then, so the finalizer closes the category.
+    internal static void Finalizer(
+        [HarmonyArgument(0)] ModContentPack modContentPack,
+        bool __state
+    ) => Stop(modContentPack, ref __state);
+
+    private static void Stop(ModContentPack modContentPack, ref bool started)
     {
         _currentModAssembly = null;
-        StartupImpactProfilerUtil.StopModProfiler(
+        StartupImpactProfilerUtil.StopModOnce(
+            ref started,
             modContentPack,
             "LoadingProgress.StartupImpact.ModConstructor"
         );

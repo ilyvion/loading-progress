@@ -36,13 +36,18 @@ internal static class DefDatabase_AddAllInMods_Patches
         }
     }
 
-    internal static void Prefix() =>
-        StartupImpactProfilerUtil.StartBaseGameProfiler(
-            "LoadingProgress.StartupImpact.DefDatabaseAddAllInMods"
-        );
+    private const string Category = "LoadingProgress.StartupImpact.DefDatabaseAddAllInMods";
 
-    internal static void Postfix() =>
-        StartupImpactProfilerUtil.StopBaseGameProfiler(
-            "LoadingProgress.StartupImpact.DefDatabaseAddAllInMods"
-        );
+    internal static void Prefix(out bool __state)
+    {
+        StartupImpactProfilerUtil.StartBaseGameProfiler(Category);
+        __state = true;
+    }
+
+    internal static void Postfix(ref bool __state) =>
+        StartupImpactProfilerUtil.StopBaseGameOnce(ref __state, Category);
+
+    // A postfix does not run when the method throws, so the finalizer closes the category then.
+    internal static void Finalizer(bool __state) =>
+        StartupImpactProfilerUtil.StopBaseGameOnce(ref __state, Category);
 }
