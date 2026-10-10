@@ -22,6 +22,8 @@
         <Publicize Include="Assembly-CSharp:Verse.LongEventHandler.UpdateCurrentSynchronousEvent" />
         <Publicize Include="Assembly-CSharp:Verse.LongEventHandler+QueuedLongEvent" />
         <Publicize Include="Assembly-CSharp:Verse.LongEventHandler.toExecuteWhenFinished" />
+        <Publicize Include="0Harmony:HarmonyLib.FaultBlockRewriter" />
+        <Publicize Include="0Harmony:HarmonyLib.FaultBlockRewriter.Rewrite" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\ilyvion.LoadingProgress\ilyvion.LoadingProgress.csproj">

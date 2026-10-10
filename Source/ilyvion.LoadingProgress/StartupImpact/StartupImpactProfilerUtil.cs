@@ -138,6 +138,34 @@ internal static class StartupImpactProfilerUtil
         // LoadingProgressMod.DevMessage($"Stopping base game profiler for {key}");
         _ = LoadingProgressMod.instance.StartupImpact.BaseGameProfiler.Stop(key);
 
+    internal const string ReplacedByKey = "LoadingProgress.StartupImpact.ReplacedBy";
+    private const string ReplacedByMarker = "|" + ReplacedByKey + "|";
+
+    /// <summary>
+    /// The category for time <paramref name="category"/> would have run that code by
+    /// <paramref name="replacer"/> ran in its place.
+    /// </summary>
+    internal static string ReplacedBy(string category, string replacer) =>
+        category + ReplacedByMarker + replacer;
+
+    /// <summary>
+    /// Splits a category made by <see cref="ReplacedBy"/> back into its parts; false for any
+    /// other category.
+    /// </summary>
+    internal static bool TrySplitReplaced(string category, out string replaced, out string replacer)
+    {
+        var markerIdx = category.LastIndexOf(ReplacedByMarker, StringComparison.Ordinal);
+        if (markerIdx < 0)
+        {
+            replaced = replacer = string.Empty;
+            return false;
+        }
+
+        replaced = category[..markerIdx];
+        replacer = category[(markerIdx + ReplacedByMarker.Length)..];
+        return true;
+    }
+
     /// <summary>
     /// Translates a category string, supporting optional parameter after '|'.
     /// If the string contains '|', the part before is used as the key, the part after as a parameter.
@@ -147,6 +175,11 @@ internal static class StartupImpactProfilerUtil
         if (category == null)
         {
             return string.Empty;
+        }
+
+        if (TrySplitReplaced(category, out var replaced, out var replacer))
+        {
+            return ReplacedByKey.Translate(TranslateCategory(replaced), replacer);
         }
 
         var pipeIdx = category.IndexOf('|', StringComparison.Ordinal);

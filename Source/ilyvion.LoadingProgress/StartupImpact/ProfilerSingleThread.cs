@@ -22,6 +22,20 @@ internal abstract class SingleThreadedProfiler(string measurementTarget)
         get => field == null ? "" : $"{field} profiler";
     } = measurementTarget;
 
+    /// <summary>
+    /// The open category, or null when none is.
+    /// </summary>
+    public string? Open
+    {
+        get
+        {
+            lock (_modificationLock)
+            {
+                return _categories.Count > 0 ? _categories[0] : null;
+            }
+        }
+    }
+
     public void Start(string category) => _ = Start(category, out _);
 
     /// <summary>

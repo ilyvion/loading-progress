@@ -141,6 +141,7 @@ internal sealed class StartupImpact
                 Assembly.GetExecutingAssembly(),
                 "StartupImpact"
             );
+            HookTiming.Deactivate();
 
             // FinishLoading runs inside the interface's own long event, so the previous
             // startup's record waits until that event has finished, when Scribe is free. It

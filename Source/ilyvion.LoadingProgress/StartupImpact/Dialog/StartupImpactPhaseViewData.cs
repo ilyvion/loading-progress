@@ -107,8 +107,19 @@ internal sealed class StartupImpactPhaseViewData
         }
     }
 
+    /// <summary>
+    /// The category without its per-call parameter. Time another mod's code ran in a
+    /// category's place is a phase of its own per mod that replaced it.
+    /// </summary>
     internal static string PhaseKey(string category)
     {
+        if (
+            StartupImpactProfilerUtil.TrySplitReplaced(category, out var replaced, out var replacer)
+        )
+        {
+            return StartupImpactProfilerUtil.ReplacedBy(PhaseKey(replaced), replacer);
+        }
+
         var pipeIdx = category.IndexOf('|', StringComparison.Ordinal);
         return pipeIdx < 0 ? category : category[..pipeIdx];
     }
@@ -118,7 +129,8 @@ internal sealed class StartupImpactPhaseViewData
     /// its own label needs that parameter.
     /// </summary>
     private static string LabelFor(string key) =>
-        $"{key}.Grouped" is var groupedKey && groupedKey.CanTranslate()
-            ? groupedKey.Translate()
-            : StartupImpactProfilerUtil.TranslateCategory(key);
+        StartupImpactProfilerUtil.TrySplitReplaced(key, out var replaced, out var replacer)
+            ? StartupImpactProfilerUtil.ReplacedByKey.Translate(LabelFor(replaced), replacer)
+        : $"{key}.Grouped" is var groupedKey && groupedKey.CanTranslate() ? groupedKey.Translate()
+        : StartupImpactProfilerUtil.TranslateCategory(key);
 }

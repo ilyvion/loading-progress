@@ -308,6 +308,28 @@ internal sealed class ProfilerBar
     }
 
     /// <summary>
+    /// How wide <see cref="Draw"/> draws segments coming to <paramref name="total"/> in a rect
+    /// <paramref name="width"/> wide, on the scale it is given <paramref name="maxImpact"/> for.
+    /// </summary>
+    public float FillWidth(float width, float total, float maxImpact)
+    {
+        var innerW = width - (2f * ProgressBarPadding);
+        if (total <= 0f)
+        {
+            return 0f;
+        }
+        if (!UseLogScale)
+        {
+            return innerW * total / Mathf.Max(1f, LinearSpan(maxImpact, total));
+        }
+
+        var denomCap = LogScaleTransform(maxImpact, Tau);
+        return denomCap > 0f
+            ? innerW * Mathf.Clamp01(LogScaleTransform(total, Tau) / denomCap)
+            : 0f;
+    }
+
+    /// <summary>
     /// What a linear bar's full width stands for: <paramref name="span"/>, or the segments'
     /// <paramref name="segmentsTotal"/> when they come to more, so the bar never runs past its
     /// rect. The log scale caps its fill instead.

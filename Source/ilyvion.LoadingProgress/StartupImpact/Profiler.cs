@@ -89,6 +89,35 @@ internal sealed class Profiler(string measurementTarget) : IDisposable
         return ms;
     }
 
+    /// <summary>
+    /// Stops <paramref name="category"/>, code that ran in place of the code it was called
+    /// from, and records what it ran under the category open below it on this thread, on
+    /// whichever timer that is, marked as replaced by <paramref name="replacer"/>; under
+    /// <paramref name="category"/> itself when nothing is open below it.
+    /// </summary>
+    public float StopReplacing(string category, string replacer)
+    {
+        if (!LoadingProgressMod.Settings.TrackStartupLoadingImpact)
+        {
+            return 0f;
+        }
+
+        var ms = _threadLocalProfiler.Value.Stop(category, out var actualCategory);
+        Release();
+        if (
+            _openOnThread is { Count: > 0 } open
+            && open[^1]._threadLocalProfiler.Value.Open is { } below
+        )
+        {
+            open[^1].Record(StartupImpactProfilerUtil.ReplacedBy(below, replacer), ms);
+        }
+        else
+        {
+            Record(actualCategory, ms);
+        }
+        return ms;
+    }
+
     // Records what the open category on this thread ran until now and stops its clock, for a
     // category on another timer starting inside it.
     private void PauseOpen()

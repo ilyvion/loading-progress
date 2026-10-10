@@ -43,6 +43,9 @@
     <LoadingProgress.StartupImpact.StaticConstructorOnStartupUtilityCallAllPassWithUntimedHooks>Static constructor pass for other mods' hooks, with hooks not timed on their own: {0}</LoadingProgress.StartupImpact.StaticConstructorOnStartupUtilityCallAllPassWithUntimedHooks>
     <LoadingProgress.StartupImpact.StaticConstructorOnStartupUtilityCallAllHook>Hook on the static constructor pass: {0}</LoadingProgress.StartupImpact.StaticConstructorOnStartupUtilityCallAllHook>
     <LoadingProgress.StartupImpact.StaticConstructorOnStartupUtilityCallAllHook.Grouped>Hooks on the static constructor pass</LoadingProgress.StartupImpact.StaticConstructorOnStartupUtilityCallAllHook.Grouped>
+    <LoadingProgress.StartupImpact.HarmonyHook>Harmony hooks on {0}</LoadingProgress.StartupImpact.HarmonyHook>
+    <LoadingProgress.StartupImpact.HarmonyHook.Grouped>Harmony hooks</LoadingProgress.StartupImpact.HarmonyHook.Grouped>
+    <LoadingProgress.StartupImpact.ReplacedBy>{0} (replaced by {1})</LoadingProgress.StartupImpact.ReplacedBy>
     <LoadingProgress.StartupImpact.ReportProbablyMissingAttributes>Checking for missing StaticConstructorOnStartup attributes (development mode)</LoadingProgress.StartupImpact.ReportProbablyMissingAttributes>
     <LoadingProgress.StartupImpact.FloatMenuMakerMapInit>Initializing float menu maker map</LoadingProgress.StartupImpact.FloatMenuMakerMapInit>
     <LoadingProgress.StartupImpact.GlobalTextureAtlasManagerBakeStaticAtlases>Texture atlas baking</LoadingProgress.StartupImpact.GlobalTextureAtlasManagerBakeStaticAtlases>

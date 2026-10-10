@@ -48,5 +48,16 @@
         <Publicize Include="Assembly-CSharp:Verse.PostLoadIniter.saveablesToPostLoad" />
         <Publicize Include="Assembly-CSharp:Verse.Map.loadedFullThings" />
         <Publicize Include="Assembly-CSharp:Verse.QuickStarter.quickStarted" />
+        <Publicize Include="0Harmony:HarmonyLib.MethodCreator" />
+        <Publicize Include="0Harmony:HarmonyLib.MethodCreator..ctor" />
+        <Publicize Include="0Harmony:HarmonyLib.MethodCreator.config" />
+        <Publicize Include="0Harmony:HarmonyLib.MethodCreator.CreateReplacement" />
+        <Publicize Include="0Harmony:HarmonyLib.MethodCreatorConfig" />
+        <Publicize Include="0Harmony:HarmonyLib.MethodCreatorConfig.original" />
+        <Publicize Include="0Harmony:HarmonyLib.MethodCreatorConfig.prefixes" />
+        <Publicize Include="0Harmony:HarmonyLib.MethodCreatorConfig.postfixes" />
+        <Publicize Include="0Harmony:HarmonyLib.MethodCreatorConfig.finalizers" />
+        <Publicize Include="0Harmony:HarmonyLib.FaultBlockRewriter" />
+        <Publicize Include="0Harmony:HarmonyLib.FaultBlockRewriter.Rewrite" />
     </ItemGroup>
 </Project>
