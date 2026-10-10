@@ -55,16 +55,34 @@ internal sealed class HookTimingTests
     [MethodImpl(MethodImplOptions.NoInlining)]
     public static void CountingPostfix() => _countingPostfixCalls++;
 
-    private static bool _failNextRewrite;
+    private static int _rewritesToFail;
 
-    // Fails the next replacement Harmony builds, after its hooks were redirected.
+    // Fails the next _rewritesToFail replacements Harmony builds, after their hooks were
+    // redirected.
     public static void FailingRewritePostfix()
     {
-        if (_failNextRewrite)
+        if (_rewritesToFail > 0)
         {
-            _failNextRewrite = false;
+            _rewritesToFail--;
             throw new InvalidOperationException("A replacement that fails to build, for the test.");
         }
+    }
+
+    // A method that fails to build however it is patched.
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void UnbuildableTarget() => _ = Stopwatch.GetTimestamp();
+
+    private static bool _prefixRunsOriginal;
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static bool ConditionalPrefix() => _prefixRunsOriginal;
+
+    // Calls its own prefix from its body, where the prefix returns false.
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void TargetCallingItsPrefix()
+    {
+        _prefixRunsOriginal = false;
+        _ = ConditionalPrefix();
     }
 
     private static MethodInfo TargetMethod =>
@@ -87,6 +105,25 @@ internal sealed class HookTimingTests
         var version = typeof(Harmony).Assembly.GetName().Version;
         Expect.IsNotNull(HookTiming.UnsupportedHarmony(version, null, null));
         Expect.IsNotNull(HookTiming.UnsupportedHarmony(version, TargetMethod, TargetMethod));
+    }
+
+    [Test]
+    public static void TimingRefusesHarmonyWithoutTheInternals()
+    {
+        static (MethodInfo?, MethodInfo?) Missing()
+        {
+            throw new TypeLoadException("Harmony without the internals, for the test.");
+        }
+
+        Expect.AreEqual(
+            HookTiming.UnsupportedHarmony(new Version(1, 2, 0, 0), Missing),
+            HookTiming.UnsupportedHarmony(new Version(1, 2, 0, 0), null, null)
+        );
+        var version = typeof(Harmony).Assembly.GetName().Version;
+        Expect.AreEqual(
+            HookTiming.UnsupportedHarmony(version, Missing),
+            HookTiming.UnsupportedHarmony(version, null, null)
+        );
     }
 
     // The patch succeeds with its hook untimed, and timing stays off after it.
@@ -114,12 +151,12 @@ internal sealed class HookTimingTests
                 AccessTools.Method(typeof(FaultBlockRewriter), nameof(FaultBlockRewriter.Rewrite)),
                 postfix: new HarmonyMethod(typeof(HookTimingTests), nameof(FailingRewritePostfix))
             );
-            _failNextRewrite = true;
+            _rewritesToFail = 1;
             _ = harmony.Patch(
                 TargetMethod,
                 postfix: new HarmonyMethod(typeof(HookTimingTests), nameof(CountingPostfix))
             );
-            Expect.IsFalse(_failNextRewrite);
+            Expect.AreEqual(_rewritesToFail, 0);
 
             var calls = _countingPostfixCalls;
             Target();
@@ -131,10 +168,120 @@ internal sealed class HookTimingTests
         }
         finally
         {
-            _failNextRewrite = false;
+            _rewritesToFail = 0;
             HookTiming.Deactivate();
             harmony.UnpatchAll(harmony.Id);
             ForgetTestTime();
+        }
+    }
+
+    // The patch fails as it would without timing, and timing stays on after it.
+    [Test]
+    public static IEnumerator APatchThatFailsToBuildWithoutTimedHooksLeavesTimingOn()
+    {
+        if (!LoadingProgressMod.Settings.TrackStartupLoadingImpact)
+        {
+            Test.Skip(TestStartup.TrackingOff);
+            yield break;
+        }
+
+        var framesWaited = 0;
+        while (TestStartup.StillStartingUp(ref framesWaited))
+        {
+            yield return null;
+        }
+
+        var harmony = new Harmony(TestHarmonyId);
+        HookTiming.Activate(LoadingProgressMod.instance.Content);
+        try
+        {
+            _ = harmony.Patch(
+                AccessTools.Method(typeof(FaultBlockRewriter), nameof(FaultBlockRewriter.Rewrite)),
+                postfix: new HarmonyMethod(typeof(HookTimingTests), nameof(FailingRewritePostfix))
+            );
+            _rewritesToFail = 2;
+            Exception? failure = null;
+            try
+            {
+                _ = harmony.Patch(
+                    AccessTools.Method(typeof(HookTimingTests), nameof(UnbuildableTarget)),
+                    postfix: new HarmonyMethod(typeof(HookTimingTests), nameof(CountingPostfix))
+                );
+            }
+            catch (Exception e)
+            {
+                failure = e;
+            }
+            Expect.IsNotNull(failure);
+            Expect.AreEqual(_rewritesToFail, 0);
+
+            _ = harmony.Patch(
+                TargetMethod,
+                postfix: new HarmonyMethod(typeof(HookTimingTests), nameof(CountingPostfix))
+            );
+            Target();
+
+            var info = OwnModInfo();
+            Expect.IsNotNull(info);
+            Expect.IsTrue(info!.Profiler.Metrics.ContainsKey(HookCategory));
+        }
+        finally
+        {
+            _rewritesToFail = 0;
+            HookTiming.Deactivate();
+            harmony.UnpatchAll(harmony.Id);
+            ForgetTestTime();
+        }
+    }
+
+    // The call in the body is the original's own, so it is neither timed as the prefix nor
+    // taken as the prefix skipping the original.
+    [Test]
+    public static IEnumerator ACallToAHookFromTheOriginalsBodyIsNotTimedAsTheHook()
+    {
+        if (!LoadingProgressMod.Settings.TrackStartupLoadingImpact)
+        {
+            Test.Skip(TestStartup.TrackingOff);
+            yield break;
+        }
+
+        var framesWaited = 0;
+        while (TestStartup.StillStartingUp(ref framesWaited))
+        {
+            yield return null;
+        }
+
+        const string Open = "LoadingProgress.Tests.HookTiming.Open";
+        var mod = OwnMod();
+        var info = OwnModInfo();
+        Expect.IsNotNull(info);
+        var replaced = StartupImpactProfilerUtil.ReplacedBy(Open, mod!.Name);
+        var hookCategory =
+            $"{HookTiming.Category}|{nameof(HookTimingTests)}.{nameof(TargetCallingItsPrefix)}";
+
+        var harmony = new Harmony(TestHarmonyId);
+        HookTiming.Activate(LoadingProgressMod.instance.Content);
+        try
+        {
+            _ = harmony.Patch(
+                AccessTools.Method(typeof(HookTimingTests), nameof(TargetCallingItsPrefix)),
+                prefix: new HarmonyMethod(typeof(HookTimingTests), nameof(ConditionalPrefix))
+            );
+            _prefixRunsOriginal = true;
+            StartupImpactProfilerUtil.StartModProfiler(mod, Open);
+            TargetCallingItsPrefix();
+            StartupImpactProfilerUtil.StopModProfiler(mod, Open);
+
+            Expect.IsTrue(info!.Profiler.Metrics.ContainsKey(hookCategory));
+            Expect.IsFalse(info.Profiler.Metrics.ContainsKey(replaced));
+        }
+        finally
+        {
+            HookTiming.Deactivate();
+            harmony.UnpatchAll(harmony.Id);
+            TestStartup.Forget(info!.Profiler, hookCategory);
+            TestStartup.Forget(info.Profiler, Open);
+            TestStartup.Forget(info.Profiler, replaced);
         }
     }
 

@@ -14,7 +14,8 @@ namespace ilyvion.LoadingProgress.StartupImpact;
 /// in a finally block, so the replacement's stack is untouched and a hook that throws still
 /// stops its timer. A prefix that returns false ran in place of the original method, so its
 /// time goes to the category the original would have run under, marked as replaced by the
-/// prefix's mod. This only reaches replacements built after <see cref="Activate"/>.
+/// prefix's mod. Calls inside the original method's body, transpiled code included, are left
+/// alone. This only reaches replacements built after <see cref="Activate"/>.
 /// </para>
 /// <para>
 /// Everything here runs inside every other mod's patching, so none of it may fail into
@@ -22,8 +23,8 @@ namespace ilyvion.LoadingProgress.StartupImpact;
 /// is called inside a try block, so a Harmony without them fails there, at compile time of
 /// that method. Timing starts only for Harmony 2 with the internal methods shaped as expected,
 /// and only after a self-test on this thread passes. Any later failure turns timing off for
-/// good, and a replacement that fails to build after its hooks were redirected is built again
-/// without them.
+/// good. A replacement that fails to build after its hooks were redirected is built again
+/// without them, and timing only counts as failed when that second build succeeds.
 /// </para>
 /// </remarks>
 internal static class HookTiming
@@ -31,6 +32,10 @@ internal static class HookTiming
     internal const string Category = "LoadingProgress.StartupImpact.HarmonyHook";
     internal const string HarmonyId = "ilyvion.LoadingProgress.HookTiming";
     private const string SelfTestOpen = "LoadingProgress.StartupImpact.HookTimingSelfTest";
+
+    // The operands of the nops Harmony puts around the original method's body.
+    private const string OriginalStart = "start original";
+    private const string OriginalEnd = "end original";
 
     private static readonly Harmony _harmony = new(HarmonyId);
     private static readonly object _lock = new();
@@ -61,6 +66,10 @@ internal static class HookTiming
     // The replacements Harmony is building on this thread, innermost first.
     [ThreadStatic]
     private static Building? _building;
+
+    // Whether this thread is building a replacement again without redirected hook calls.
+    [ThreadStatic]
+    private static bool _buildingUntimed;
 
     // The thread running the self-test, which times hooks before _active is set.
     private static volatile Thread? _selfTestThread;
@@ -150,7 +159,32 @@ internal static class HookTiming
     /// <see langword="null"/> when it can.
     /// </summary>
     internal static string? UnsupportedHarmony(Version? version) =>
-        UnsupportedHarmony(version, Internals.CreateReplacement(), Internals.Rewrite());
+        UnsupportedHarmony(
+            version,
+            static () => (Internals.CreateReplacement(), Internals.Rewrite())
+        );
+
+    /// <summary>
+    /// Why hook timing cannot run on the Harmony of <paramref name="version"/>, finding its
+    /// internal methods that build a replacement and rewrite its instructions with
+    /// <paramref name="findInternals"/>, which fails on a Harmony without them, or
+    /// <see langword="null"/> when it can.
+    /// </summary>
+    internal static string? UnsupportedHarmony(
+        Version? version,
+        Func<(MethodInfo? CreateReplacement, MethodInfo? Rewrite)> findInternals
+    )
+    {
+        try
+        {
+            var (createReplacement, rewrite) = findInternals();
+            return UnsupportedHarmony(version, createReplacement, rewrite);
+        }
+        catch (Exception)
+        {
+            return UnsupportedHarmony(version, null, null);
+        }
+    }
 
     /// <summary>
     /// Why hook timing cannot run on the Harmony of <paramref name="version"/>, given its
@@ -192,7 +226,8 @@ internal static class HookTiming
     private static void CreateReplacementPrefix(object __instance, out Building __state) =>
         __state = _building = new Building(__instance, _building);
 
-    // Builds the replacement again without redirected hook calls when it failed with them.
+    // Builds the replacement again without redirected hook calls when it failed with them, and
+    // turns timing off only when that build succeeds.
     private static Exception? CreateReplacementFinalizer(
         Exception? __exception,
         object __instance,
@@ -209,24 +244,27 @@ internal static class HookTiming
             return __exception;
         }
 
-        Fault($"a patched method failed to build with its hooks timed: {__exception}");
+        _buildingUntimed = true;
         try
         {
             __result = Internals.CreateReplacementAgain(__instance);
-            return null;
         }
         catch (Exception e)
         {
-            LoadingProgressMod.Warning(
-                $"A patched method also failed to build with its hooks untimed: {e}"
-            );
-            return __exception;
+            return e;
         }
+        finally
+        {
+            _buildingUntimed = false;
+        }
+
+        Fault($"a patched method failed to build with its hooks timed: {__exception}");
+        return null;
     }
 
     private static void RewritePrefix(List<CodeInstruction> instructions)
     {
-        if (!Timing || _building is not { } building)
+        if (!Timing || _buildingUntimed || _building is not { } building)
         {
             return;
         }
@@ -235,10 +273,19 @@ internal static class HookTiming
         {
             var (original, prefixes, postfixes, finalizers) = Internals.Hooks(building.Creator);
             var hooks = new HashSet<MethodInfo>(prefixes.Concat(postfixes).Concat(finalizers));
+            var inOriginal = false;
             foreach (var instruction in instructions)
             {
                 if (
-                    instruction.opcode == OpCodes.Call
+                    instruction.opcode == OpCodes.Nop
+                    && instruction.operand is OriginalStart or OriginalEnd
+                )
+                {
+                    inOriginal = instruction.operand is OriginalStart;
+                }
+                else if (
+                    !inOriginal
+                    && instruction.opcode == OpCodes.Call
                     && instruction.operand is MethodInfo hook
                     && hooks.Contains(hook)
                     && WrapperFor(
