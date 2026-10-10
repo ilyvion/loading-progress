@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.18.0] - 2026-10-10
+
 ### Added
 
 - Deferred initialization tasks are now credited to the mod whose def they set up. The game queues one such task per def for its graphics and references, all from its own code, so every one of them was listed under 'not directly related to mods' no matter whose def it was; a framework's per-def work now goes to the def's mod as well. Contributed by [beverage](https://github.com/beverage).
@@ -382,7 +384,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First implementation of the mod.
 
-[Unreleased]: https://github.com/ilyvion/loading-progress/compare/v0.17.1...HEAD
+[Unreleased]: https://github.com/ilyvion/loading-progress/compare/v0.18.0...HEAD
+[0.18.0]: https://github.com/ilyvion/loading-progress/compare/v0.17.1..v0.18.0
 [0.17.1]: https://github.com/ilyvion/loading-progress/compare/v0.17.0..v0.17.1
 [0.17.0]: https://github.com/ilyvion/loading-progress/compare/v0.16.0..v0.17.0
 [0.16.0]: https://github.com/ilyvion/loading-progress/compare/v0.15.0..v0.16.0
