@@ -24,6 +24,16 @@ internal sealed class Profiler(string measurementTarget) : IDisposable
     [ThreadStatic]
     private static List<Profiler>? _openOnThread;
 
+    [ThreadStatic]
+    private static int _busy;
+
+    /// <summary>
+    /// Whether a timer is starting, stopping or discounting a category on this thread. A
+    /// mod's hook on a method that work calls, such as <see cref="object.Equals(object)"/>,
+    /// runs inside it, and must not be timed there.
+    /// </summary>
+    internal static bool BusyOnThread => _busy > 0;
+
     /// <summary>
     /// Starts timing <paramref name="category"/> on this thread. When this throws, the
     /// category was not opened, so a caller that stops only what it started has nothing to
@@ -38,6 +48,19 @@ internal sealed class Profiler(string measurementTarget) : IDisposable
             return;
         }
 
+        _busy++;
+        try
+        {
+            StartBusy(category);
+        }
+        finally
+        {
+            _busy--;
+        }
+    }
+
+    private void StartBusy(string category)
+    {
         var open = _openOnThread ??= [];
         var below = open.Count > 0 && !ReferenceEquals(open[^1], this) ? open[^1] : null;
         try
@@ -76,17 +99,25 @@ internal sealed class Profiler(string measurementTarget) : IDisposable
             return 0f;
         }
 
-        var ms = _threadLocalProfiler.Value.Stop(category, out var actualCategory);
+        _busy++;
         try
         {
-            Record(actualCategory, ms);
-            Discount(actualCategory, discountMs);
+            var ms = _threadLocalProfiler.Value.Stop(category, out var actualCategory);
+            try
+            {
+                Record(actualCategory, ms);
+                Discount(actualCategory, discountMs);
+            }
+            finally
+            {
+                Release();
+            }
+            return ms;
         }
         finally
         {
-            Release();
+            _busy--;
         }
-        return ms;
     }
 
     /// <summary>
@@ -102,20 +133,28 @@ internal sealed class Profiler(string measurementTarget) : IDisposable
             return 0f;
         }
 
-        var ms = _threadLocalProfiler.Value.Stop(category, out var actualCategory);
-        Release();
-        if (
-            _openOnThread is { Count: > 0 } open
-            && open[^1]._threadLocalProfiler.Value.Open is { } below
-        )
+        _busy++;
+        try
         {
-            open[^1].Record(StartupImpactProfilerUtil.ReplacedBy(below, replacer), ms);
+            var ms = _threadLocalProfiler.Value.Stop(category, out var actualCategory);
+            Release();
+            if (
+                _openOnThread is { Count: > 0 } open
+                && open[^1]._threadLocalProfiler.Value.Open is { } below
+            )
+            {
+                open[^1].Record(StartupImpactProfilerUtil.ReplacedBy(below, replacer), ms);
+            }
+            else
+            {
+                Record(actualCategory, ms);
+            }
+            return ms;
         }
-        else
+        finally
         {
-            Record(actualCategory, ms);
+            _busy--;
         }
-        return ms;
     }
 
     // Records what the open category on this thread ran until now and stops its clock, for a
@@ -178,14 +217,22 @@ internal sealed class Profiler(string measurementTarget) : IDisposable
     /// </summary>
     public void Discount(string category, float ms)
     {
-        if (ms <= 0f || !Metrics.TryGetValue(category, out var total))
+        _busy++;
+        try
         {
-            return;
-        }
+            if (ms <= 0f || !Metrics.TryGetValue(category, out var total))
+            {
+                return;
+            }
 
-        var taken = Math.Min(ms, total);
-        Metrics[category] = total - taken;
-        TotalImpact -= taken;
+            var taken = Math.Min(ms, total);
+            Metrics[category] = total - taken;
+            TotalImpact -= taken;
+        }
+        finally
+        {
+            _busy--;
+        }
     }
 
     public void Dispose()

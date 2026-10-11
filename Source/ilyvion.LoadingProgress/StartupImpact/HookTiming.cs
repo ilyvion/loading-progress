@@ -449,10 +449,11 @@ internal static class HookTiming
     }
 
     // Starts the hook's category, and returns whether it did, so the wrapper stops only what
-    // was started. Nothing here may throw into the mod's hook.
+    // was started. A hook called from inside a timer's own work runs untimed. Nothing here may
+    // throw into the mod's hook.
     internal static bool Start(int id)
     {
-        if (!Timing)
+        if (!Timing || Profiler.BusyOnThread)
         {
             return false;
         }

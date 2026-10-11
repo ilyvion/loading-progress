@@ -436,6 +436,60 @@ internal sealed class HookTimingTests
         );
     }
 
+    // Stopping the hook's category calls object.Equals, so a timed hook there runs inside the
+    // timer's own work, where it runs untimed.
+    [Test]
+    public static IEnumerator AHookOnAMethodTheTimerCallsRunsUntimedInsideTheTimer()
+    {
+        if (!LoadingProgressMod.Settings.TrackStartupLoadingImpact)
+        {
+            Test.Skip(TestStartup.TrackingOff);
+            yield break;
+        }
+
+        var framesWaited = 0;
+        while (TestStartup.StillStartingUp(ref framesWaited))
+        {
+            yield return null;
+        }
+
+        const string Open = "LoadingProgress.Tests.HookTiming.Open";
+        const string EqualsCategory = $"{HookTiming.Category}|Object.Equals";
+        var mod = OwnMod();
+        var info = OwnModInfo();
+        Expect.IsNotNull(info);
+
+        var harmony = new Harmony(TestHarmonyId);
+        HookTiming.Activate(LoadingProgressMod.instance.Content);
+        try
+        {
+            _ = harmony.Patch(
+                TargetMethod,
+                postfix: new HarmonyMethod(typeof(HookTimingTests), nameof(SlowPostfix))
+            );
+            _ = harmony.Patch(
+                AccessTools.Method(typeof(object), nameof(Equals), [typeof(object)]),
+                postfix: new HarmonyMethod(typeof(HookTimingTests), nameof(CountingPostfix))
+            );
+
+            var calls = _countingPostfixCalls;
+            StartupImpactProfilerUtil.StartModProfiler(mod, Open);
+            Target();
+            StartupImpactProfilerUtil.StopModProfiler(mod, Open);
+
+            Expect.GreaterThan(_countingPostfixCalls, calls);
+            Expect.IsTrue(info!.Profiler.Metrics.ContainsKey(HookCategory));
+        }
+        finally
+        {
+            HookTiming.Deactivate();
+            harmony.UnpatchAll(harmony.Id);
+            ForgetTestTime();
+            TestStartup.Forget(info!.Profiler, Open);
+            TestStartup.Forget(info.Profiler, EqualsCategory);
+        }
+    }
+
     // A replacement built while timing was on keeps its generated calls, which do nothing
     // once timing is off.
     [Test]
