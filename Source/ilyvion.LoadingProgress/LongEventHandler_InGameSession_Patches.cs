@@ -10,13 +10,44 @@ namespace ilyvion.LoadingProgress;
 internal static class LongEventHandler_LongEventsUpdate_Patches
 {
     // Before the frame's long events run: where a pause in the background ends.
-    private static void Prefix() => PostLoadTracker.BeginFrame();
+    private static readonly Action[] BeforeSteps = [PostLoadTracker.BeginFrame];
 
-    private static void Postfix()
+    private static readonly Action[] AfterSteps =
+    [
+        PostLoadTracker.Update,
+        () => LoadingProgressMod.instance?.StartupImpact?.UpdateEndOfStartup(),
+        InGameLoadingSession.Update,
+    ];
+
+    // The keys Log.ErrorOnce takes for each step's failure, one per step.
+    private const int BeforeStepsErrorKey = 0x4C50_0100;
+    private const int AfterStepsErrorKey = 0x4C50_0200;
+
+    private static void Prefix() => RunEach(BeforeSteps, BeforeStepsErrorKey);
+
+    private static void Postfix() => RunEach(AfterSteps, AfterStepsErrorKey);
+
+    /// <summary>
+    /// Runs every one of <paramref name="steps"/>, whether or not one before it throws. A step
+    /// that throws is logged the first time, under <paramref name="errorKey"/> plus its index,
+    /// and never into the long events, which a throwing prefix would keep from running at all.
+    /// </summary>
+    internal static void RunEach(Action[] steps, int errorKey)
     {
-        PostLoadTracker.Update();
-        LoadingProgressMod.instance?.StartupImpact?.UpdateEndOfStartup();
-        InGameLoadingSession.Update();
+        for (var i = 0; i < steps.Length; i++)
+        {
+            try
+            {
+                steps[i]();
+            }
+            catch (Exception e)
+            {
+                Log.ErrorOnce(
+                    $"[Loading Progress] A long event update step failed: {e}",
+                    errorKey + i
+                );
+            }
+        }
     }
 }
 

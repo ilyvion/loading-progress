@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - The game no longer crashes with a stack overflow at startup when startup impact tracking is on alongside a mod that patches one of the basic methods the timing itself relies on, such as 'object.Equals'.
+- With startup impact tracking on, other mods' Harmony patches no longer go on running through Loading Progress's timing after loading has finished. They now run exactly as they would without Loading Progress for the rest of the session, including while loading a save.
+- An error in the work Loading Progress does every frame alongside the game's loading steps can no longer stop those steps from running, which could leave a load, such as loading a save, stuck. The error is logged once and loading carries on.
+- An error while removing the startup impact timing at the end of loading no longer breaks the game's interface setup. It is logged instead.
 
 ## [0.18.0] - 2026-10-10
 

@@ -137,11 +137,14 @@ internal sealed class StartupImpact
             StageLedger.Close(ElapsedMs);
             _sessionCapturedAtUtc ??= DateTime.UtcNow;
 
-            LoadingProgressMod.instance.harmony.UnpatchCategory(
-                Assembly.GetExecutingAssembly(),
-                "StartupImpact"
+            RemoveStartupPatches(
+                HookTiming.Deactivate,
+                () =>
+                    LoadingProgressMod.instance.harmony.UnpatchCategory(
+                        Assembly.GetExecutingAssembly(),
+                        "StartupImpact"
+                    )
             );
-            HookTiming.Deactivate();
 
             // FinishLoading runs inside the interface's own long event, so the previous
             // startup's record waits until that event has finished, when Scribe is free. It
@@ -152,6 +155,25 @@ internal sealed class StartupImpact
             {
                 LongEventHandler.ExecuteWhenFinished(RecordPreviousUnfinishedBoot);
             }
+        }
+    }
+
+    /// <summary>
+    /// Turns hook timing off with <paramref name="deactivateHookTiming"/>, then removes the
+    /// timing patches with <paramref name="unpatchCategory"/>, so the replacements that removal
+    /// builds call their hooks directly. A failure to remove them is logged rather than thrown,
+    /// since this runs inside the interface's own initialization.
+    /// </summary>
+    internal static void RemoveStartupPatches(Action deactivateHookTiming, Action unpatchCategory)
+    {
+        deactivateHookTiming();
+        try
+        {
+            unpatchCategory();
+        }
+        catch (Exception e)
+        {
+            LoadingProgressMod.Error("Could not remove the startup impact timing patches: " + e);
         }
     }
 
