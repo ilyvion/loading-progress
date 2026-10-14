@@ -103,7 +103,7 @@ internal sealed class HookTimingTests
     [Test]
     public static void TimingRefusesAnotherMajorVersionOfHarmony()
     {
-        var running = typeof(Harmony).Assembly.GetName().Version!.Major;
+        var running = typeof(Harmony).Assembly.GetName().Version?.Major ?? 0;
         Expect.IsNotNull(HookTiming.UnsupportedHarmony(new Version(running - 1, 0, 0, 0)));
         Expect.IsNotNull(HookTiming.UnsupportedHarmony(new Version(running + 1, 0, 0, 0)));
         Expect.IsNotNull(HookTiming.UnsupportedHarmony(null));

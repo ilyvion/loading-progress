@@ -508,7 +508,7 @@ internal static class HookTiming
         {
             il.Emit(OpCodes.Stloc, result);
         }
-        if (canSkip)
+        if (canSkip && result != null)
         {
             var stopped = il.DefineLabel();
             il.Emit(OpCodes.Ldloc, started);
@@ -516,7 +516,7 @@ internal static class HookTiming
             il.Emit(OpCodes.Ldc_I4_0);
             il.Emit(OpCodes.Stloc, started);
             il.Emit(OpCodes.Ldc_I4, id);
-            il.Emit(OpCodes.Ldloc, result!);
+            il.Emit(OpCodes.Ldloc, result);
             il.Emit(OpCodes.Call, StopPrefixMethod);
             il.MarkLabel(stopped);
         }

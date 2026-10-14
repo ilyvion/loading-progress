@@ -118,4 +118,14 @@ internal sealed class StartupImpactSessionIndexEntryTests
             StartupImpactSessionIndexEntry.UnfinishedNote("LoadModXml")
         );
     }
+
+    [Test]
+    public static void ABootWithNoRecordedStageGetsThePlainUnfinishedNote()
+    {
+        var unfinished = "LoadingProgress.StartupImpact.History.Note.Unfinished"
+            .Translate()
+            .ToString();
+        Expect.AreEqual(unfinished, StartupImpactSessionIndexEntry.UnfinishedNote(null));
+        Expect.AreEqual(unfinished, StartupImpactSessionIndexEntry.UnfinishedNote(""));
+    }
 }

@@ -85,15 +85,19 @@ internal sealed class StartupImpactSessionIndexEntry : IExposable
     /// where it stopped, or that it stopped after loading, before the main menu was usable.
     /// </summary>
     internal static string UnfinishedNote(string? lastStage) =>
-        string.IsNullOrEmpty(lastStage)
-            ? "LoadingProgress.StartupImpact.History.Note.Unfinished".Translate().ToString()
-        : lastStage == nameof(LoadingStage.Finished)
-            ? "LoadingProgress.StartupImpact.History.Note.UnfinishedAfterLoading"
+        lastStage switch
+        {
+            null or "" => "LoadingProgress.StartupImpact.History.Note.Unfinished"
                 .Translate()
-                .ToString()
-        : "LoadingProgress.StartupImpact.History.Note.UnfinishedAt"
-            .Translate(TranslateStage(lastStage!))
-            .ToString();
+                .ToString(),
+            nameof(LoadingStage.Finished) =>
+                "LoadingProgress.StartupImpact.History.Note.UnfinishedAfterLoading"
+                    .Translate()
+                    .ToString(),
+            _ => "LoadingProgress.StartupImpact.History.Note.UnfinishedAt"
+                .Translate(TranslateStage(lastStage))
+                .ToString(),
+        };
 
     /// <summary>
     /// The loading stage an unfinished boot reached, in the player's language.
