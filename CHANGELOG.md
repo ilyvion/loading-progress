@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.19.0] - 2026-10-14
+
 ### Added
 
 - Support for RimWorld 1.7.
@@ -398,7 +400,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First implementation of the mod.
 
-[Unreleased]: https://github.com/ilyvion/loading-progress/compare/v0.18.1...HEAD
+[Unreleased]: https://github.com/ilyvion/loading-progress/compare/v0.19.0...HEAD
+[0.19.0]: https://github.com/ilyvion/loading-progress/compare/v0.18.1..v0.19.0
 [0.18.1]: https://github.com/ilyvion/loading-progress/compare/v0.18.0..v0.18.1
 [0.18.0]: https://github.com/ilyvion/loading-progress/compare/v0.17.1..v0.18.0
 [0.17.1]: https://github.com/ilyvion/loading-progress/compare/v0.17.0..v0.17.1
