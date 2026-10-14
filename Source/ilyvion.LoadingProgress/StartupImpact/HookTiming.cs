@@ -15,8 +15,9 @@ namespace ilyvion.LoadingProgress.StartupImpact;
 /// stops its timer. A prefix that returns false ran in place of the original method, so its
 /// time goes to the category the original would have run under, marked as replaced by the
 /// prefix's mod. Calls inside the original method's body, transpiled code included, are left
-/// alone. This only reaches replacements built after <see cref="Activate"/>, and
-/// <see cref="Deactivate"/> builds them again with their hooks called directly.
+/// alone. This only reaches replacements built after <see cref="Activate"/>. After
+/// <see cref="Deactivate"/>, those replacements go on calling their hooks through the generated
+/// methods, which then only check that timing is off.
 /// </para>
 /// <para>
 /// Everything here runs inside every other mod's patching, so none of it may fail into
@@ -50,9 +51,6 @@ internal static class HookTiming
         (MethodBase Original, MethodInfo Hook),
         DynamicMethod?
     > _wrappers = [];
-
-    // The methods whose current replacement calls some of its hooks through a generated method.
-    private static readonly HashSet<MethodBase> _rewritten = [];
 
     private static readonly MethodInfo StartMethod = AccessTools.Method(
         typeof(HookTiming),
@@ -148,10 +146,7 @@ internal static class HookTiming
     }
 
     /// <summary>
-    /// Stops timing hooks, and builds every replacement built with timed hooks again, so each
-    /// calls its hooks directly. A replacement that cannot be built again keeps calling its
-    /// hooks through the generated methods, which then only check that timing is off. Never
-    /// throws.
+    /// Stops timing hooks. Never throws.
     /// </summary>
     internal static void Deactivate()
     {
@@ -163,47 +158,6 @@ internal static class HookTiming
         catch (Exception e)
         {
             LoadingProgressMod.Warning($"Could not remove the Harmony hook timing patches: {e}");
-        }
-
-        MethodBase[] rewritten;
-        lock (_lock)
-        {
-            rewritten = [.. _rewritten];
-            _rewritten.Clear();
-        }
-        try
-        {
-            RemoveTimedHooks(rewritten, Internals.Rebuild);
-        }
-        catch (Exception e)
-        {
-            LoadingProgressMod.Warning(
-                $"Could not remove the timing from the methods other mods' Harmony hooks were timed on: {e}"
-            );
-        }
-    }
-
-    /// <summary>
-    /// Builds each of <paramref name="originals"/> again with <paramref name="rebuild"/>. One
-    /// that fails is logged and keeps its current replacement, and the rest are still built.
-    /// </summary>
-    internal static void RemoveTimedHooks(
-        IEnumerable<MethodBase> originals,
-        Action<MethodBase> rebuild
-    )
-    {
-        foreach (var original in originals)
-        {
-            try
-            {
-                rebuild(original);
-            }
-            catch (Exception e)
-            {
-                LoadingProgressMod.Warning(
-                    $"Could not remove the hook timing from {original.DeclaringType?.FullName}.{original.Name}, so its hooks go on running through it, untimed: {e}"
-                );
-            }
         }
     }
 
@@ -382,13 +336,6 @@ internal static class HookTiming
                 {
                     building.Rewrote = true;
                     instruction.operand = wrapper;
-                }
-            }
-            if (building.Rewrote)
-            {
-                lock (_lock)
-                {
-                    _ = _rewritten.Add(original);
                 }
             }
         }
@@ -740,31 +687,5 @@ internal static class HookTiming
         internal static (MethodInfo, Dictionary<int, CodeInstruction>) CreateReplacementAgain(
             object creator
         ) => new MethodCreator(((MethodCreator)creator).config).CreateReplacement();
-
-        // Builds original's replacement again from its patches, as Harmony does when a patch
-        // is removed from it.
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        internal static void Rebuild(MethodBase original)
-        {
-#if v1_7
-            // UpdateWrapper records the patch info itself once the replacement is in place.
-            lock (PatchProcessor.locker)
-            {
-                if (HarmonySharedState.GetPatchInfo(original) is { } patchInfo)
-                {
-                    _ = PatchFunctions.UpdateWrapper(original, patchInfo);
-                }
-            }
-#else
-            lock (PatchProcessor.locker)
-            {
-                if (HarmonySharedState.GetPatchInfo(original) is { } patchInfo)
-                {
-                    var replacement = PatchFunctions.UpdateWrapper(original, patchInfo);
-                    HarmonySharedState.UpdatePatchInfo(original, replacement, patchInfo);
-                }
-            }
-#endif
-        }
     }
 }

@@ -500,21 +500,13 @@ internal sealed class HookTimingTests
         }
     }
 
-    private static bool _calledThroughATimedHook;
-
-    // Notes whether a generated method that times a hook is on the stack above it.
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    public static void StackRecordingPostfix() =>
-        _calledThroughATimedHook = new StackTrace()
-            .GetFrames()
-            .Any(frame =>
-                frame.GetMethod()?.Name.EndsWith("_Timed", StringComparison.Ordinal) == true
-            );
-
-    // A replacement built while timing was on is built again when it is turned off, and calls
-    // its hooks directly from then on.
     [Test]
-    public static IEnumerator TurningTimingOffRemovesTheTimingFromItsReplacements()
+    public static void TimingHooksIsOffByDefault() =>
+        Expect.IsFalse(new Settings().TimeHarmonyHooks);
+
+    // A replacement built while timing was on keeps calling its hooks once timing is off.
+    [Test]
+    public static IEnumerator AHookStillRunsOnceTimingIsOff()
     {
         if (!LoadingProgressMod.Settings.TrackStartupLoadingImpact)
         {
@@ -534,16 +526,13 @@ internal sealed class HookTimingTests
         {
             _ = harmony.Patch(
                 TargetMethod,
-                postfix: new HarmonyMethod(typeof(HookTimingTests), nameof(StackRecordingPostfix))
+                postfix: new HarmonyMethod(typeof(HookTimingTests), nameof(CountingPostfix))
             );
-            _calledThroughATimedHook = false;
-            Target();
-            Expect.IsTrue(_calledThroughATimedHook);
-
             HookTiming.Deactivate();
-            _calledThroughATimedHook = true;
+
+            var calls = _countingPostfixCalls;
             Target();
-            Expect.IsFalse(_calledThroughATimedHook);
+            Expect.AreEqual(_countingPostfixCalls, calls + 1);
         }
         finally
         {
@@ -551,31 +540,6 @@ internal sealed class HookTimingTests
             harmony.UnpatchAll(harmony.Id);
             ForgetTestTime();
         }
-    }
-
-    [Test]
-    [WarningsAllowed("Could not remove the hook timing from")]
-    public static void AMethodThatCannotBeBuiltAgainLeavesTheRestBuilt()
-    {
-        var failing = AccessTools.Method(typeof(HookTimingTests), nameof(UnbuildableTarget));
-        var rebuilt = new List<MethodBase>();
-
-        HookTiming.RemoveTimedHooks(
-            [failing, TargetMethod],
-            original =>
-            {
-                if (original == failing)
-                {
-                    throw new InvalidOperationException(
-                        "A method that fails to build, for the test."
-                    );
-                }
-                rebuilt.Add(original);
-            }
-        );
-
-        Expect.AreEqual(rebuilt.Count, 1);
-        Expect.IsTrue(rebuilt.Contains(TargetMethod));
     }
 
     // A replacement built while timing was on times nothing once timing is off.

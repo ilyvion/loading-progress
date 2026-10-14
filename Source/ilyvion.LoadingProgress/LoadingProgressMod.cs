@@ -30,7 +30,10 @@ internal sealed class LoadingProgressMod : Mod
             if (Settings.TrackStartupLoadingImpact)
             {
                 harmony.PatchCategory(Assembly.GetExecutingAssembly(), "StartupImpact");
-                LoadingProgress.StartupImpact.HookTiming.Activate(content);
+                if (Settings.TimeHarmonyHooks)
+                {
+                    LoadingProgress.StartupImpact.HookTiming.Activate(content);
+                }
             }
         }
         finally

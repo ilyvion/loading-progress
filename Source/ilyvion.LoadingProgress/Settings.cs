@@ -171,6 +171,13 @@ internal sealed class Settings : ModSettings
         set => _trackStartupLoadingImpact = value;
     }
 
+    private bool _timeHarmonyHooks;
+    public bool TimeHarmonyHooks
+    {
+        get => _timeHarmonyHooks;
+        set => _timeHarmonyHooks = value;
+    }
+
     private bool _autoSaveStartupImpactReport;
     public bool AutoSaveStartupImpactReport
     {
@@ -302,6 +309,7 @@ internal sealed class Settings : ModSettings
             true
         );
         Scribe_Values.Look(ref _trackStartupLoadingImpact, "trackStartupLoadingImpact", false);
+        Scribe_Values.Look(ref _timeHarmonyHooks, "timeHarmonyHooks", false);
         Scribe_Values.Look(ref _autoSaveStartupImpactReport, "autoSaveStartupImpactReport", false);
         Scribe_Values.Look(ref _showBaseGameOffThreadImpact, "showBaseGameOffThreadImpact", false);
         Scribe_Values.Look(ref _expandBaseGameSection, "expandBaseGameSection", false);
@@ -468,6 +476,12 @@ internal sealed class Settings : ModSettings
 
         if (_trackStartupLoadingImpact)
         {
+            listingStandard.CheckboxLabeled(
+                "LoadingProgress.TimeHarmonyHooks".Translate(),
+                ref _timeHarmonyHooks,
+                "LoadingProgress.TimeHarmonyHooks.Tip".Translate()
+            );
+
             listingStandard.CheckboxLabeled(
                 "LoadingProgress.AutoSaveStartupImpactReport".Translate(),
                 ref _autoSaveStartupImpactReport,
