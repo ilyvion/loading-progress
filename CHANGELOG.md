@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.19.1] - 2026-10-15
+
 ### Changed
 
 - Crediting other mods' Harmony patches to their own mods while the game loads is now a setting of its own under 'Track startup loading impact', 'Time other mods' Harmony patches separately', and is off by default, since on some setups having it on is suspected for preventing saved games from loading. If you turn it on, and your saves don't load anymore, turn it off and leave it off. With it on, startup takes a few seconds longer on large mod lists, but you get very accurate timing data. With it off, a patch's time goes to whatever loading step was running when it ran.
@@ -404,7 +406,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First implementation of the mod.
 
-[Unreleased]: https://github.com/ilyvion/loading-progress/compare/v0.19.0...HEAD
+[Unreleased]: https://github.com/ilyvion/loading-progress/compare/v0.19.1...HEAD
+[0.19.1]: https://github.com/ilyvion/loading-progress/compare/v0.19.0..v0.19.1
 [0.19.0]: https://github.com/ilyvion/loading-progress/compare/v0.18.1..v0.19.0
 [0.18.1]: https://github.com/ilyvion/loading-progress/compare/v0.18.0..v0.18.1
 [0.18.0]: https://github.com/ilyvion/loading-progress/compare/v0.17.1..v0.18.0
