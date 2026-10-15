@@ -73,4 +73,67 @@ internal sealed class StartupImpactSessionDataTests
         Expect.GreaterThan(session.TimeToMenu, session.LoadingTime);
         Expect.AreApproximatelyEqual(startupImpact.TimeToMenu, session.TimeToMenu);
     }
+
+    // The game's process starts well before any mod's constructor runs, so a tracked startup
+    // that could read its process's start time has early launch time.
+    [Test]
+    public static void ACapturedSessionCarriesTheEarlyLaunchTime()
+    {
+        var startupImpact = LoadingProgressMod.instance.StartupImpact;
+        if (!startupImpact.WasTrackingEnabledAtStartup)
+        {
+            Test.Skip("Startup impact tracking was off for this launch.");
+            return;
+        }
+
+        var session = StartupImpactSessionData.FromCurrentSession();
+
+        Expect.GreaterThan(startupImpact.EarlyLaunchTime, 0f);
+        Expect.AreApproximatelyEqual(startupImpact.EarlyLaunchTime, session.EarlyLaunchTime);
+    }
+
+    // A process started 12.34 s after boot, read at 20.5 s after boot, has run for 8.16 s,
+    // whatever its command name holds.
+    [Test]
+    public static void TheProcessAgeIsReadFromProc()
+    {
+        const string stat =
+            "4242 (Rim World (x)) S 1 4242 4242 0 -1 4194304 100 0 0 0 5 3 0 0 20 0 30 0 1234 "
+            + "1000000 500 18446744073709551615 0 0 0 0 0 0 0 0 0 0 0 0 17 3 0 0 0 0 0";
+
+        Expect.AreApproximatelyEqual(
+            8160f,
+            LoadingProgress.StartupImpact.StartupImpact.ProcessAgeFromProc(stat, "20.50 80.00\n")
+                ?? -1f
+        );
+        Expect.IsFalse(
+            LoadingProgress
+                .StartupImpact.StartupImpact.ProcessAgeFromProc("4242 (RimWorld) S", "20.50")
+                .HasValue
+        );
+        Expect.IsFalse(
+            LoadingProgress.StartupImpact.StartupImpact.ProcessAgeFromProc(stat, "").HasValue
+        );
+    }
+
+    [Test]
+    public static void TheEarlyLaunchTimeRunsFromTheProcessStartAndIsNeverNegative()
+    {
+        var processStart = new DateTime(2026, 1, 1, 12, 0, 0, DateTimeKind.Utc);
+
+        Expect.AreApproximatelyEqual(
+            2500f,
+            LoadingProgress.StartupImpact.StartupImpact.TimeSinceProcessStart(
+                processStart,
+                processStart.AddMilliseconds(2500)
+            )
+        );
+        Expect.AreApproximatelyEqual(
+            0f,
+            LoadingProgress.StartupImpact.StartupImpact.TimeSinceProcessStart(
+                processStart,
+                processStart.AddSeconds(-1)
+            )
+        );
+    }
 }

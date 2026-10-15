@@ -48,6 +48,8 @@ internal static class StartupImpactHtmlExporter
         _ = sb.Append(',');
         AppendNumber(sb, "timeToMenuMs", sessionData.TimeToMenu);
         _ = sb.Append(',');
+        AppendNumber(sb, "earlyLaunchMs", sessionData.EarlyLaunchTime);
+        _ = sb.Append(',');
         AppendRemainingByStage(sb, viewData, defaultColor);
         AppendNumber(sb, "windowMs", viewData.TotalWindow);
         _ = sb.Append(',');
@@ -65,6 +67,17 @@ internal static class StartupImpactHtmlExporter
         AppendString(sb, "remainingBreakdownText", texts.RemainingBreakdown);
         _ = sb.Append(',');
         AppendString(sb, "largestRemainingEntryText", texts.LargestRemainingEntry);
+        _ = sb.Append(',');
+        AppendString(
+            sb,
+            "earlyLaunchText",
+            texts.TotalsTooltipDetails.TryGetValue(
+                StartupImpactSessionViewData.EarlyLaunchKey,
+                out var earlyLaunchText
+            )
+                ? earlyLaunchText
+                : null
+        );
         _ = sb.Append(',');
 
         AppendKey(sb, "secondsOnly");
@@ -1040,17 +1053,19 @@ internal static class StartupImpactHtmlExporter
       }
     });
     var baseGameTotal = DATA.baseGame.loadingTimeMs;
-    // The window's own span: the time to the menu when the session recorded one, and never
-    // less than the timed steps.
+    // The window's own span: the early launch time, then the time to the menu when the
+    // session recorded one, and never less than the timed steps.
     var windowMs = DATA.windowMs;
 
-    // The base game's and the remaining segments list what their folded sections hold.
+    // The early launch segment says what it covers; the base game's and the remaining
+    // segments list what their folded sections hold.
     var cats = DATA.totalCategories;
     var segments = [
-      { label: cats[0].label, color: cats[0].color, valueMs: modsTotal },
-      { label: cats[1].label, color: cats[1].color, valueMs: hiddenTotal },
-      { label: cats[2].label, color: cats[2].color, valueMs: baseGameTotal, detail: baseGameBreakdown },
-      { label: cats[3].label, color: cats[3].color, valueMs: DATA.remainingMs, detail: remainingBreakdown }
+      { label: cats[0].label, color: cats[0].color, valueMs: DATA.earlyLaunchMs, detail: DATA.earlyLaunchText },
+      { label: cats[1].label, color: cats[1].color, valueMs: modsTotal },
+      { label: cats[2].label, color: cats[2].color, valueMs: hiddenTotal },
+      { label: cats[3].label, color: cats[3].color, valueMs: baseGameTotal, detail: baseGameBreakdown },
+      { label: cats[4].label, color: cats[4].color, valueMs: DATA.remainingMs, detail: remainingBreakdown }
     ];
     renderBar(document.getElementById("totalBar"), segments, windowMs);
     document.getElementById("modsTitle").textContent = DATA.strings.modsTitle.replace("{0}", timeText(modsTotal));

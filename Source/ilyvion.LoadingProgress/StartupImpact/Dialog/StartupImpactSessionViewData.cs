@@ -4,8 +4,11 @@ namespace ilyvion.LoadingProgress.StartupImpact.Dialog;
 
 internal sealed class StartupImpactSessionViewData
 {
+    internal const string EarlyLaunchKey = "LoadingProgress.StartupImpact.Total.EarlyLaunch";
+
     public static readonly string[] CategoriesTotal =
     [
+        EarlyLaunchKey,
         "LoadingProgress.StartupImpact.Total.Mods",
         "LoadingProgress.StartupImpact.Total.ModsHidden",
         "LoadingProgress.StartupImpact.Total.BaseGame",
@@ -90,7 +93,7 @@ internal sealed class StartupImpactSessionViewData
 
     /// <summary>
     /// The span the totals bar covers, which the window's title gives as the startup time: see
-    /// <see cref="Span(float, float, float, float)"/>.
+    /// <see cref="Span(StartupImpactSessionData)"/>.
     /// </summary>
     public float TotalWindow { get; private set; }
 
@@ -157,8 +160,8 @@ internal sealed class StartupImpactSessionViewData
     /// null when there are no entries.
     /// </param>
     /// <param name="TotalsTooltipDetails">
-    /// What the totals bar's segments add to their tooltips: the two breakdowns, keyed by the
-    /// segment's category.
+    /// What the totals bar's segments add to their tooltips: what the early launch time
+    /// covers and the two breakdowns, keyed by the segment's category.
     /// </param>
     internal sealed record SectionTexts(
         string? BaseGameBreakdown,
@@ -214,7 +217,12 @@ internal sealed class StartupImpactSessionViewData
             largestRemainingEntry = LineText(lines[0], secondsOnly);
         }
 
-        Dictionary<string, string> details = [];
+        Dictionary<string, string> details = new()
+        {
+            [EarlyLaunchKey] = "LoadingProgress.StartupImpact.Total.EarlyLaunch.Tip"
+                .Translate()
+                .ToString(),
+        };
         if (baseGameBreakdown != null)
         {
             details["LoadingProgress.StartupImpact.Total.BaseGame"] = baseGameBreakdown;
@@ -339,12 +347,13 @@ internal sealed class StartupImpactSessionViewData
         // stored loading time as the point the clock stopped, which is what the session file
         // and external tools read, even when the steps come to more: the bar widens instead.
         var totalLoadingTime = ModsLoadingTime + hiddenModsLoadingTime + BasegameLoadingTime;
-        TotalWindow = Span(
+        var trackedWindow = Span(
             sessionData.LoadingTime,
             sessionData.TimeToMenu,
             PostLoadAttributedTime(sessionData),
             totalLoadingTime
         );
+        TotalWindow = sessionData.EarlyLaunchTime + trackedWindow;
         if (sessionData.LoadingTime == 0)
         {
             sessionData.OverrideLoadingTime(totalLoadingTime);
@@ -352,13 +361,14 @@ internal sealed class StartupImpactSessionViewData
 
         metricsTotal.Clear();
         metricsTotal.AddRange([
+            sessionData.EarlyLaunchTime,
             ModsLoadingTime,
             hiddenModsLoadingTime,
             BasegameLoadingTime,
             RemainingTotal(
                 sessionData.StageTimings.Count > 0,
                 metricsRemaining,
-                TotalWindow,
+                trackedWindow,
                 totalLoadingTime
             ),
         ]);
@@ -504,7 +514,7 @@ internal sealed class StartupImpactSessionViewData
     }
 
     /// <summary>
-    /// The startup time a session is shown and listed by: its time to the main menu when it
+    /// The tracked part of a session's startup time: its time to the main menu when it
     /// recorded one. Without one, as when the startup went into a game or the menu never
     /// settled, it is the loading time plus what was timed after loading, all of which ran
     /// after the clock stopped. It is never less than the timed steps' total, so the totals bar
@@ -518,10 +528,12 @@ internal sealed class StartupImpactSessionViewData
     ) => Math.Max(Math.Max(timeToMenu, loadingTime + postLoadAttributedMs), timedTotal);
 
     /// <summary>
-    /// <see cref="Span(float, float, float, float)"/> for a stored session.
+    /// The startup time a stored session is shown and listed by: its early launch time
+    /// followed by <see cref="Span(float, float, float, float)"/>.
     /// </summary>
     internal static float Span(StartupImpactSessionData sessionData) =>
-        Span(
+        sessionData.EarlyLaunchTime
+        + Span(
             sessionData.LoadingTime,
             sessionData.TimeToMenu,
             PostLoadAttributedTime(sessionData),

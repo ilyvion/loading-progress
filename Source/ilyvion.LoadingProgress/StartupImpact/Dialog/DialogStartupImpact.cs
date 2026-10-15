@@ -186,6 +186,10 @@ internal sealed class DialogStartupImpact : Window
             // { "extra-30", new Color(92f/255, 86f/255, 82f/255) },
 
             {
+                StartupImpactSessionViewData.EarlyLaunchKey,
+                new Color(120f / 255, 90f / 255, 150f / 255)
+            },
+            {
                 "LoadingProgress.StartupImpact.Total.Mods",
                 new Color(175f / 255, 126f / 255, 72f / 255)
             },

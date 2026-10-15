@@ -92,17 +92,28 @@ internal sealed partial class LoadingProgressWindow
     /// <see cref="LoadingTimeTextFor"/>.
     /// </summary>
     internal static string? LoadingTimeText =>
-        LoadingTimeTextFor(CurrentLoadingTime, _loadingTimeNotRecorded);
+        LoadingTimeTextFor(
+            CurrentLoadingTime,
+            _loadingTimeNotRecorded,
+            LoadingProgressMod.instance.StartupImpact.EarlyLaunchTime
+        );
 
     /// <summary>
-    /// The loading time's text: the time, to the second as the startup impact window rounds it,
-    /// or that none was recorded when <paramref name="notRecorded"/>, as for a startup that
-    /// never reached the main menu; null while there is neither, as before the startup ends.
+    /// The loading time's text: the time with <paramref name="earlyLaunchMs"/> added, to the
+    /// second as the startup impact window rounds it, or that none was recorded when
+    /// <paramref name="notRecorded"/>, as for a startup that never reached the main menu; null
+    /// while there is neither, as before the startup ends.
     /// </summary>
-    internal static string? LoadingTimeTextFor(TimeSpan? loadingTime, bool notRecorded) =>
+    internal static string? LoadingTimeTextFor(
+        TimeSpan? loadingTime,
+        bool notRecorded,
+        float earlyLaunchMs
+    ) =>
         loadingTime is { } time
             ? "LoadingProgress.LoadingTime"
-                .Translate(ProfilerBar.WholeSecondsText((float)time.TotalMilliseconds))
+                .Translate(
+                    ProfilerBar.WholeSecondsText(earlyLaunchMs + (float)time.TotalMilliseconds)
+                )
                 .ToString()
         : notRecorded ? "LoadingProgress.LoadingTimeNotRecorded".Translate().ToString()
         : null;

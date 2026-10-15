@@ -38,7 +38,7 @@ internal sealed class StartupImpactSessionTotalsTests
         Expect.AreApproximatelyEqual(110600f, viewData.TotalWindow);
         // What no category timed, measured to the menu: the loading stage's second and the
         // 14.1 s after loading.
-        Expect.AreApproximatelyEqual(1000f + 14100f, viewData.MetricsTotal[3]);
+        Expect.AreApproximatelyEqual(1000f + 14100f, viewData.MetricsTotal[^1]);
         // The stored loading time is the clock stop, which external tools read; it is left
         // as it was.
         Expect.AreApproximatelyEqual(90600f, session.LoadingTime);
@@ -55,7 +55,7 @@ internal sealed class StartupImpactSessionTotalsTests
 
         Expect.AreApproximatelyEqual(90600f + 5900f, viewData.TotalWindow);
         // The loading stage's untimed second.
-        Expect.AreApproximatelyEqual(1000f, viewData.MetricsTotal[3]);
+        Expect.AreApproximatelyEqual(1000f, viewData.MetricsTotal[^1]);
     }
 
     // The history used to list a session by its loading time or its time to the menu, while
@@ -83,7 +83,7 @@ internal sealed class StartupImpactSessionTotalsTests
 
         Expect.AreApproximatelyEqual(70000f, viewData.TotalWindow);
         // The loading stage's untimed second, however much of the window the steps took.
-        Expect.AreApproximatelyEqual(1000f, viewData.MetricsTotal[3]);
+        Expect.AreApproximatelyEqual(1000f, viewData.MetricsTotal[^1]);
         Expect.AreApproximatelyEqual(60000f, session.LoadingTime);
     }
 
@@ -115,9 +115,56 @@ internal sealed class StartupImpactSessionTotalsTests
             viewData.MetricsRemaining.Sum(),
             viewData.RemainingLoadingTime
         );
-        Expect.AreApproximatelyEqual(2000f, viewData.MetricsTotal[3]);
+        Expect.AreApproximatelyEqual(2000f, viewData.MetricsTotal[^1]);
         // The top bar's segments come to the window and the shared second.
         Expect.AreApproximatelyEqual(viewData.TotalWindow + 1000f, viewData.MetricsTotal.Sum());
+    }
+
+    // The time before tracking began comes first in the top bar and adds to the startup time
+    // the window and the history show, and leaves the remaining time as it was.
+    [Test]
+    public static void TheEarlyLaunchTimeLeadsTheTopBarAndAddsToTheStartupTime()
+    {
+        var session = StartupImpactSessionData.FromValues(
+            90600f,
+            110600f,
+            new() { [ClearCache] = 14100f, [PostLoadEvent] = 5900f },
+            [],
+            [new("LoadingDefs", 1500f, 500f)],
+            earlyLaunchTime: 8000f
+        );
+        var viewData = new StartupImpactSessionViewData(session);
+
+        Expect.AreEqual(
+            StartupImpactSessionViewData.EarlyLaunchKey,
+            StartupImpactSessionViewData.CategoriesTotal[0]
+        );
+        Expect.AreApproximatelyEqual(8000f, viewData.MetricsTotal[0]);
+        Expect.AreApproximatelyEqual(8000f + 110600f, viewData.TotalWindow);
+        Expect.AreApproximatelyEqual(1000f + 14100f, viewData.RemainingLoadingTime);
+        Expect.AreApproximatelyEqual(
+            viewData.TotalWindow,
+            StartupImpactSessionIndexEntry.ForCompletedSession("test", session).LoadingTime
+        );
+        Expect.IsTrue(
+            viewData
+                .Texts(secondsOnly: false)
+                .TotalsTooltipDetails.ContainsKey(StartupImpactSessionViewData.EarlyLaunchKey)
+        );
+    }
+
+    // A session saved before the early launch time was kept spans what it always did, and its
+    // remaining time is what is left of that once the timed steps are out.
+    [Test]
+    public static void ASessionWithoutStagesOrEarlyLaunchTimeKeepsItsSpan()
+    {
+        var viewData = new StartupImpactSessionViewData(
+            StartupImpactSessionData.FromValues(90600f, 0f, new() { [ClearCache] = 14100f }, [], [])
+        );
+
+        Expect.AreApproximatelyEqual(0f, viewData.MetricsTotal[0]);
+        Expect.AreApproximatelyEqual(90600f, viewData.TotalWindow);
+        Expect.AreApproximatelyEqual(90600f - 14100f, viewData.RemainingLoadingTime);
     }
 
     // The 5.9 s event after loading has an owner; only the rest of the 20 s is remaining.
@@ -143,6 +190,17 @@ internal sealed class StartupImpactSessionTotalsTests
         Expect.AreEqual("LoadingDefs", loaded.StageTimings[0].Stage);
         Expect.AreApproximatelyEqual(1500f, loaded.StageTimings[0].WallMs);
         Expect.AreApproximatelyEqual(500f, loaded.StageTimings[0].AttributedMs);
+    }
+
+    [Test]
+    public static void ASessionSavedAndReadBackKeepsItsEarlyLaunchTime()
+    {
+        var loaded = SaveAndLoad(
+            StartupImpactSessionData.FromValues(90600f, 110600f, [], [], [], earlyLaunchTime: 8000f)
+        );
+
+        Expect.IsNotNull(loaded);
+        Expect.AreApproximatelyEqual(8000f, loaded!.EarlyLaunchTime);
     }
 
     // A session file written by 0.17.0 has neither node. It reads as a session with no stages
@@ -172,6 +230,7 @@ internal sealed class StartupImpactSessionTotalsTests
             Expect.IsNotNull(loaded!.StageTimings);
             Expect.IsEmpty(loaded.StageTimings);
             Expect.AreApproximatelyEqual(0f, loaded.TimeToMenu);
+            Expect.AreApproximatelyEqual(0f, loaded.EarlyLaunchTime);
             Expect.IsEmpty(new StartupImpactSessionViewData(loaded).RemainingByStage);
         }
         finally

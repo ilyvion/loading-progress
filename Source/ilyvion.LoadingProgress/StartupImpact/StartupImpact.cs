@@ -41,6 +41,12 @@ internal sealed class StartupImpact
     public float TimeToMenu { get; private set; }
 
     /// <summary>
+    /// Milliseconds from the start of the game's process to the start of tracking, or 0 when
+    /// tracking was off or the process's start time could not be read.
+    /// </summary>
+    public float EarlyLaunchTime { get; }
+
+    /// <summary>
     /// Whether TrackStartupLoadingImpact was on when the mod was constructed, i.e. for the
     /// whole duration of this startup. Unlike LoadingProgressMod.Settings.TrackStartupLoadingImpact,
     /// this doesn't change if the user flips the setting later in the same session.
@@ -80,6 +86,12 @@ internal sealed class StartupImpact
         BaseGameProfiler = new Profiler("base game");
         _loadingProfiler = new ProfilerStopwatch("loading");
 
+        // Read right before the clocks start, so it ends where they begin.
+        if (WasTrackingEnabledAtStartup)
+        {
+            EarlyLaunchTime = MeasureEarlyLaunchTime();
+        }
+
         // The two clocks start together, so a time read off one can be set against the other:
         // the time to the menu against the loading time, the stages against both.
         _clock.Start();
@@ -97,6 +109,76 @@ internal sealed class StartupImpact
         {
             PreviousUnfinishedBoot = StartupImpactCrashMarker.TakePrevious();
             StartupImpactCrashMarker.Begin(Dialog.StartupImpactSessionData.CurrentModListHash());
+        }
+    }
+
+    /// <summary>
+    /// Milliseconds from <paramref name="processStartUtc"/> to <paramref name="nowUtc"/>,
+    /// never less than 0.
+    /// </summary>
+    internal static float TimeSinceProcessStart(DateTime processStartUtc, DateTime nowUtc) =>
+        Math.Max(0f, (float)(nowUtc - processStartUtc).TotalMilliseconds);
+
+    // Linux's kernel clock ticks, which /proc reports process start times in.
+    private const float ProcTicksPerSecond = 100f;
+
+    private const string ProcSelfStatPath = "/proc/self/stat";
+
+    /// <summary>
+    /// Milliseconds a process has run, from its <c>/proc/[pid]/stat</c> line
+    /// <paramref name="stat"/> and the system's <c>/proc/uptime</c> line
+    /// <paramref name="uptime"/>, never less than 0; null when either cannot be read.
+    /// </summary>
+    internal static float? ProcessAgeFromProc(string stat, string uptime)
+    {
+        // The command name in parentheses can hold spaces, so fields are counted from after
+        // it, where the state, the third field, comes first; the start time is the 22nd.
+        const int startTimeIndex = 22 - 3;
+        var commandEnd = stat.LastIndexOf(')');
+        var fields = stat[(commandEnd + 1)..].Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var uptimeText = uptime.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return
+            commandEnd < 0
+            || fields.Length <= startTimeIndex
+            || uptimeText.Length == 0
+            || !long.TryParse(
+                fields[startTimeIndex],
+                NumberStyles.Integer,
+                CultureInfo.InvariantCulture,
+                out var startTicks
+            )
+            || !double.TryParse(
+                uptimeText[0],
+                NumberStyles.Float,
+                CultureInfo.InvariantCulture,
+                out var uptimeSeconds
+            )
+            ? null
+            : Math.Max(0f, (float)((uptimeSeconds - (startTicks / ProcTicksPerSecond)) * 1000));
+    }
+
+    // Linux's /proc where it has one, since Mono's process start time is wrong there; the
+    // runtime's own reading elsewhere. A failure to read either is logged rather than thrown,
+    // since this runs inside this mod's constructor.
+    private static float MeasureEarlyLaunchTime()
+    {
+        try
+        {
+            if (File.Exists(ProcSelfStatPath))
+            {
+                return ProcessAgeFromProc(
+                        File.ReadAllText(ProcSelfStatPath),
+                        File.ReadAllText("/proc/uptime")
+                    ) ?? throw new FormatException("Unexpected /proc/self/stat or /proc/uptime.");
+            }
+
+            using var process = Process.GetCurrentProcess();
+            return TimeSinceProcessStart(process.StartTime.ToUniversalTime(), DateTime.UtcNow);
+        }
+        catch (Exception e)
+        {
+            LoadingProgressMod.Warning("Could not read when the game's process started: " + e);
+            return 0f;
         }
     }
 

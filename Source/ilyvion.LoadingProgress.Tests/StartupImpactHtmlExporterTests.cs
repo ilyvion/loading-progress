@@ -142,6 +142,36 @@ internal sealed class StartupImpactHtmlExporterTests
         Expect.IsFalse(html.Contains("DATA.timeToMenuMs", StringComparison.Ordinal));
     }
 
+    // The report's top bar leads with the early launch time, which says what it covers, as the
+    // window's does.
+    [Test]
+    public static void TheReportsTopBarCarriesTheEarlyLaunchTime()
+    {
+        var session = StartupImpactSessionData.FromValues(
+            90600f,
+            110600f,
+            [],
+            [],
+            [],
+            earlyLaunchTime: 8000f
+        );
+        var viewData = new StartupImpactSessionViewData(session);
+        var html = Report(session, viewData, secondsOnly: false);
+
+        var tip = viewData.Texts(secondsOnly: false).TotalsTooltipDetails[
+            StartupImpactSessionViewData.EarlyLaunchKey
+        ];
+        Expect.IsTrue(html.Contains("\"earlyLaunchMs\":8000,", StringComparison.Ordinal));
+        Expect.IsTrue(html.Contains($"\"earlyLaunchText\":{Json(tip)},", StringComparison.Ordinal));
+        Expect.IsTrue(html.Contains("\"windowMs\":118600,", StringComparison.Ordinal));
+        Expect.IsTrue(
+            html.Contains(
+                "valueMs: DATA.earlyLaunchMs, detail: DATA.earlyLaunchText",
+                StringComparison.Ordinal
+            )
+        );
+    }
+
     // With no time to the menu and steps past the loading time, as a quicktest's session can
     // have, the window's span is the steps' total. The script's own rule took the larger of
     // the loading time and the time to the menu, which the steps run past; for a session with

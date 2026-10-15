@@ -13,16 +13,37 @@ internal sealed class LoadingProgressWindowTests
     {
         Expect.AreEqual(
             "LoadingProgress.LoadingTimeNotRecorded".Translate().ToString(),
-            LoadingProgressWindow.LoadingTimeTextFor(null, notRecorded: true)
+            LoadingProgressWindow.LoadingTimeTextFor(null, notRecorded: true, earlyLaunchMs: 0f)
         );
         Expect.AreEqual(
             "LoadingProgress.LoadingTime"
                 .Translate(Utilities.FormatDuration(TimeSpan.FromSeconds(90)))
                 .ToString(),
-            LoadingProgressWindow.LoadingTimeTextFor(TimeSpan.FromSeconds(90), notRecorded: false)
+            LoadingProgressWindow.LoadingTimeTextFor(
+                TimeSpan.FromSeconds(90),
+                notRecorded: false,
+                earlyLaunchMs: 0f
+            )
         );
-        Expect.IsNull(LoadingProgressWindow.LoadingTimeTextFor(null, notRecorded: false));
+        Expect.IsNull(
+            LoadingProgressWindow.LoadingTimeTextFor(null, notRecorded: false, earlyLaunchMs: 0f)
+        );
     }
+
+    // The corner, the pause menu and the settings show the startup time the startup impact
+    // window's title does, which counts the time before tracking began.
+    [Test]
+    public static void TheLoadingTimeTextCountsTheEarlyLaunchTime() =>
+        Expect.AreEqual(
+            "LoadingProgress.LoadingTime"
+                .Translate(Utilities.FormatDuration(TimeSpan.FromSeconds(98)))
+                .ToString(),
+            LoadingProgressWindow.LoadingTimeTextFor(
+                TimeSpan.FromSeconds(90),
+                notRecorded: false,
+                earlyLaunchMs: 8000f
+            )
+        );
 
     [Test]
     public static void TheLoadingWindowStaysWhileLoadingRuns() =>

@@ -19,6 +19,7 @@ internal sealed class StartupImpactSessionData : IExposable
 
     private List<StartupImpactStageData> stageTimings = [];
     private float timeToMenu;
+    private float earlyLaunchTime;
 
     public float LoadingTime => loadingTime;
     public IReadOnlyDictionary<string, float> Metrics => metrics.AsReadOnly();
@@ -60,6 +61,13 @@ internal sealed class StartupImpactSessionData : IExposable
     public float TimeToMenu => timeToMenu;
 
     /// <summary>
+    /// Milliseconds from the start of the game's process to the start of tracking, or 0 for a
+    /// session that never recorded one: one saved before this was measured, or a startup
+    /// whose process start time could not be read.
+    /// </summary>
+    public float EarlyLaunchTime => earlyLaunchTime;
+
+    /// <summary>
     /// A session made from given figures rather than from this startup, the way
     /// <see cref="StartupImpactSessionModData.FromValues"/> makes a mod's.
     /// </summary>
@@ -68,12 +76,14 @@ internal sealed class StartupImpactSessionData : IExposable
         float timeToMenu,
         Dictionary<string, float> metrics,
         IEnumerable<StartupImpactSessionModData> mods,
-        IEnumerable<StartupImpactStageData> stageTimings
+        IEnumerable<StartupImpactStageData> stageTimings,
+        float earlyLaunchTime = 0f
     ) =>
         new()
         {
             loadingTime = loadingTime,
             timeToMenu = timeToMenu,
+            earlyLaunchTime = earlyLaunchTime,
             metrics = metrics,
             totalImpact = metrics.Values.Sum(),
             mods = [.. mods],
@@ -112,6 +122,7 @@ internal sealed class StartupImpactSessionData : IExposable
                 .. startupImpact.StageLedger.Entries.Select(StartupImpactStageData.FromLedgerEntry),
             ],
             timeToMenu = startupImpact.TimeToMenu,
+            earlyLaunchTime = startupImpact.EarlyLaunchTime,
         };
 
         return startupImpactSessionData;
@@ -149,6 +160,7 @@ internal sealed class StartupImpactSessionData : IExposable
 
         Scribe_Collections.Look(ref stageTimings, "stageTimings", LookMode.Deep);
         Scribe_Values.Look(ref timeToMenu, "timeToMenu");
+        Scribe_Values.Look(ref earlyLaunchTime, "earlyLaunchTime");
 
         // A session saved before stages were kept has no list to read back.
         if (Scribe.mode == LoadSaveMode.PostLoadInit)

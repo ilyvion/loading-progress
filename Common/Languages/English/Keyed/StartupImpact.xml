@@ -51,6 +51,8 @@
     <LoadingProgress.StartupImpact.GlobalTextureAtlasManagerBakeStaticAtlases>Texture atlas baking</LoadingProgress.StartupImpact.GlobalTextureAtlasManagerBakeStaticAtlases>
     <LoadingProgress.StartupImpact.AbstractFilesystemClearAllCache>Clearing filesystem cache</LoadingProgress.StartupImpact.AbstractFilesystemClearAllCache>
     <LoadingProgress.StartupImpact.GarbageCollection>Garbage collection and asset unload</LoadingProgress.StartupImpact.GarbageCollection>
+    <LoadingProgress.StartupImpact.Total.EarlyLaunch>Early game launch</LoadingProgress.StartupImpact.Total.EarlyLaunch>
+    <LoadingProgress.StartupImpact.Total.EarlyLaunch.Tip>From the moment the game was started until Loading Progress began timing: starting the engine, reading the mod list, loading the mods' code, and running the constructors of mods loaded before Loading Progress.</LoadingProgress.StartupImpact.Total.EarlyLaunch.Tip>
     <LoadingProgress.StartupImpact.Total.Mods>Mods</LoadingProgress.StartupImpact.Total.Mods>
     <LoadingProgress.StartupImpact.Total.ModsHidden>Hidden mods</LoadingProgress.StartupImpact.Total.ModsHidden>
     <LoadingProgress.StartupImpact.Total.BaseGame>Not directly related to mods</LoadingProgress.StartupImpact.Total.BaseGame>
