@@ -166,6 +166,94 @@ internal sealed class ProfilerTests
         Expect.IsFalse(profiler.Metrics.ContainsKey("inner"));
     }
 
+    // Code that threw past the stop of an unguarded category left it open; the stop of the
+    // category below it stops it first, and then stops cleanly. Stopping one that is not on
+    // top logs an error, which fails the test.
+    [Test]
+    public static IEnumerator AnUnguardedCategoryLeftOpenIsStoppedByTheStopBelowIt()
+    {
+        if (!LoadingProgressMod.Settings.TrackStartupLoadingImpact)
+        {
+            Test.Skip(TestStartup.TrackingOff);
+            yield break;
+        }
+
+        var framesWaited = 0;
+        while (TestStartup.StillStartingUp(ref framesWaited))
+        {
+            yield return null;
+        }
+
+        using var outerTimer = new Profiler("outer timer");
+        using var hookTimer = new Profiler("hook timer");
+        outerTimer.Start("outer");
+        hookTimer.StartUnguarded("abandoned");
+        Spin(20);
+        _ = outerTimer.Stop("outer");
+
+        Expect.IsTrue(outerTimer.Metrics.ContainsKey("outer"));
+        Expect.IsTrue(hookTimer.Metrics.TryGetValue("abandoned", out var abandoned));
+        Expect.GreaterThanOrEqualTo(abandoned, 19f);
+    }
+
+    // An unguarded category inside another, left open by code that threw and was caught
+    // inside the outer one, is stopped with it.
+    [Test]
+    public static IEnumerator StoppingAnUnguardedCategoryStopsTheOnesLeftOpenAboveIt()
+    {
+        if (!LoadingProgressMod.Settings.TrackStartupLoadingImpact)
+        {
+            Test.Skip(TestStartup.TrackingOff);
+            yield break;
+        }
+
+        var framesWaited = 0;
+        while (TestStartup.StillStartingUp(ref framesWaited))
+        {
+            yield return null;
+        }
+
+        using var profiler = new Profiler("test");
+        profiler.Start("outer");
+        profiler.StartUnguarded("hook");
+        profiler.StartUnguarded("abandoned");
+        profiler.StopUnguarded("hook", null);
+        _ = profiler.Stop("outer");
+
+        Expect.IsTrue(profiler.Metrics.ContainsKey("hook"));
+        Expect.IsTrue(profiler.Metrics.ContainsKey("abandoned"));
+        Expect.IsTrue(profiler.Metrics.ContainsKey("outer"));
+    }
+
+    // A hook whose start was skipped still calls its stop, which must leave the categories
+    // that are open alone.
+    [Test]
+    public static IEnumerator StoppingAnUnguardedCategoryThatIsNotOpenStopsNothing()
+    {
+        if (!LoadingProgressMod.Settings.TrackStartupLoadingImpact)
+        {
+            Test.Skip(TestStartup.TrackingOff);
+            yield break;
+        }
+
+        var framesWaited = 0;
+        while (TestStartup.StillStartingUp(ref framesWaited))
+        {
+            yield return null;
+        }
+
+        using var profiler = new Profiler("test");
+        profiler.Start("outer");
+        profiler.StartUnguarded("hook");
+        profiler.StopUnguarded("not started", null);
+        profiler.StopUnguarded("hook", null);
+        _ = profiler.Stop("outer");
+
+        Expect.IsFalse(profiler.Metrics.ContainsKey("not started"));
+        Expect.IsTrue(profiler.Metrics.ContainsKey("hook"));
+        Expect.IsTrue(profiler.Metrics.ContainsKey("outer"));
+    }
+
     // The timing patches closed their categories in postfixes, which do not run when the
     // method throws, and the engine goes on loading after a mod constructor that throws. The
     // category stayed open, and each later start on that mod's timer credited it with the

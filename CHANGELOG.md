@@ -9,8 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Crediting other mods' Harmony patches to their own mods while the game loads is now a setting of its own under 'Track startup loading impact', 'Time other mods' Harmony patches separately', and is off by default. It makes startup noticeably slower on large mod lists, on RimWorld 1.7 by about a minute on some. With it off, a patch's time goes to whatever step was running when it ran.
-- With 'Time other mods' Harmony patches separately' on, the end of loading is up to half a minute faster on large mod lists. The methods other mods patched during startup now keep calling their patches through Loading Progress for the rest of the session.
+- Crediting other mods' Harmony patches to their own mods while the game loads is now a setting of its own under 'Track startup loading impact', 'Time other mods' Harmony patches separately', and is off by default, since on some setups having it on is suspected for preventing saved games from loading. If you turn it on, and your saves don't load anymore, turn it off and leave it off. With it on, startup takes a few seconds longer on large mod lists, but you get very accurate timing data. With it off, a patch's time goes to whatever loading step was running when it ran.
 
 ## [0.19.0] - 2026-10-14
 

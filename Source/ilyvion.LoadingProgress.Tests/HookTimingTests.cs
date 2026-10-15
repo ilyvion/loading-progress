@@ -17,7 +17,7 @@ internal sealed class HookTimingTests
     private static MethodInfo TargetMethod =>
         AccessTools.Method(typeof(HookTimingTests), nameof(Target));
 
-    // The Harmony method hook timing redirects hook calls in, which a postfix can fail after.
+    // The Harmony method hook timing times hook calls in, which a postfix can fail after.
     private static MethodInfo RewriteMethod =>
 #if v1_7
         AccessTools.Method(typeof(MethodCreatorTools), nameof(MethodCreatorTools.EmitCodes));
@@ -61,6 +61,20 @@ internal sealed class HookTimingTests
     private static void FailBelowTheHook() =>
         throw new InvalidOperationException("A hook that fails, for the test.");
 
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void InnerTarget() => _ = Stopwatch.GetTimestamp();
+
+    // Calls InnerTarget, whose postfix throws, and catches what it throws.
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void CatchingPostfix()
+    {
+        try
+        {
+            InnerTarget();
+        }
+        catch (InvalidOperationException) { }
+    }
+
     private static int _countingPostfixCalls;
 
     [MethodImpl(MethodImplOptions.NoInlining)]
@@ -68,8 +82,8 @@ internal sealed class HookTimingTests
 
     private static int _rewritesToFail;
 
-    // Fails the next _rewritesToFail replacements Harmony builds, after their hooks were
-    // redirected.
+    // Fails the next _rewritesToFail replacements Harmony builds, after their hook calls
+    // were timed.
     public static void FailingRewritePostfix()
     {
         if (_rewritesToFail > 0)
@@ -331,9 +345,9 @@ internal sealed class HookTimingTests
         Expect.GreaterThanOrEqualTo(TimedUnderOwnMod(nameof(ThinPostfix)), 4f);
     }
 
-    // The hook's category is stopped when the hook throws, so the category open below it
-    // stops cleanly; stopping one that is not on top logs an error, which fails the test. The
-    // exception keeps the frame it was thrown in.
+    // The hook's category, left open when the hook throws, is stopped by the stop of the
+    // category open below it, which then stops cleanly; stopping one that is not on top logs
+    // an error, which fails the test. The exception keeps the frame it was thrown in.
     [Test]
     public static IEnumerator AHookThatThrowsStillHasItsTimingStopped()
     {
@@ -385,6 +399,62 @@ internal sealed class HookTimingTests
             harmony.UnpatchAll(harmony.Id);
             ForgetTestTime();
             TestStartup.Forget(info!.Profiler, Open);
+        }
+    }
+
+    // The inner hook's category, left open when it throws, is stopped with the outer hook's,
+    // so the category open below both stops cleanly; stopping one that is not on top logs an
+    // error, which fails the test.
+    [Test]
+    public static IEnumerator AHookThatThrowsInsideAnotherHookIsStoppedWithIt()
+    {
+        if (!LoadingProgressMod.Settings.TrackStartupLoadingImpact)
+        {
+            Test.Skip(TestStartup.TrackingOff);
+            yield break;
+        }
+
+        var framesWaited = 0;
+        while (TestStartup.StillStartingUp(ref framesWaited))
+        {
+            yield return null;
+        }
+
+        const string Open = "LoadingProgress.Tests.HookTiming.Open";
+        const string InnerCategory =
+            $"{HookTiming.Category}|{nameof(HookTimingTests)}.{nameof(InnerTarget)}";
+        var mod = OwnMod();
+        var info = OwnModInfo();
+        Expect.IsNotNull(info);
+
+        var harmony = new Harmony(TestHarmonyId);
+        HookTiming.Activate(LoadingProgressMod.instance.Content);
+        try
+        {
+            _ = harmony.Patch(
+                AccessTools.Method(typeof(HookTimingTests), nameof(InnerTarget)),
+                postfix: new HarmonyMethod(typeof(HookTimingTests), nameof(ThrowingPostfix))
+            );
+            _ = harmony.Patch(
+                TargetMethod,
+                postfix: new HarmonyMethod(typeof(HookTimingTests), nameof(CatchingPostfix))
+            );
+
+            StartupImpactProfilerUtil.StartModProfiler(mod, Open);
+            Target();
+            StartupImpactProfilerUtil.StopModProfiler(mod, Open);
+
+            Expect.IsTrue(info!.Profiler.Metrics.ContainsKey(HookCategory));
+            Expect.IsTrue(info.Profiler.Metrics.ContainsKey(InnerCategory));
+            Expect.IsTrue(info.Profiler.Metrics.ContainsKey(Open));
+        }
+        finally
+        {
+            HookTiming.Deactivate();
+            harmony.UnpatchAll(harmony.Id);
+            ForgetTestTime();
+            TestStartup.Forget(info!.Profiler, InnerCategory);
+            TestStartup.Forget(info.Profiler, Open);
         }
     }
 
