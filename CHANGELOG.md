@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - With 'Time other mods' Harmony patches separately' on, a Harmony patch that fails partway now has only its own time credited to it. On RimWorld 1.7, keeping startup fast with that option on needs Harmony 3.0.1 or newer; with an older Harmony, it makes startup slower on large mod lists.
 
+### Fixed
+
+- On RimWorld 1.7, the process memory shown in the loading window with 'Show memory usage' on stayed at the same value for the entire startup; it now updates as the game loads.
+
 ## [0.19.1] - 2026-10-15
 
 ### Changed

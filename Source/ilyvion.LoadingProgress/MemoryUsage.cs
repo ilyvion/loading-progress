@@ -10,5 +10,13 @@ internal static class MemoryUsage
 
     private static readonly Process CurrentProcess = Process.GetCurrentProcess();
 
-    public static long ProcessBytes => CurrentProcess.WorkingSet64;
+    // CoreCLR's Process caches its values until Refresh() is called.
+    public static long ProcessBytes
+    {
+        get
+        {
+            CurrentProcess.Refresh();
+            return CurrentProcess.WorkingSet64;
+        }
+    }
 }
