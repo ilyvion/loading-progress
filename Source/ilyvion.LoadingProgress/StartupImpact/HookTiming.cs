@@ -9,17 +9,15 @@ namespace ilyvion.LoadingProgress.StartupImpact;
 /// <remarks>
 /// <para>
 /// Harmony builds a patched method's replacement as a list of instructions, one call per
-/// hook, before it compiles it. Each such call gets a call to <see cref="Start"/> before it
-/// and one to <see cref="Stop"/> after it, which leave the replacement's stack as it was. The
-/// replacement gets no exception handler or call to a generated method from this, either of
-/// which makes Harmony 3 compile it far more slowly. A hook that throws leaves its timer
-/// running until the next stop below it on that thread: see
-/// <see cref="Profiler.StartUnguarded"/>. A prefix that returns false ran in place of the
-/// original method, so its time goes to the category the original would have run under,
-/// marked as replaced by the prefix's mod. Calls inside the original method's body, transpiled
-/// code included, are left alone. This only reaches replacements built after
-/// <see cref="Activate"/>. After <see cref="Deactivate"/>, those replacements go on calling
-/// <see cref="Start"/> and <see cref="Stop"/>, which then only check that timing is off.
+/// hook, before it compiles it. Each such call is pointed at a generated method with the
+/// hook's own signature that starts the owner's timer, calls the hook, and stops the timer
+/// in a finally block, so the replacement's stack is untouched and a hook that throws still
+/// stops its timer. A prefix that returns false ran in place of the original method, so its
+/// time goes to the category the original would have run under, marked as replaced by the
+/// prefix's mod. Calls inside the original method's body, transpiled code included, are left
+/// alone. This only reaches replacements built after <see cref="Activate"/>. After
+/// <see cref="Deactivate"/>, those replacements go on calling their hooks through the generated
+/// methods, which then only check that timing is off.
 /// </para>
 /// <para>
 /// Everything here runs inside every other mod's patching, so none of it may fail into
@@ -27,7 +25,7 @@ namespace ilyvion.LoadingProgress.StartupImpact;
 /// is called inside a try block, so a Harmony without them fails there, at compile time of
 /// that method. Timing starts only for the major version of Harmony this was built against, with
 /// the internal methods shaped as expected, and only after a self-test on this thread passes. Any later failure turns timing off for
-/// good. A replacement that fails to build after its hook calls were timed is built again
+/// good. A replacement that fails to build after its hooks were redirected is built again
 /// without them, and timing only counts as failed when that second build succeeds.
 /// </para>
 /// </remarks>
@@ -49,7 +47,10 @@ internal static class HookTiming
 
     private static readonly Harmony _harmony = new(HarmonyId);
     private static readonly Lock _lock = new();
-    private static readonly Dictionary<(MethodBase Original, MethodInfo Hook), int?> _ids = [];
+    private static readonly Dictionary<
+        (MethodBase Original, MethodInfo Hook),
+        DynamicMethod?
+    > _wrappers = [];
 
     private static readonly MethodInfo StartMethod = AccessTools.Method(
         typeof(HookTiming),
@@ -74,7 +75,7 @@ internal static class HookTiming
     [ThreadStatic]
     private static Building? _building;
 
-    // Whether this thread is building a replacement again without timed hook calls.
+    // Whether this thread is building a replacement again without redirected hook calls.
     [ThreadStatic]
     private static bool _buildingUntimed;
 
@@ -85,7 +86,7 @@ internal static class HookTiming
     private sealed record Timed(Profiler Profiler, string Category, string? Replacer);
 
     // A replacement being built: Harmony's MethodCreator for it, and whether any of its hook
-    // calls were timed.
+    // calls were redirected.
     internal sealed class Building(object creator, Building? outer)
     {
         public object Creator { get; } = creator;
@@ -244,7 +245,7 @@ internal static class HookTiming
     private static void CreateReplacementPrefix(object __instance, out Building __state) =>
         __state = _building = new Building(__instance, _building);
 
-    // Builds the replacement again without timed hook calls when it failed with them, and
+    // Builds the replacement again without redirected hook calls when it failed with them, and
     // turns timing off only when that build succeeds.
     private static Exception? CreateReplacementFinalizer(
         Exception? __exception,
@@ -286,7 +287,7 @@ internal static class HookTiming
     {
         if (_building is { } building && building.Creator == __0)
         {
-            TimeHookCalls(building, codeInstructions);
+            RedirectHookCalls(building, codeInstructions);
         }
     }
 #else
@@ -294,12 +295,12 @@ internal static class HookTiming
     {
         if (_building is { } building)
         {
-            TimeHookCalls(building, instructions);
+            RedirectHookCalls(building, instructions);
         }
     }
 #endif
 
-    private static void TimeHookCalls(Building building, List<CodeInstruction> instructions)
+    private static void RedirectHookCalls(Building building, List<CodeInstruction> instructions)
     {
         if (!Timing || _buildingUntimed)
         {
@@ -311,9 +312,8 @@ internal static class HookTiming
             var (original, prefixes, postfixes, finalizers) = Internals.Hooks(building.Creator);
             var hooks = new HashSet<MethodInfo>(prefixes.Concat(postfixes).Concat(finalizers));
             var inOriginal = false;
-            for (var i = 0; i < instructions.Count; i++)
+            foreach (var instruction in instructions)
             {
-                var instruction = instructions[i];
                 if (
                     instruction.opcode == OpCodes.Nop
                     && instruction.operand is OriginalStart or OriginalEnd
@@ -326,14 +326,16 @@ internal static class HookTiming
                     && instruction.opcode == OpCodes.Call
                     && instruction.operand is MethodInfo hook
                     && hooks.Contains(hook)
+                    && WrapperFor(
+                        original,
+                        hook,
+                        hook.ReturnType == typeof(bool) && prefixes.Contains(hook)
+                    )
+                        is { } wrapper
                 )
                 {
-                    var canSkip = hook.ReturnType == typeof(bool) && prefixes.Contains(hook);
-                    if (IdFor(original, hook, canSkip) is { } id)
-                    {
-                        building.Rewrote = true;
-                        i += TimeCall(instructions, i, id, canSkip);
-                    }
+                    building.Rewrote = true;
+                    instruction.operand = wrapper;
                 }
             }
         }
@@ -343,21 +345,22 @@ internal static class HookTiming
         }
     }
 
-    // The id that times hook on original, registered once per pair, or null for a hook that is
-    // not timed: one of Loading Progress's own, one no mod owns, or one that failed to register.
-    private static int? IdFor(MethodBase original, MethodInfo hook, bool canSkip)
+    // The generated method that times hook on original, made once per pair, or null for a
+    // hook that is not timed: one of Loading Progress's own, one no mod owns, one whose
+    // signature a generated method cannot repeat, or one a generated method failed for.
+    private static DynamicMethod? WrapperFor(MethodBase original, MethodInfo hook, bool canSkip)
     {
         lock (_lock)
         {
-            if (_ids.TryGetValue((original, hook), out var known))
+            if (_wrappers.TryGetValue((original, hook), out var known))
             {
                 return known;
             }
 
-            int? id = null;
+            DynamicMethod? wrapper = null;
             try
             {
-                id = CreateId(original, hook, canSkip);
+                wrapper = CreateWrapper(original, hook, canSkip);
             }
             catch (Exception e)
             {
@@ -365,17 +368,21 @@ internal static class HookTiming
                     $"The Harmony hook {hook.DeclaringType?.FullName}.{hook.Name} will not be timed: {e}"
                 );
             }
-            _ids[(original, hook)] = id;
-            return id;
+            _wrappers[(original, hook)] = wrapper;
+            return wrapper;
         }
     }
 
-    private static int? CreateId(MethodBase original, MethodInfo hook, bool canSkip)
+    private static DynamicMethod? CreateWrapper(MethodBase original, MethodInfo hook, bool canSkip)
     {
         var assembly = hook.DeclaringType?.Assembly;
         if (
             assembly == null
             || (assembly == typeof(HookTiming).Assembly && !SelfTestHooks.Contains(hook))
+            || !hook.IsStatic
+            || hook.ContainsGenericParameters
+            || hook.ReturnType.IsByRef
+            || (hook.CallingConvention & CallingConventions.VarArgs) != 0
         )
         {
             return null;
@@ -386,44 +393,20 @@ internal static class HookTiming
             mod == null
                 ? null
                 : LoadingProgressMod.instance.StartupImpact.Modlist.GetModInfoFor(mod)?.Profiler;
-        return profiler == null
-            ? null
-            : Register(
-                new Timed(
-                    profiler,
-                    $"{Category}|{original.DeclaringType?.Name}.{original.Name}",
-                    canSkip ? mod!.Name : null
-                )
-            );
-    }
-
-    // Puts "ldc.i4 id; call Start" before the hook call at index and "ldc.i4 id; call Stop"
-    // after it, or StopPrefix for a prefix that can skip the original, which takes the
-    // prefix's result and returns it. The call's labels and the exception blocks it begins
-    // move to the first inserted instruction, and the blocks it ends to the last. Returns how
-    // many instructions were inserted.
-    private static int TimeCall(List<CodeInstruction> instructions, int index, int id, bool canSkip)
-    {
-        var call = instructions[index];
-        var loadIdBefore = new CodeInstruction(OpCodes.Ldc_I4, id);
-        var stop = new CodeInstruction(OpCodes.Call, canSkip ? StopPrefixMethod : StopMethod);
-
-        loadIdBefore.labels.AddRange(call.labels);
-        call.labels.Clear();
-        foreach (var block in call.blocks)
+        if (profiler == null)
         {
-            (
-                block.blockType == ExceptionBlockType.EndExceptionBlock ? stop : loadIdBefore
-            ).blocks.Add(block);
+            return null;
         }
-        call.blocks.Clear();
 
-        instructions.InsertRange(index + 1, [new CodeInstruction(OpCodes.Ldc_I4, id), stop]);
-        instructions.InsertRange(
-            index,
-            [loadIdBefore, new CodeInstruction(OpCodes.Call, StartMethod)]
+        var wrapper = EmitWrapper(hook, _count, canSkip);
+        _ = Register(
+            new Timed(
+                profiler,
+                $"{Category}|{original.DeclaringType?.Name}.{original.Name}",
+                canSkip ? mod!.Name : null
+            )
         );
-        return 4;
+        return wrapper;
     }
 
     private static int Register(Timed timed)
@@ -440,39 +423,98 @@ internal static class HookTiming
         return _count++;
     }
 
-    // Starts the hook's category. A hook called from inside a timer's own work runs untimed,
-    // and Stop, called there too, then stops nothing. Nothing here may throw into the
-    // replacement.
-    internal static void Start(int id)
+    // static R Wrapper(args) { var started = Start(id); try { return hook(args); } finally { if (started) Stop(id); } }
+    // For a prefix that can skip the original, the try block ends, before returning,
+    // with: if (started) { started = false; StopPrefix(id, result); }
+    private static DynamicMethod EmitWrapper(MethodInfo hook, int id, bool canSkip)
+    {
+        var parameterTypes = hook.GetParameters().Select(p => p.ParameterType).ToArray();
+        var wrapper = new DynamicMethod(
+            $"{hook.DeclaringType?.Name}.{hook.Name}_Timed",
+            hook.ReturnType,
+            parameterTypes,
+            typeof(HookTiming).Module,
+            skipVisibility: true
+        );
+
+        var il = wrapper.GetILGenerator();
+        var started = il.DeclareLocal(typeof(bool));
+        var result = hook.ReturnType == typeof(void) ? null : il.DeclareLocal(hook.ReturnType);
+
+        il.Emit(OpCodes.Ldc_I4, id);
+        il.Emit(OpCodes.Call, StartMethod);
+        il.Emit(OpCodes.Stloc, started);
+
+        _ = il.BeginExceptionBlock();
+        for (var i = 0; i < parameterTypes.Length; i++)
+        {
+            il.Emit(OpCodes.Ldarg, (short)i);
+        }
+        il.Emit(OpCodes.Call, hook);
+        if (result != null)
+        {
+            il.Emit(OpCodes.Stloc, result);
+        }
+        if (canSkip && result != null)
+        {
+            var stopped = il.DefineLabel();
+            il.Emit(OpCodes.Ldloc, started);
+            il.Emit(OpCodes.Brfalse_S, stopped);
+            il.Emit(OpCodes.Ldc_I4_0);
+            il.Emit(OpCodes.Stloc, started);
+            il.Emit(OpCodes.Ldc_I4, id);
+            il.Emit(OpCodes.Ldloc, result);
+            il.Emit(OpCodes.Call, StopPrefixMethod);
+            il.MarkLabel(stopped);
+        }
+
+        il.BeginFinallyBlock();
+        var notStarted = il.DefineLabel();
+        il.Emit(OpCodes.Ldloc, started);
+        il.Emit(OpCodes.Brfalse_S, notStarted);
+        il.Emit(OpCodes.Ldc_I4, id);
+        il.Emit(OpCodes.Call, StopMethod);
+        il.MarkLabel(notStarted);
+        il.EndExceptionBlock();
+
+        if (result != null)
+        {
+            il.Emit(OpCodes.Ldloc, result);
+        }
+        il.Emit(OpCodes.Ret);
+
+        return wrapper;
+    }
+
+    // Starts the hook's category, and returns whether it did, so the wrapper stops only what
+    // was started. A hook called from inside a timer's own work runs untimed. Nothing here may
+    // throw into the mod's hook.
+    internal static bool Start(int id)
     {
         if (!Timing || Profiler.BusyOnThread)
         {
-            return;
+            return false;
         }
 
         try
         {
             var timed = _byId[id];
-            timed.Profiler.StartUnguarded(timed.Category);
+            timed.Profiler.Start(timed.Category);
+            return true;
         }
         catch (Exception e)
         {
             Fault($"timing a hook failed: {e}");
+            return false;
         }
     }
 
-    // Stops the hook's category when Start started it.
     internal static void Stop(int id)
     {
-        if (Profiler.BusyOnThread)
-        {
-            return;
-        }
-
         try
         {
             var timed = _byId[id];
-            timed.Profiler.StopUnguarded(timed.Category, null);
+            _ = timed.Profiler.Stop(timed.Category);
         }
         catch (Exception e)
         {
@@ -480,25 +522,21 @@ internal static class HookTiming
         }
     }
 
-    // Stops a prefix that can skip the original once it has returned runOriginal, which this
-    // returns for the replacement.
-    internal static bool StopPrefix(bool runOriginal, int id)
+    // Stops a prefix that can skip the original once it has returned runOriginal.
+    internal static void StopPrefix(int id, bool runOriginal)
     {
-        if (Profiler.BusyOnThread)
-        {
-            return runOriginal;
-        }
-
         try
         {
             var timed = _byId[id];
-            timed.Profiler.StopUnguarded(timed.Category, runOriginal ? null : timed.Replacer);
+            _ =
+                runOriginal || timed.Replacer == null
+                    ? timed.Profiler.Stop(timed.Category)
+                    : timed.Profiler.StopReplacing(timed.Category, timed.Replacer);
         }
         catch (Exception e)
         {
             Fault($"timing a hook failed: {e}");
         }
-        return runOriginal;
     }
 
     private static readonly MethodInfo[] SelfTestHooks =
@@ -509,7 +547,7 @@ internal static class HookTiming
         AccessTools.Method(typeof(HookTiming), nameof(SelfTestSkippingPrefix)),
     ];
 
-    // Patches two methods of this class with one hook of each shape a timed call has,
+    // Patches two methods of this class with one hook of each shape a generated method has,
     // calls them inside a category of Loading Progress's own, and checks that the hooks ran
     // as Harmony runs them and their time was recorded, then removes the patches and the
     // records. Returns what went wrong, or null.

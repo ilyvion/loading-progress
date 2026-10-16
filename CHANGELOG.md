@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The startup impact window's overall bar now starts with an 'Early game launch' segment: the time from the moment the game was started until Loading Progress could begin timing, such as the engine starting up and the mods' code being loaded. It counts toward the startup time shown in the window, the history, the HTML report and the loading time shown in the main menu's corner, the pause menu and the mod settings. Sessions saved by earlier versions don't have it, so they read a little shorter than new ones.
 
+### Changed
+
+- With 'Time other mods' Harmony patches separately' on, a Harmony patch that fails partway now has only its own time credited to it. On RimWorld 1.7, keeping startup fast with that option on needs Harmony 3.0.1 or newer; with an older Harmony, it makes startup slower on large mod lists.
+
 ## [0.19.1] - 2026-10-15
 
 ### Changed
