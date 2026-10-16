@@ -487,15 +487,7 @@ internal sealed class StartupImpactSessionViewData
             var remainingMs = parts.Aggregate(0f, (sum, part) => sum + part.RemainingMs);
             if (remainingMs >= 1f)
             {
-                var label =
-                    stage == CallAllHookTiming.Stage
-                        ? CallAllHookTiming.Stage.Translate().ToString()
-                        : StartupImpactSessionIndexEntry.TranslateStage(stage);
-                if (stage == nameof(LoadingStage.ExecuteToExecuteWhenFinished2))
-                {
-                    label = SecondPassKey.Translate(label);
-                }
-                entries.Add(new RemainingEntry(stage, label, remainingMs));
+                entries.Add(new RemainingEntry(stage, StageLabel(stage), remainingMs));
             }
         }
 
@@ -511,6 +503,21 @@ internal sealed class StartupImpactSessionViewData
         }
         entries.Sort((a, b) => b.Ms.CompareTo(a.Ms));
         return entries;
+    }
+
+    /// <summary>
+    /// A recorded loading stage's name as shown, with the second delayed-initialization pass
+    /// told apart from the first.
+    /// </summary>
+    internal static string StageLabel(string stage)
+    {
+        var label =
+            stage == CallAllHookTiming.Stage
+                ? CallAllHookTiming.Stage.Translate().ToString()
+                : StartupImpactSessionIndexEntry.TranslateStage(stage);
+        return stage == nameof(LoadingStage.ExecuteToExecuteWhenFinished2)
+            ? SecondPassKey.Translate(label)
+            : label;
     }
 
     /// <summary>

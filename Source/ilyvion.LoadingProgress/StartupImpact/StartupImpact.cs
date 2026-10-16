@@ -54,6 +54,12 @@ internal sealed class StartupImpact
     public bool WasTrackingEnabledAtStartup { get; }
 
     /// <summary>
+    /// Whether other mods' Harmony hooks were timed on their own this startup, which moves
+    /// their time out of the steps they ran in and onto the mods the hooks belong to.
+    /// </summary>
+    public bool HarmonyHooksTimed { get; internal set; }
+
+    /// <summary>
     /// A boot that was still in progress when the game last stopped, recovered
     /// from the marker it left behind. Written into the history at the end of
     /// this load, when Scribe is safe to use.

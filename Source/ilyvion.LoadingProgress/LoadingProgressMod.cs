@@ -33,6 +33,10 @@ internal sealed class LoadingProgressMod : Mod
                 if (Settings.TimeHarmonyHooks)
                 {
                     LoadingProgress.StartupImpact.HookTiming.Activate(content);
+                    StartupImpact.HarmonyHooksTimed = LoadingProgress
+                        .StartupImpact
+                        .HookTiming
+                        .IsActive;
                 }
             }
         }

@@ -139,4 +139,50 @@
     <LoadingProgress.StartupImpact.History.Confirm.Delete>Delete the saved session from {0}?</LoadingProgress.StartupImpact.History.Confirm.Delete>
     <LoadingProgress.StartupImpact.History>History</LoadingProgress.StartupImpact.History>
     <LoadingProgress.StartupImpact.History.Confirm.Baseline>This is the baseline. Deleting it leaves no baseline until you choose another.</LoadingProgress.StartupImpact.History.Confirm.Baseline>
+    <LoadingProgress.StartupImpact.Compare.Button>Compare</LoadingProgress.StartupImpact.Compare.Button>
+    <LoadingProgress.StartupImpact.Compare.With>Compare with...</LoadingProgress.StartupImpact.Compare.With>
+    <LoadingProgress.StartupImpact.Compare.NothingToCompare>There is no other saved session with a breakdown to compare this one with.</LoadingProgress.StartupImpact.Compare.NothingToCompare>
+    <LoadingProgress.StartupImpact.Compare.Title>Compare startups</LoadingProgress.StartupImpact.Compare.Title>
+    <LoadingProgress.StartupImpact.Compare.Reference>Reference</LoadingProgress.StartupImpact.Compare.Reference>
+    <LoadingProgress.StartupImpact.Compare.Compared>Compared</LoadingProgress.StartupImpact.Compare.Compared>
+    <LoadingProgress.StartupImpact.Compare.Change>Change</LoadingProgress.StartupImpact.Compare.Change>
+    <LoadingProgress.StartupImpact.Compare.Swap>Swap</LoadingProgress.StartupImpact.Compare.Swap>
+    <LoadingProgress.StartupImpact.Compare.Swap.Tip>Swap the reference and the compared session.</LoadingProgress.StartupImpact.Compare.Swap.Tip>
+    <LoadingProgress.StartupImpact.Compare.BaselineSession>{0} (baseline)</LoadingProgress.StartupImpact.Compare.BaselineSession>
+    <LoadingProgress.StartupImpact.Compare.Headline>Loading time: {0} → {1} ({2})</LoadingProgress.StartupImpact.Compare.Headline>
+    <LoadingProgress.StartupImpact.Compare.Tab.Overview>Overview</LoadingProgress.StartupImpact.Compare.Tab.Overview>
+    <LoadingProgress.StartupImpact.Compare.Tab.Stages>Stages</LoadingProgress.StartupImpact.Compare.Tab.Stages>
+    <LoadingProgress.StartupImpact.Compare.Tab.Mods>Mods</LoadingProgress.StartupImpact.Compare.Tab.Mods>
+    <LoadingProgress.StartupImpact.Compare.Tab.Steps>Steps</LoadingProgress.StartupImpact.Compare.Tab.Steps>
+    <LoadingProgress.StartupImpact.Compare.LoadingTime>Loading time</LoadingProgress.StartupImpact.Compare.LoadingTime>
+    <LoadingProgress.StartupImpact.Compare.StartupTime>Startup time</LoadingProgress.StartupImpact.Compare.StartupTime>
+    <LoadingProgress.StartupImpact.Compare.TimeToMenu>Time to the main menu</LoadingProgress.StartupImpact.Compare.TimeToMenu>
+    <LoadingProgress.StartupImpact.Compare.ModsLoaded>Mods loaded</LoadingProgress.StartupImpact.Compare.ModsLoaded>
+    <LoadingProgress.StartupImpact.Compare.DefsParsed>Defs parsed</LoadingProgress.StartupImpact.Compare.DefsParsed>
+    <LoadingProgress.StartupImpact.Compare.PatchOperations>Patch operations applied</LoadingProgress.StartupImpact.Compare.PatchOperations>
+    <LoadingProgress.StartupImpact.Compare.ModList>Mod list</LoadingProgress.StartupImpact.Compare.ModList>
+    <LoadingProgress.StartupImpact.Compare.AddedMods>Mods only in the compared session</LoadingProgress.StartupImpact.Compare.AddedMods>
+    <LoadingProgress.StartupImpact.Compare.RemovedMods>Mods only in the reference session</LoadingProgress.StartupImpact.Compare.RemovedMods>
+    <LoadingProgress.StartupImpact.Compare.ModOrder>Mod load order</LoadingProgress.StartupImpact.Compare.ModOrder>
+    <LoadingProgress.StartupImpact.Compare.HarmonyHooks>Harmony patches timed separately</LoadingProgress.StartupImpact.Compare.HarmonyHooks>
+    <LoadingProgress.StartupImpact.Compare.Same>same</LoadingProgress.StartupImpact.Compare.Same>
+    <LoadingProgress.StartupImpact.Compare.Different>different</LoadingProgress.StartupImpact.Compare.Different>
+    <LoadingProgress.StartupImpact.Compare.Changed>changed</LoadingProgress.StartupImpact.Compare.Changed>
+    <LoadingProgress.StartupImpact.Compare.On>on</LoadingProgress.StartupImpact.Compare.On>
+    <LoadingProgress.StartupImpact.Compare.Off>off</LoadingProgress.StartupImpact.Compare.Off>
+    <LoadingProgress.StartupImpact.Compare.Unknown>unknown</LoadingProgress.StartupImpact.Compare.Unknown>
+    <LoadingProgress.StartupImpact.Compare.NotLoaded>not loaded</LoadingProgress.StartupImpact.Compare.NotLoaded>
+    <LoadingProgress.StartupImpact.Compare.Noisy>varies</LoadingProgress.StartupImpact.Compare.Noisy>
+    <LoadingProgress.StartupImpact.Compare.Noisy.Tip>This is known to vary a lot between runs even when nothing has changed, so a change here may be noise.</LoadingProgress.StartupImpact.Compare.Noisy.Tip>
+    <LoadingProgress.StartupImpact.Compare.Noisy.ModTip>Most of this mod's change is in steps known to vary a lot between runs even when nothing has changed, so it may be noise.</LoadingProgress.StartupImpact.Compare.Noisy.ModTip>
+    <LoadingProgress.StartupImpact.Compare.ModDetails>Largest changes:</LoadingProgress.StartupImpact.Compare.ModDetails>
+    <LoadingProgress.StartupImpact.Compare.Summary.Stages>The stages make up the loading time, and are not affected by how time is split between mods. Their changes add up to {0}.</LoadingProgress.StartupImpact.Compare.Summary.Stages>
+    <LoadingProgress.StartupImpact.Compare.Summary.Mods>Each mod's time. A setting that changes what time is credited to whom can move time from one mod to another, so use these to explain a stage's change rather than as a result on their own.</LoadingProgress.StartupImpact.Compare.Summary.Mods>
+    <LoadingProgress.StartupImpact.Compare.Summary.Steps>Time per step, the base game's and all mods' together. A setting that changes what time is credited to whom can move time from one step to another, so use these to explain a stage's change rather than as a result on their own.</LoadingProgress.StartupImpact.Compare.Summary.Steps>
+    <LoadingProgress.StartupImpact.Compare.NoiseHint>Times vary from run to run, sometimes by seconds. A change is only likely to be real when it shows up every time you compare runs with and without it.</LoadingProgress.StartupImpact.Compare.NoiseHint>
+    <LoadingProgress.StartupImpact.Compare.Issue.DifferentModList>These sessions ran with different mod lists, so their times are not directly comparable.</LoadingProgress.StartupImpact.Compare.Issue.DifferentModList>
+    <LoadingProgress.StartupImpact.Compare.Issue.ModOrderChanged>The mods were loaded in a different order.</LoadingProgress.StartupImpact.Compare.Issue.ModOrderChanged>
+    <LoadingProgress.StartupImpact.Compare.Issue.HarmonyHookTimingDiffers>'Time other mods' Harmony patches separately' differs between these sessions. It moves time out of the steps the patches ran in and onto the mods they belong to, so per-mod and per-step changes can be moves rather than costs.</LoadingProgress.StartupImpact.Compare.Issue.HarmonyHookTimingDiffers>
+    <LoadingProgress.StartupImpact.Compare.Issue.HarmonyHookTimingUnknown>At least one of these sessions was saved before Loading Progress recorded whether Harmony patches were timed separately.</LoadingProgress.StartupImpact.Compare.Issue.HarmonyHookTimingUnknown>
+    <LoadingProgress.StartupImpact.Compare.Issue.NotBothTimedToMenu>Only one of these sessions was timed to the main menu, so their startup times cover different spans. Compare their loading times instead.</LoadingProgress.StartupImpact.Compare.Issue.NotBothTimedToMenu>
 </LanguageData>

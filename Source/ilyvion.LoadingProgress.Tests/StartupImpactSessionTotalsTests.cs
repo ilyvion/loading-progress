@@ -203,6 +203,49 @@ internal sealed class StartupImpactSessionTotalsTests
         Expect.AreApproximatelyEqual(8000f, loaded!.EarlyLaunchTime);
     }
 
+    [Test]
+    public static void WhetherHarmonyHooksWereTimedSurvivesASaveAndLoad(
+        [Parameters(true, false)] bool timed
+    )
+    {
+        var loaded = SaveAndLoad(
+            StartupImpactSessionData.FromValues(1000f, 0f, [], [], [], harmonyHooksTimed: timed)
+        );
+
+        Expect.IsNotNull(loaded);
+        Expect.AreEqual<bool?>(timed, loaded!.HarmonyHooksTimed);
+    }
+
+    // A session saved before hook timing was recorded must read as not knowing, not as off:
+    // the comparison warns about the one and not the other.
+    [Test]
+    public static void AFileFromBeforeHookTimingWasRecordedReadsAsUnknown()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"lp-session-{Guid.NewGuid():N}.xml");
+        try
+        {
+            File.WriteAllText(
+                path,
+                "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+                    + "<StartupImpactSession><sessionData>"
+                    + "<loadingTime>90600</loadingTime>"
+                    + "<metrics><keys /><values /></metrics>"
+                    + "<offThreadMetrics><keys /><values /></offThreadMetrics>"
+                    + "<mods />"
+                    + "</sessionData></StartupImpactSession>"
+            );
+
+            var loaded = Load(path);
+
+            Expect.IsNotNull(loaded);
+            Expect.IsTrue(loaded!.HarmonyHooksTimed is null);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
     // A session file written by 0.17.0 has neither node. It reads as a session with no stages
     // and no time to the menu, not as one that throws.
     [Test]

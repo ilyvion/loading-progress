@@ -128,7 +128,7 @@ internal sealed class StartupImpactPhaseViewData
     /// A category that takes a per-call parameter is labelled by its <c>.Grouped</c> key, since
     /// its own label needs that parameter.
     /// </summary>
-    private static string LabelFor(string key) =>
+    internal static string LabelFor(string key) =>
         StartupImpactProfilerUtil.TrySplitReplaced(key, out var replaced, out var replacer)
             ? StartupImpactProfilerUtil.ReplacedByKey.Translate(LabelFor(replaced), replacer)
         : $"{key}.Grouped" is var groupedKey && groupedKey.CanTranslate() ? groupedKey.Translate()

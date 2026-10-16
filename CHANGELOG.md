@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The startup impact window's overall bar now starts with an 'Early game launch' segment: the time from the moment the game was started until Loading Progress could begin timing, such as the engine starting up and the mods' code being loaded. It counts toward the startup time shown in the window, the history, the HTML report and the loading time shown in the main menu's corner, the pause menu and the mod settings. Sessions saved by earlier versions don't have it, so they read a little shorter than new ones.
 - A startup impact session file copied into the 'StartupImpactSessions' folder, such as one from another RimWorld install, now shows up in the startup impact history.
+- Two saved startups can now be compared in game. Each session in the startup impact history has a 'Compare' button, which compares it with the baseline, or lets you pick another session when there is no baseline; right-clicking a session offers 'Compare with...' too. The comparison window shows how the loading time changed and breaks the change down by loading stage, by mod and by loading step, with each mod's largest changes in its tooltip. It warns when the two startups ran with different mod lists, a different mod order, or a different 'Time other mods' Harmony patches separately' setting, and marks the stages and steps known to vary a lot between runs even when nothing has changed.
 
 ### Changed
 

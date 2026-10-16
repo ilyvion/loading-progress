@@ -106,11 +106,15 @@ internal sealed class DialogStartupImpactHistory : Window
         // The two action columns are sized wider than the English labels need, since a
         // translation's Pin/Unpin labels can render wider, and a label wider than its
         // button is clipped at both ends rather than spilling.
-        _table = new UiTable(0, RowHeight, [-14f, -140f, -70f, -55f, -85f, 1f, -80f, -80f, -30f]);
+        _table = new UiTable(
+            0,
+            RowHeight,
+            [-14f, -140f, -70f, -55f, -85f, 1f, -80f, -80f, -90f, -30f]
+        );
         RebuildRows();
     }
 
-    public override Vector2 InitialSize => new(940f, Math.Min(620f, UI.screenHeight * 0.85f));
+    public override Vector2 InitialSize => new(1030f, Math.Min(620f, UI.screenHeight * 0.85f));
 
     private void RebuildRows()
     {
@@ -347,42 +351,123 @@ internal sealed class DialogStartupImpactHistory : Window
             TogglePinOrBaseline(entry, group);
         }
 
-        var loadRect = ButtonRect(7, row);
-        if (entry.HasBody)
-        {
-            if (
-                Widgets.ButtonText(
-                    loadRect,
-                    "LoadingProgress.StartupImpact.History.Load".Translate()
-                )
+        if (
+            RowButton(
+                ButtonRect(7, row),
+                "LoadingProgress.StartupImpact.History.Load",
+                entry.HasBody ? null : "LoadingProgress.StartupImpact.History.NoBreakdown"
             )
-            {
-                OpenSession(entry);
-            }
-        }
-        else
+        )
         {
-            var previous = GUI.color;
-            GUI.color = new Color(1f, 1f, 1f, 0.35f);
-            _ = Widgets.ButtonText(
-                loadRect,
-                "LoadingProgress.StartupImpact.History.Load".Translate(),
-                true,
-                false,
-                false
-            );
-            GUI.color = previous;
-            TooltipHandler.TipRegion(
-                loadRect,
-                "LoadingProgress.StartupImpact.History.NoBreakdown".Translate()
-            );
+            OpenSession(entry);
         }
 
-        var deleteCell = _table.Cell(8, row);
+        if (
+            RowButton(
+                ButtonRect(8, row),
+                "LoadingProgress.StartupImpact.Compare.Button",
+                !entry.HasBody ? "LoadingProgress.StartupImpact.History.NoBreakdown"
+                    : !ComparableWith(entry).Any()
+                        ? "LoadingProgress.StartupImpact.Compare.NothingToCompare"
+                    : null
+            )
+        )
+        {
+            Compare(entry);
+        }
+
+        var deleteCell = _table.Cell(9, row);
         var icon = new Rect(0f, 0f, 18f, 18f) { center = deleteCell.center };
         if (Widgets.ButtonImage(icon, TexButton.Delete, MutedColor, Color.white))
         {
             ConfirmDelete(entry);
+        }
+    }
+
+    /// <summary>
+    /// A row's button, drawn faded and inert with <paramref name="disabledTipKey"/>'s text as
+    /// its tooltip when that is given. Returns whether it was clicked.
+    /// </summary>
+    private static bool RowButton(Rect rect, string labelKey, string? disabledTipKey)
+    {
+        if (disabledTipKey is null)
+        {
+            return Widgets.ButtonText(rect, labelKey.Translate());
+        }
+
+        var previous = GUI.color;
+        GUI.color = new Color(1f, 1f, 1f, 0.35f);
+        _ = Widgets.ButtonText(rect, labelKey.Translate(), true, false, false);
+        GUI.color = previous;
+        TooltipHandler.TipRegion(rect, disabledTipKey.Translate());
+        return false;
+    }
+
+    /// <summary>
+    /// The other sessions <paramref name="entry"/> can be compared with: every one with a
+    /// breakdown to compare.
+    /// </summary>
+    private IEnumerable<StartupImpactSessionIndexEntry> ComparableWith(
+        StartupImpactSessionIndexEntry entry
+    ) => _entries.Where(other => other.HasBody && other.Id != entry.Id);
+
+    /// <summary>
+    /// Compares a session with the baseline, or with a session the player picks when there is
+    /// no baseline to compare it with.
+    /// </summary>
+    private void Compare(StartupImpactSessionIndexEntry entry)
+    {
+        var baseline = ComparableWith(entry).FirstOrDefault(other => other.Baseline);
+        if (baseline is not null)
+        {
+            OpenComparison(baseline, entry);
+        }
+        else
+        {
+            OpenComparePicker(entry);
+        }
+    }
+
+    /// <summary>
+    /// Lists the sessions <paramref name="entry"/> can be compared with. The baseline is the
+    /// reference whichever side it is picked on.
+    /// </summary>
+    private void OpenComparePicker(StartupImpactSessionIndexEntry entry)
+    {
+        List<FloatMenuOption> options =
+        [
+            .. ComparableWith(entry)
+                .Select(other => new FloatMenuOption(
+                    DialogStartupImpactComparison.SessionLabel(other),
+                    () =>
+                    {
+                        if (entry.Baseline)
+                        {
+                            OpenComparison(entry, other);
+                        }
+                        else
+                        {
+                            OpenComparison(other, entry);
+                        }
+                    }
+                )),
+        ];
+        if (options.Count == 0)
+        {
+            StatusText = "LoadingProgress.StartupImpact.Compare.NothingToCompare".Translate();
+            return;
+        }
+        Find.WindowStack.Add(new FloatMenu(options));
+    }
+
+    private void OpenComparison(
+        StartupImpactSessionIndexEntry reference,
+        StartupImpactSessionIndexEntry compared
+    )
+    {
+        if (!DialogStartupImpactComparison.TryOpen(reference, compared))
+        {
+            StatusText = "LoadingProgress.StartupImpact.History.Status.LoadFailed".Translate();
         }
     }
 
@@ -425,7 +510,7 @@ internal sealed class DialogStartupImpactHistory : Window
     private Rect FullRowRect(int row)
     {
         var first = _table.Cell(0, row);
-        var last = _table.Cell(8, row);
+        var last = _table.Cell(9, row);
         return new Rect(first.x, first.y, last.xMax - first.x, first.height);
     }
 
@@ -533,6 +618,15 @@ internal sealed class DialogStartupImpactHistory : Window
                 new FloatMenuOption(
                     "LoadingProgress.StartupImpact.History.SetBaseline".Translate(),
                     () => SetBaseline(entry)
+                )
+            );
+        }
+        if (entry.HasBody && ComparableWith(entry).Any())
+        {
+            options.Add(
+                new FloatMenuOption(
+                    "LoadingProgress.StartupImpact.Compare.With".Translate(),
+                    () => OpenComparePicker(entry)
                 )
             );
         }

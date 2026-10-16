@@ -97,6 +97,12 @@ internal static class HookTiming
     private static bool Timing => !_faulted && (_active || _selfTestThread == Thread.CurrentThread);
 
     /// <summary>
+    /// Whether hooks are being timed: <see cref="Activate"/> succeeded and nothing has turned
+    /// timing off since.
+    /// </summary>
+    internal static bool IsActive => _active;
+
+    /// <summary>
     /// Starts timing hooks in every replacement Harmony builds from now on, after checking
     /// the running Harmony is one this was made for and that a timed hook runs and is
     /// recorded on a method of its own. Never throws: when anything fails, hooks run untimed

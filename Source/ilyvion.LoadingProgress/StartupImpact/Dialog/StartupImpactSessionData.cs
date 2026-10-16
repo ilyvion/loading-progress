@@ -20,6 +20,7 @@ internal sealed class StartupImpactSessionData : IExposable
     private List<StartupImpactStageData> stageTimings = [];
     private float timeToMenu;
     private float earlyLaunchTime;
+    private bool? harmonyHooksTimed;
 
     public float LoadingTime => loadingTime;
     public IReadOnlyDictionary<string, float> Metrics => metrics.AsReadOnly();
@@ -68,6 +69,12 @@ internal sealed class StartupImpactSessionData : IExposable
     public float EarlyLaunchTime => earlyLaunchTime;
 
     /// <summary>
+    /// Whether other mods' Harmony hooks were timed on their own during this startup, or null
+    /// for a session saved before that was recorded.
+    /// </summary>
+    public bool? HarmonyHooksTimed => harmonyHooksTimed;
+
+    /// <summary>
     /// A session made from given figures rather than from this startup, the way
     /// <see cref="StartupImpactSessionModData.FromValues"/> makes a mod's.
     /// </summary>
@@ -77,7 +84,12 @@ internal sealed class StartupImpactSessionData : IExposable
         Dictionary<string, float> metrics,
         IEnumerable<StartupImpactSessionModData> mods,
         IEnumerable<StartupImpactStageData> stageTimings,
-        float earlyLaunchTime = 0f
+        float earlyLaunchTime = 0f,
+        int modListHash = 0,
+        int? modsLoaded = null,
+        int? defsParsed = null,
+        int? patchOperationsApplied = null,
+        bool? harmonyHooksTimed = null
     ) =>
         new()
         {
@@ -88,6 +100,11 @@ internal sealed class StartupImpactSessionData : IExposable
             totalImpact = metrics.Values.Sum(),
             mods = [.. mods],
             stageTimings = [.. stageTimings],
+            modListHash = modListHash,
+            modsLoaded = modsLoaded,
+            defsParsed = defsParsed,
+            patchOperationsApplied = patchOperationsApplied,
+            harmonyHooksTimed = harmonyHooksTimed,
         };
 
     internal static StartupImpactSessionData FromCurrentSession()
@@ -123,6 +140,7 @@ internal sealed class StartupImpactSessionData : IExposable
             ],
             timeToMenu = startupImpact.TimeToMenu,
             earlyLaunchTime = startupImpact.EarlyLaunchTime,
+            harmonyHooksTimed = startupImpact.HarmonyHooksTimed,
         };
 
         return startupImpactSessionData;
@@ -161,6 +179,7 @@ internal sealed class StartupImpactSessionData : IExposable
         Scribe_Collections.Look(ref stageTimings, "stageTimings", LookMode.Deep);
         Scribe_Values.Look(ref timeToMenu, "timeToMenu");
         Scribe_Values.Look(ref earlyLaunchTime, "earlyLaunchTime");
+        Scribe_Values.Look(ref harmonyHooksTimed, "harmonyHooksTimed");
 
         // A session saved before stages were kept has no list to read back.
         if (Scribe.mode == LoadSaveMode.PostLoadInit)
