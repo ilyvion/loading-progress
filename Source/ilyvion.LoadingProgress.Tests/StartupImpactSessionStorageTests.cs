@@ -103,4 +103,51 @@ internal sealed class StartupImpactSessionStorageTests
         Expect.IsTrue(Find(entries, "a").Pinned);
         Expect.IsTrue(Find(entries, "b").Baseline);
     }
+
+    // A session file copied into the history folder by hand was never listed, because the
+    // history is read from the index alone.
+    [Test]
+    public static void ASessionFileTheIndexDoesNotListIsFound()
+    {
+        var unindexed = StartupImpactSessionStorage.UnindexedSessionIds(
+            ["20261016-043728", "20261016-044420"],
+            ["20261016-044420"]
+        );
+
+        Expect.AreEqual(1, unindexed.Count);
+        Expect.AreEqual("20261016-043728", unindexed[0]);
+    }
+
+    [Test]
+    public static void TheIndexFileIsNotTakenForASession()
+    {
+        var unindexed = StartupImpactSessionStorage.UnindexedSessionIds(["index"], []);
+
+        Expect.AreEqual(0, unindexed.Count);
+    }
+
+    [Test]
+    public static void ASessionFileNamedInADifferentCaseCountsAsListed()
+    {
+        var unindexed = StartupImpactSessionStorage.UnindexedSessionIds(
+            ["20261016-043728-A"],
+            ["20261016-043728-a"]
+        );
+
+        Expect.AreEqual(0, unindexed.Count);
+    }
+
+    [Test]
+    public static void ASessionWithoutATimestampIsListedByTheTimeGiven()
+    {
+        var fileTime = new DateTime(2026, 10, 16, 4, 37, 28, DateTimeKind.Utc);
+
+        var entry = StartupImpactSessionIndexEntry.ForCompletedSession(
+            "unstamped",
+            new StartupImpactSessionData(),
+            fileTime
+        );
+
+        Expect.AreEqual(fileTime, entry.SavedAtUtc);
+    }
 }

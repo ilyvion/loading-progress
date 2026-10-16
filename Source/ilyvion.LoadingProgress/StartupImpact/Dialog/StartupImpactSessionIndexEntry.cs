@@ -197,9 +197,15 @@ internal sealed class StartupImpactSessionIndexEntry : IExposable
     internal static string FormatTimestamp(DateTime savedAtUtc) =>
         savedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
 
+    /// <param name="id">The id the session is stored under.</param>
+    /// <param name="data">The session.</param>
+    /// <param name="unstampedSavedAtUtc">
+    /// The time to list a session by when it has no timestamp of its own; now, when omitted.
+    /// </param>
     internal static StartupImpactSessionIndexEntry ForCompletedSession(
         string id,
-        StartupImpactSessionData data
+        StartupImpactSessionData data,
+        DateTime? unstampedSavedAtUtc = null
     ) =>
         data is null
             ? throw new ArgumentNullException(nameof(data))
@@ -208,7 +214,7 @@ internal sealed class StartupImpactSessionIndexEntry : IExposable
                 id = id,
                 savedAtUtcTicks =
                     data.SavedAtUtc == DateTime.MinValue
-                        ? DateTime.UtcNow.Ticks
+                        ? (unstampedSavedAtUtc ?? DateTime.UtcNow).Ticks
                         : data.SavedAtUtc.Ticks,
                 loadingTime = StartupImpactSessionViewData.Span(data),
                 modsLoaded = data.ModsLoaded ?? data.Mods.Count,

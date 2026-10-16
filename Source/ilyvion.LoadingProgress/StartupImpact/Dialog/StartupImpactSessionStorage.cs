@@ -54,7 +54,23 @@ internal static class StartupImpactSessionStorage
     /// The stored history, newest first. Never null; an unreadable or absent
     /// index reads as an empty history rather than throwing.
     /// </summary>
+    /// <remarks>
+    /// A session file the index does not list, such as one copied in by hand, is read once
+    /// and added to the index.
+    /// </remarks>
     internal static List<StartupImpactSessionIndexEntry> LoadIndex()
+    {
+        var entries = ReadIndex();
+        if (AddUnindexedSessions(entries))
+        {
+            SaveIndex(entries);
+        }
+
+        entries.SortByDescending(entry => entry.SavedAtUtc.Ticks);
+        return entries;
+    }
+
+    private static List<StartupImpactSessionIndexEntry> ReadIndex()
     {
         List<StartupImpactSessionIndexEntry>? entries = null;
         try
@@ -75,8 +91,76 @@ internal static class StartupImpactSessionStorage
 
         entries ??= [];
         _ = entries.RemoveAll(entry => entry is null || string.IsNullOrEmpty(entry.Id));
-        entries.SortByDescending(entry => entry.SavedAtUtc.Ticks);
         return entries;
+    }
+
+    /// <summary>
+    /// Adds an entry for every readable session file in the history folder that the index
+    /// does not list. Returns whether any were added.
+    /// </summary>
+    private static bool AddUnindexedSessions(List<StartupImpactSessionIndexEntry> entries)
+    {
+        string[] files;
+        try
+        {
+            if (!Directory.Exists(HistoryFolderPath))
+            {
+                return false;
+            }
+            files = Directory.GetFiles(HistoryFolderPath, "*.xml");
+        }
+        catch (Exception e)
+        {
+            LoadingProgressMod.Warning(
+                "Could not list the startup impact history folder: " + e.Message
+            );
+            return false;
+        }
+
+        var added = false;
+        foreach (
+            var id in UnindexedSessionIds(
+                files.Select(Path.GetFileNameWithoutExtension),
+                entries.Select(entry => entry.Id)
+            )
+        )
+        {
+            var sessionData = LoadSession(id);
+            if (sessionData is null)
+            {
+                continue;
+            }
+
+            entries.Add(
+                StartupImpactSessionIndexEntry.ForCompletedSession(
+                    id,
+                    sessionData,
+                    File.GetLastWriteTimeUtc(SessionFilePath(id))
+                )
+            );
+            added = true;
+        }
+        return added;
+    }
+
+    /// <summary>
+    /// The ids of the session files the index does not list, given the history folder's
+    /// file names without their extension.
+    /// </summary>
+    /// <remarks>
+    /// Compared without regard to case, since a file system that ignores it can hand back a
+    /// name in a different case than the id it was saved under.
+    /// </remarks>
+    internal static List<string> UnindexedSessionIds(
+        IEnumerable<string?> fileIds,
+        IEnumerable<string> indexedIds
+    )
+    {
+        var known = new HashSet<string>(indexedIds, StringComparer.OrdinalIgnoreCase)
+        {
+            Path.GetFileNameWithoutExtension(IndexFileName),
+        };
+        return [.. fileIds.OfType<string>().Where(id => id.Length > 0 && known.Add(id))];
     }
 
     internal static void SaveIndex(List<StartupImpactSessionIndexEntry> entries)

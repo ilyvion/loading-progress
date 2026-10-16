@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - The startup impact window's overall bar now starts with an 'Early game launch' segment: the time from the moment the game was started until Loading Progress could begin timing, such as the engine starting up and the mods' code being loaded. It counts toward the startup time shown in the window, the history, the HTML report and the loading time shown in the main menu's corner, the pause menu and the mod settings. Sessions saved by earlier versions don't have it, so they read a little shorter than new ones.
+- A startup impact session file copied into the 'StartupImpactSessions' folder, such as one from another RimWorld install, now shows up in the startup impact history.
 
 ### Changed
 
