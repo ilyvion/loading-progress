@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.20.1] - 2026-10-20
+
 ### Fixed
 
 - On mod lists where the game spends more than five minutes after loading before the main menu appears, the loading time is now recorded again, so the estimate on the next launch updates instead of staying at an old value. The loading time now runs until the main menu can be used, even while some mods are still finishing work in the background.
@@ -426,7 +428,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First implementation of the mod.
 
-[Unreleased]: https://github.com/ilyvion/loading-progress/compare/v0.20.0...HEAD
+[Unreleased]: https://github.com/ilyvion/loading-progress/compare/v0.20.1...HEAD
+[0.20.1]: https://github.com/ilyvion/loading-progress/compare/v0.20.0..v0.20.1
 [0.20.0]: https://github.com/ilyvion/loading-progress/compare/v0.19.1..v0.20.0
 [0.19.1]: https://github.com/ilyvion/loading-progress/compare/v0.19.0..v0.19.1
 [0.19.0]: https://github.com/ilyvion/loading-progress/compare/v0.18.1..v0.19.0
