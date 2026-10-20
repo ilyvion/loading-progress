@@ -43,20 +43,54 @@ internal sealed class PostLoadTrackerTests
             PostLoadTracker.HasLeftForAGame(ProgramState.Entry, quickStarted: false, null)
         );
 
-    // A mod that keeps a long event queued on the menu used to keep the loading window over it
-    // for good. Past MaxTailMs of active time, the startup ends without a time to the menu.
+    // The menu used to count as reached only once no long event was running or queued, and the
+    // wait ended without a time five minutes after loading. A mod that keeps synchronous events
+    // queued on a menu the player can already use kept it from ever being reached, and a setup
+    // whose events after loading took longer than that never recorded a loading time.
     [Test]
-    public static void AMenuThatNeverSettlesEndsTheWaitAtTheLimit()
+    public static void TheMenuIsUsableOnceTheEngineStopsWaitingForAnEvent()
     {
-        Expect.IsFalse(
-            PostLoadTracker.HasWaitedTooLong(1000f, 1000f + PostLoadTracker.MaxTailMs - 1f)
-        );
-        Expect.IsTrue(PostLoadTracker.HasWaitedTooLong(1000f, 1000f + PostLoadTracker.MaxTailMs));
+        Expect.IsTrue(PostLoadTracker.IsMenuUsable(true, waitingForEvent: false, true));
+        Expect.IsFalse(PostLoadTracker.IsMenuUsable(true, waitingForEvent: true, true));
     }
 
     [Test]
-    public static void NothingHasWaitedBeforeTheWaitBegins() =>
-        Expect.IsFalse(PostLoadTracker.HasWaitedTooLong(-1f, PostLoadTracker.MaxTailMs * 2f));
+    public static void TheMenuIsNotUsableBeforeLoadingFinishes() =>
+        Expect.IsFalse(PostLoadTracker.IsMenuUsable(false, waitingForEvent: false, true));
+
+    [Test]
+    public static void TheMenuIsNotUsableWithoutAnInterface() =>
+        Expect.IsFalse(PostLoadTracker.IsMenuUsable(true, waitingForEvent: false, false));
+
+    // The engine waits for an event, keeping the menu from taking input, only for one that does
+    // not use its standard status box: a synchronous event shows that box over a menu that still
+    // takes input, while an enumerator or asynchronous event covers the screen.
+    [Test]
+    public static void OnlyASynchronousEventLeavesTheMenuTakingInput()
+    {
+        Expect.IsTrue(
+            new LongEventHandler.QueuedLongEvent
+            {
+                eventAction = Log.ResetMessageCount,
+                canEverUseStandardWindow = true,
+            }.UseStandardWindow
+        );
+        Expect.IsFalse(
+            new LongEventHandler.QueuedLongEvent
+            {
+                eventAction = Log.ResetMessageCount,
+                doAsynchronously = true,
+                canEverUseStandardWindow = true,
+            }.UseStandardWindow
+        );
+        Expect.IsFalse(
+            new LongEventHandler.QueuedLongEvent
+            {
+                eventActionEnumerator = Enumerable.Empty<int>().GetEnumerator(),
+                canEverUseStandardWindow = true,
+            }.UseStandardWindow
+        );
+    }
 
     [Test]
     public static void TheFirstIdleFrameNeverSettlesTheMenu() =>

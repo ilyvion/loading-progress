@@ -71,8 +71,8 @@ internal sealed partial class LoadingProgressWindow
 
     /// <summary>
     /// How long this launch took to load, set once the startup has reached the main menu,
-    /// where the loading window records it. A startup that went straight into a game, or whose
-    /// menu never settled, records none.
+    /// where the loading window records it. A startup that went straight into a game records
+    /// none.
     /// </summary>
     internal static TimeSpan? CurrentLoadingTime { get; private set; }
 
@@ -80,9 +80,9 @@ internal sealed partial class LoadingProgressWindow
     private static bool _loadingTimeNotRecorded;
 
     /// <summary>
-    /// Whether this startup is over: it has reached the main menu, gone straight into a game,
-    /// or waited for a menu that never settled as long as it waits. The loading window leaves
-    /// the screen then, and records a loading time only for the first.
+    /// Whether this startup is over: it has reached the main menu or gone straight into a game.
+    /// The loading window leaves the screen then, and records a loading time only for the
+    /// first.
     /// </summary>
     internal static bool StartupComplete { get; private set; }
 
@@ -167,15 +167,14 @@ internal sealed partial class LoadingProgressWindow
     /// <summary>
     /// Ends the window's part in the startup, and with <paramref name="recordLoadingTime"/>
     /// records <paramref name="loadingMs"/> as the loading time. Only a startup that reached
-    /// the main menu has one: one that went straight into a game, or whose menu never settled,
-    /// leaves without recording a time, which would stop short of the menu or take in however
-    /// long it waited.
+    /// the main menu has one: one that went straight into a game leaves without recording a
+    /// time, which would stop short of the menu.
     /// </summary>
     /// <remarks>
-    /// The long events other mods run after the interface begins initializing, and any stall
-    /// on the menu's first frame, are part of the player's wait, so the time shown and
+    /// The long events that keep the menu from taking input after the interface begins
+    /// initializing, and any stall on the menu's first frame, are part of the player's wait, so the time shown and
     /// estimated runs to here rather than to the end of loading. The post-load tracker reads
-    /// Startup Impact's clock once, at the idle frame the startup impact window takes its time
+    /// Startup Impact's clock once, at the frame the startup impact window takes its time
     /// to the menu from, and hands both the same reading through <see cref="LoadingMs"/>, so
     /// the two figures are the same, and the corner shows it too.
     /// </remarks>

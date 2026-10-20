@@ -2,8 +2,8 @@ namespace ilyvion.LoadingProgress.StartupImpact;
 
 /// <summary>
 /// Follows the startup's tail: the long events that run once loading is over, up to the frame
-/// the main menu is usable (two idle frames within 250 ms of each other, or the fifth idle
-/// frame in a row). Keeps the loading window's activity line on the event that is running,
+/// the main menu is usable (two frames it takes input on within 250 ms of each other, or the
+/// fifth such frame in a row). Keeps the loading window's activity line on the event that is running,
 /// ends the startup for the window when the menu is reached and, with tracking on, times
 /// each event under the mod whose code it runs.
 /// </summary>
@@ -45,19 +45,13 @@ internal static class PostLoadTracker
     /// </summary>
     internal const string Category = "LoadingProgress.StartupImpact.PostLoadLongEvent";
 
-    // Two idle frames closer together than this mean the menu is drawing freely; a wait
+    // Two usable frames closer together than this mean the menu is drawing freely; a wait
     // between frames longer than this, while the game was in the background, was a pause.
     private const float QuickFrameMs = 250f;
 
     // A menu that never draws two frames that close together, below four frames a second,
-    // counts as reached at this many idle frames in a row.
-    private const int SlowMenuIdleFrames = 5;
-
-    // A menu that has not settled this long after loading, in active time, is taken never to:
-    // a mod that keeps a long event queued on the menu would otherwise keep the loading window
-    // over it for good. The wait after loading takes 20 to 30 s on a list of 230 mods.
-    internal const float MaxTailMs = 5f * 60f * 1000f;
-    private static float _tailStartMs = -1f;
+    // counts as reached at this many usable frames in a row.
+    private const int SlowMenuUsableFrames = 5;
 
     private static bool _done;
     private static LongEventHandler.QueuedLongEvent? _current;
@@ -65,8 +59,8 @@ internal static class PostLoadTracker
     // What _current is timed under, once its timing has started.
     private static (ModContentPack? Owner, bool IsBaseGame, string Category)? _currentTiming;
 
-    private static float _lastIdleFrameMs = -1f;
-    private static int _idleFrames;
+    private static float _lastUsableFrameMs = -1f;
+    private static int _usableFrames;
 
     private static bool _watchingFrames;
     private static bool _watchingFocus;
@@ -105,41 +99,24 @@ internal static class PostLoadTracker
             return;
         }
 
-        var active = RealtimeMs - PausedMs;
-        if (_tailStartMs < 0f)
-        {
-            _tailStartMs = active;
-        }
-        if (HasWaitedTooLong(_tailStartMs, active))
-        {
-            LoadingProgressMod.Warning(
-                $"The main menu had not settled {MaxTailMs / 60000f} minutes after loading, so the startup ends without a time to it."
-            );
-            Finish(startupImpact, menuReached: false);
-            return;
-        }
-
         var current = LongEventHandler.currentEvent;
         if (finished && current != null)
         {
             LoadingProgressWindow.ShowPostLoadEvent(current);
         }
 
-        if (
-            finished
-            && current == null
-            && !LongEventHandler.AnyEventNowOrWaiting
-            && Find.UIRoot != null
-        )
+        if (IsMenuUsable(finished, LongEventHandler.ShouldWaitForEvent, Find.UIRoot != null))
         {
-            // The queue going empty is not the player being able to click. A mod that builds
-            // its state on the menu's first frame stalls the main thread between that frame
-            // and the next, so the menu counts as reached only once two idle frames have come
-            // close together, which includes any such stall in the time to the menu. Pauses
-            // are left out of the comparison, so one is not mistaken for a stall.
-            _idleFrames++;
-            var settled = IsMenuSettled(_lastIdleFrameMs, active, _idleFrames);
-            _lastIdleFrameMs = active;
+            // A frame the menu takes input on is not yet the player being able to click. A mod
+            // that builds its state on the menu's first frame stalls the main thread between
+            // that frame and the next, so the menu counts as reached only once two usable
+            // frames have come close together, which includes any such stall in the time to
+            // the menu. Pauses are left out of the comparison, so one is not mistaken for a
+            // stall.
+            var active = RealtimeMs - PausedMs;
+            _usableFrames++;
+            var settled = IsMenuSettled(_lastUsableFrameMs, active, _usableFrames);
+            _lastUsableFrameMs = active;
             if (settled)
             {
                 Finish(startupImpact, menuReached: true);
@@ -147,8 +124,8 @@ internal static class PostLoadTracker
         }
         else
         {
-            _lastIdleFrameMs = -1f;
-            _idleFrames = 0;
+            _lastUsableFrameMs = -1f;
+            _usableFrames = 0;
         }
     }
 
@@ -433,11 +410,15 @@ internal static class PostLoadTracker
     }
 
     /// <summary>
-    /// Whether the menu has gone <see cref="MaxTailMs"/> of active time since the wait after
-    /// loading began, at <paramref name="tailStartMs"/>, without settling.
+    /// Whether the main menu takes the player's input this frame: loading is
+    /// <paramref name="finished"/>, the interface exists, and the engine is not
+    /// <paramref name="waitingForEvent"/>, which it is only while an event that blocks the
+    /// interface runs or is queued. A plain synchronous event shows its status box over a menu
+    /// that still takes input, so events like that can go on being queued after the menu is
+    /// reached.
     /// </summary>
-    internal static bool HasWaitedTooLong(float tailStartMs, float nowMs) =>
-        tailStartMs >= 0f && nowMs - tailStartMs >= MaxTailMs;
+    internal static bool IsMenuUsable(bool finished, bool waitingForEvent, bool hasUIRoot) =>
+        finished && !waitingForEvent && hasUIRoot;
 
     /// <summary>
     /// Whether the startup has gone into a game instead of to the main menu: the program has
@@ -452,15 +433,15 @@ internal static class PostLoadTracker
         programState != ProgramState.Entry || quickStarted || levelToLoad == GenScene.PlaySceneName;
 
     /// <summary>
-    /// Whether an idle frame at <paramref name="nowMs"/> counts the menu as usable: the first
-    /// idle frame never does (there is nothing before it), and one that comes after a stall
+    /// Whether a usable frame at <paramref name="nowMs"/> counts the menu as reached: the first
+    /// usable frame never does (there is nothing before it), and one that comes after a stall
     /// does not either, since the stall is what the player was waiting through. A menu that
-    /// never draws quickly counts as reached after <see cref="SlowMenuIdleFrames"/> idle frames
-    /// in a row.
+    /// never draws quickly counts as reached after <see cref="SlowMenuUsableFrames"/> usable
+    /// frames in a row.
     /// </summary>
-    internal static bool IsMenuSettled(float lastIdleFrameMs, float nowMs, int idleFrames) =>
-        lastIdleFrameMs >= 0f
-        && (nowMs - lastIdleFrameMs < QuickFrameMs || idleFrames >= SlowMenuIdleFrames);
+    internal static bool IsMenuSettled(float lastUsableFrameMs, float nowMs, int usableFrames) =>
+        lastUsableFrameMs >= 0f
+        && (nowMs - lastUsableFrameMs < QuickFrameMs || usableFrames >= SlowMenuUsableFrames);
 
     /// <summary>
     /// How much of the wait from the end of the last frame to <paramref name="frameStartMs"/>,

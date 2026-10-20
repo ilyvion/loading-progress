@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- On mod lists where the game spends more than five minutes after loading before the main menu appears, the loading time is now recorded again, so the estimate on the next launch updates instead of staying at an old value. The loading time now runs until the main menu can be used, even while some mods are still finishing work in the background.
+
 ## [0.20.0] - 2026-10-16
 
 ### Added
