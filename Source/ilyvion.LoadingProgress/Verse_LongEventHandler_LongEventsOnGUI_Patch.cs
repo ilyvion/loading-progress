@@ -1,5 +1,6 @@
 using System.Reflection.Emit;
 using ilyvion.LoadingProgress.FasterGameLoading;
+using ilyvion.LoadingProgress.RimThemes;
 
 namespace ilyvion.LoadingProgress;
 
@@ -345,6 +346,18 @@ internal static class Verse_LongEventHandler_DrawOwnWindow_Patch
     }
 
     internal static void Draw()
+    {
+        // RimThemes' loading overlay would cover the windows; RimThemes_LoaderGM_OnGUI_Patches
+        // draws them on top of it instead.
+        if (RimThemesUtils.LoaderOverlayActive)
+        {
+            return;
+        }
+
+        DrawWindows();
+    }
+
+    internal static void DrawWindows()
     {
         if (!ShouldDrawOwnWindow(out var useInGameWindow))
         {

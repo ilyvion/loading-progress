@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Compatibility with RimThemes: the loading window is now shown on top of RimThemes' loading screen instead of being hidden behind it, in the style of the active theme. On the main menu, RimThemes' theme selector button sits above the loading time in the bottom-right corner instead of covering it.
+
 ## [0.20.1] - 2026-10-20
 
 ### Fixed

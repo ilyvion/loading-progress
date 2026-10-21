@@ -12,9 +12,12 @@ Loosely based on the mod Startup Impact, the mod can track and show what mods ar
 
 ## Mod compatibility
 
+### Specific compatibility
+
+- [RimThemes](https://steamcommunity.com/sharedfiles/filedetails/?id=1668983184) — The loading window is shown on top of RimThemes' themed loading screen, in the style of the active theme.
+
 ### Known incompatibilities
 
-- [RimThemes](https://steamcommunity.com/sharedfiles/filedetails/?id=1668983184) — Makes this mod useless, because it just covers the whole loading process with a splash screen.
 - [Startup Impact Continued](https://steamcommunity.com/sharedfiles/filedetails/?id=3544131315) — Messes with the startup process in ways that ruin this mod's progress and startup impact tracking, and this mod now has its own startup impact tracking anyway, so it's doing double duty.
 
 ## Troubleshooting

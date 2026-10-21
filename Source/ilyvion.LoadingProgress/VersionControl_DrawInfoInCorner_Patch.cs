@@ -5,28 +5,44 @@ namespace ilyvion.LoadingProgress;
 [HarmonyPatch(typeof(VersionControl), "DrawInfoInCorner")]
 internal static class VersionControl_DrawInfoInCorner_Patch
 {
+    private const float CornerMargin = 10f;
+
+    // The loading time shown in the main menu's corner, or null while it isn't shown there.
+    internal static string? CornerLoadingTimeText =>
+        LoadingProgressMod.Settings.ShowLastLoadingTimeInCorner
+        && Current.ProgramState == ProgramState.Entry
+            ? LoadingProgressWindow.LoadingTimeText
+            : null;
+
     internal static void Finalizer()
     {
-        if (!LoadingProgressMod.Settings.ShowLastLoadingTimeInCorner)
+        if (CornerLoadingTimeText is not { } text)
         {
             return;
         }
 
-        if (Current.ProgramState != ProgramState.Entry)
-        {
-            // You are not in the main menu
-            return;
-        }
-
-        if (LoadingProgressWindow.LoadingTimeText is not { } text)
-        {
-            // This launch's startup has not ended
-            return;
-        }
-
-        var rect = new Rect(UI.screenWidth - 10f, UI.screenHeight - 10f, 0, 0);
+        var rect = new Rect(UI.screenWidth - CornerMargin, UI.screenHeight - CornerMargin, 0, 0);
         DrawLoadingTime(rect, text);
     }
+
+    // The y coordinate of the top of the loading time label in the main menu's corner, or null
+    // while it isn't shown there.
+    internal static float? CornerLabelTop()
+    {
+        if (CornerLoadingTimeText is not { } text)
+        {
+            return null;
+        }
+
+        var font = Text.Font;
+        Text.Font = GameFont.Small;
+        var height = Text.CalcSize(text).y;
+        Text.Font = font;
+        return ComputeCornerLabelTop(UI.screenHeight, height);
+    }
+
+    internal static float ComputeCornerLabelTop(float screenHeight, float labelHeight) =>
+        screenHeight - CornerMargin - labelHeight;
 
     internal static void DrawLoadingTime(Rect rect, string text)
     {
