@@ -12,9 +12,6 @@ jobs:
     uses: ilyvion/rimworld-utils/.github/workflows/build_mod.yml@main
     with:
       mod_name: "ilyvion.LoadingProgress"
-      rw_versions: |-
-        1.6
-        1.7
       artifact_suffix: Release
       license_files: |-
         LICENSE
@@ -28,6 +25,3 @@ jobs:
     with:
       artifact_name: ${{ needs.build.outputs.artifact_name }}
       mod_name: "ilyvion.LoadingProgress"
-      rw_versions: |-
-        1.6
-        1.7
