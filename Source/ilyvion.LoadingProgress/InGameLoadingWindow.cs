@@ -9,18 +9,24 @@ internal static class InGameLoadingWindow
     internal static Vector2 WindowSize =>
         new(
             776f,
-            10f
-                + Text.LineHeightOf(GameFont.Medium)
-                + VerticalWidgetMargin
-                + Text.LineHeightOf(GameFont.Small)
-                + VerticalWidgetMargin
-                + Text.LineHeightOf(GameFont.Small)
-                + VerticalWidgetMargin
-                + ProgressBarHeight
-                + VerticalWidgetMargin
-                + Text.LineHeightOf(GameFont.Small)
-                + 10f
+            WindowHeight(
+                Utilities.LineHeightOf(GameFont.Small),
+                Utilities.LineHeightOf(GameFont.Medium)
+            )
         );
+
+    internal static float WindowHeight(float smallLineHeight, float mediumLineHeight) =>
+        10f
+        + mediumLineHeight
+        + VerticalWidgetMargin
+        + smallLineHeight
+        + VerticalWidgetMargin
+        + smallLineHeight
+        + VerticalWidgetMargin
+        + ProgressBarHeight
+        + VerticalWidgetMargin
+        + smallLineHeight
+        + 10f;
 
     internal static void DrawContents(Rect rect)
     {

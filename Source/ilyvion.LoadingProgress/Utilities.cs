@@ -216,6 +216,20 @@ internal static class Utilities
         return t.TotalHours >= 1 ? $"{(int)t.TotalHours}:{t:mm\\:ss}" : $"{t:mm\\:ss}";
     }
 
+    /// <summary>
+    /// The line height <paramref name="font"/> is drawn with. Unlike
+    /// <see cref="Text.LineHeightOf"/>, this follows mods that patch <see cref="Text.LineHeight"/>,
+    /// such as RimThemes with its theme fonts.
+    /// </summary>
+    public static float LineHeightOf(GameFont font)
+    {
+        var oldFont = Text.Font;
+        Text.Font = font;
+        var lineHeight = Text.LineHeight;
+        Text.Font = oldFont;
+        return lineHeight;
+    }
+
     private const double Kibibyte = 1024;
     private const double Mebibyte = Kibibyte * 1024;
     private const double Gibibyte = Mebibyte * 1024;

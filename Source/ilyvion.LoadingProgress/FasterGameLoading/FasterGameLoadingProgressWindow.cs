@@ -4,23 +4,18 @@ namespace ilyvion.LoadingProgress.FasterGameLoading;
 
 internal static class FasterGameLoadingProgressWindow
 {
-    internal static Vector2 WindowSize
-    {
-        get
-        {
-            if (
-                !FasterGameLoadingUtils.HasFasterGameLoading
-                || !FasterGameLoadingUtils.EarlyModContentLoading
-                || FasterGameLoadingUtils.FasterGameLoadingEarlyModContentLoadingIsFinished
-            )
-            {
-                return Vector2.zero;
-            }
-
-            var windowSize = field;
-            return windowSize;
-        }
-    } = new(776f, 110f);
+    internal static Vector2 WindowSize =>
+        !FasterGameLoadingUtils.HasFasterGameLoading
+        || !FasterGameLoadingUtils.EarlyModContentLoading
+        || FasterGameLoadingUtils.FasterGameLoadingEarlyModContentLoadingIsFinished
+            ? Vector2.zero
+            : new(
+                776f,
+                LoadingProgressWindow.BaseWindowHeight(
+                    Utilities.LineHeightOf(GameFont.Small),
+                    Utilities.LineHeightOf(GameFont.Medium)
+                )
+            );
 
     internal static ModContentPack? LoadingMod { get; set; }
 

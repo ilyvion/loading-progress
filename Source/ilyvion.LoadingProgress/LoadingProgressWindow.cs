@@ -22,22 +22,39 @@ internal sealed partial class LoadingProgressWindow
                 LoadingProgressMod.Settings.ShowLastLoadingTime,
                 LoadingProgressMod.Settings.LoadingTimeSampleCount > 0,
                 HasLastLoadAndHashChanged(),
-                TextureCache.IsCaching
+                TextureCache.IsCaching,
+                Utilities.LineHeightOf(GameFont.Small),
+                Utilities.LineHeightOf(GameFont.Medium)
             )
         );
+
+    /// <summary>
+    /// The height of a window showing a Medium title, a Small activity line and a progress bar,
+    /// as both this window and FasterGameLoadingProgressWindow start with.
+    /// </summary>
+    internal static float BaseWindowHeight(float smallLineHeight, float mediumLineHeight) =>
+        10f
+        + mediumLineHeight
+        + VerticalWidgetMargin
+        + smallLineHeight
+        + VerticalWidgetMargin
+        + ProgressBarHeight
+        + LoadingWindowBottomMargin;
 
     internal static float WindowHeight(
         bool showLastLoadingTime,
         bool showSampleCount,
         bool modHashChanged,
-        bool cachingTextures
+        bool cachingTextures,
+        float smallLineHeight,
+        float mediumLineHeight
     )
     {
-        var noteLineHeight = Text.LineHeightOf(GameFont.Small) + VerticalWidgetMargin;
-        var height = 110f;
+        var noteLineHeight = smallLineHeight + VerticalWidgetMargin;
+        var height = BaseWindowHeight(smallLineHeight, mediumLineHeight);
         if (showLastLoadingTime)
         {
-            height += 30f;
+            height += mediumLineHeight + VerticalWidgetMargin;
             if (showSampleCount)
             {
                 height += noteLineHeight;
