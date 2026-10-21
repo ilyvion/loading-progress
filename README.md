@@ -32,6 +32,22 @@ The mod is fully translatable. Since it loads very early on, it can't use the ga
 
 Want your translation added to this list? Release it as a standalone translation mod (i.e. a mod with only a `Languages` folder, not a copy of this entire mod plus the translation) and let us know, and it'll be added here.
 
+## Building from source
+
+Loading Progress is part of a family of mods that share build tooling. To build it, check out this sibling repository alongside this one (i.e. `../rimworld-utils` relative to this repo):
+
+- [`rimworld-utils`](https://github.com/ilyvion/rimworld-utils) — shared MSBuild props/targets and build scripts.
+
+The test projects are only built in the Debug configuration, and additionally need [`ilyvion.Laboratory`](https://github.com/ilyvion/ilyvion-laboratory) checked out at `../ilyvion.Laboratory` and [`SmashPhil-DevTools`](https://github.com/ilyvion/SmashPhil-DevTools) checked out at `../Third-Party/DevTools`.
+
+Then build with the .NET SDK (targets `net481` for RimWorld 1.6, `net10.0` for RimWorld 1.7):
+
+```sh
+dotnet build --configuration Release --property RimWorldVersion=1.7 ilyvion.LoadingProgress.sln
+```
+
+Or use `.vscode/build.sh`, which builds and copies the mod's files into your RimWorld `Mods` folder (see `.vscode/build_config.sh` for the target path).
+
 ## License
 
 Licensed under either of
