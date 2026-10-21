@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.21.0] - 2026-10-21
+
 ### Added
 
 - Compatibility with RimThemes: the loading window is now shown on top of RimThemes' loading screen instead of being hidden behind it, in the style of the active theme. On the main menu, RimThemes' theme selector button sits above the loading time in the bottom-right corner instead of covering it.
@@ -432,7 +434,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First implementation of the mod.
 
-[Unreleased]: https://github.com/ilyvion/loading-progress/compare/v0.20.1...HEAD
+[Unreleased]: https://github.com/ilyvion/loading-progress/compare/v0.21.0...HEAD
+[0.21.0]: https://github.com/ilyvion/loading-progress/compare/v0.20.1..v0.21.0
 [0.20.1]: https://github.com/ilyvion/loading-progress/compare/v0.20.0..v0.20.1
 [0.20.0]: https://github.com/ilyvion/loading-progress/compare/v0.19.1..v0.20.0
 [0.19.1]: https://github.com/ilyvion/loading-progress/compare/v0.19.0..v0.19.1
