@@ -32,6 +32,7 @@ The mod is fully translatable. Since it loads very early on, it can't use the ga
 
 - [Chinese](https://steamcommunity.com/sharedfiles/filedetails/?id=3542771983) by [大番薯之怒](https://steamcommunity.com/profiles/76561198293334177)
 - [Polish](https://steamcommunity.com/sharedfiles/filedetails/?id=3775645721) by [Drizzt](https://steamcommunity.com/id/drizztgaming4life)
+- [Russian](https://steamcommunity.com/sharedfiles/filedetails/?id=3830035919) by [Antyhc](https://github.com/Antyhc)
 
 Want your translation added to this list? Release it as a standalone translation mod (i.e. a mod with only a `Languages` folder, not a copy of this entire mod plus the translation) and let us know, and it'll be added here.
 
