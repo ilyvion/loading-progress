@@ -29,6 +29,7 @@ The mod is now fully translatable! Since we're loading very early on, we can't u
 [list]
 [*] [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3542771983]Chinese[/url] by [url=https://steamcommunity.com/profiles/76561198293334177]大番薯之怒[/url]
 [*] [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3775645721]Polish[/url] by [url=https://steamcommunity.com/id/drizztgaming4life]Drizzt[/url]
+[*] [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3830035919]Russian[/url] by [url=https://github.com/Antyhc]Antyhc[/url]
 [/list]
 Want your translation in this list? Release a translation mod (i.e. a mod with only a Languages folder, [i]not a copy of this entire mod + the translation[/i]) for this mod, and notify me of its existence, and I'll add it to the list. Please license your translation mod in such a way that someone else can take over if you are no longer interested in doing the work at a later date.
 
