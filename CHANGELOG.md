@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- With startup impact tracking on, a mod calling Multiplayer's parameterless 'MP.RegisterAll()' directly in its mod constructor ended up with none of its sync methods registered, without any error, which could cause desyncs in multiplayer.
+
 ## [0.21.0] - 2026-10-21
 
 ### Added

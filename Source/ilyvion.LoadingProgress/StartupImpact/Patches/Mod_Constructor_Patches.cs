@@ -1,3 +1,5 @@
+using System.Reflection.Emit;
+
 namespace ilyvion.LoadingProgress.StartupImpact.Patches;
 
 [HarmonyPatch]
@@ -27,6 +29,66 @@ internal static class Mod_Constructor_Patches
     }
 
     public static Assembly? _currentModAssembly;
+
+    private const string MultiplayerApiTypeName = "Multiplayer.API.MP";
+    private const string RegisterAllName = "RegisterAll";
+
+    internal static IEnumerable<CodeInstruction> Transpiler(
+        IEnumerable<CodeInstruction> instructions,
+        MethodBase original
+    ) =>
+        original.DeclaringType is { } constructorType
+            ? RedirectRegisterAll(instructions, constructorType, MultiplayerApiTypeName)
+            : instructions;
+
+    /// <summary>
+    /// Turns each call to the API's parameterless <c>RegisterAll()</c> into a call to its
+    /// <see cref="Assembly"/> overload, passing the assembly of <paramref name="constructorType"/>.
+    /// </summary>
+    /// <remarks>
+    /// That method registers the assembly of the method calling it, found by walking the stack,
+    /// and in a patched constructor that's Harmony's replacement, not the mod. The call site is
+    /// rewritten because patching the API method would run its class's static constructor, which
+    /// decides <c>MP.enabled</c> for good, before Multiplayer's assembly has loaded.
+    /// </remarks>
+    internal static IEnumerable<CodeInstruction> RedirectRegisterAll(
+        IEnumerable<CodeInstruction> instructions,
+        Type constructorType,
+        string apiTypeName
+    )
+    {
+        foreach (var instruction in instructions)
+        {
+            var overload =
+                instruction.operand is MethodInfo { Name: RegisterAllName, IsStatic: true } called
+                && called.DeclaringType?.FullName == apiTypeName
+                && called.GetParameters().Length == 0
+                    ? AccessTools.DeclaredMethod(
+                        called.DeclaringType,
+                        RegisterAllName,
+                        [typeof(Assembly)]
+                    )
+                    : null;
+            if (overload == null)
+            {
+                yield return instruction;
+                continue;
+            }
+
+            yield return new CodeInstruction(OpCodes.Ldtoken, constructorType)
+                .MoveLabelsFrom(instruction)
+                .MoveBlocksFrom(instruction);
+            yield return new CodeInstruction(
+                OpCodes.Call,
+                AccessTools.Method(typeof(Type), nameof(Type.GetTypeFromHandle))
+            );
+            yield return new CodeInstruction(
+                OpCodes.Callvirt,
+                AccessTools.PropertyGetter(typeof(Type), nameof(Type.Assembly))
+            );
+            yield return new CodeInstruction(OpCodes.Call, overload);
+        }
+    }
 
     internal static void Prefix(
         [HarmonyArgument(0)] ModContentPack modContentPack,

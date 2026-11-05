@@ -1,0 +1,19 @@
+<TestPlan>
+    <name>Multiplayer</name>
+    <jobs>
+        <li>
+            <name>Startup impact tracking with Multiplayer and Useful Marks</name>
+            <commandLineArgs>--test --where "class == MultiplayerIntegrationTests"</commandLineArgs>
+            <loadWithMods>
+                <li>brrainz.harmony</li>
+                <li>zetrith.prepatcher</li>
+                <li>ilyvion.laboratory</li>
+                <li>ilyvion.loadingprogress</li>
+                <li>ludeon.rimworld</li>
+                <li>rwmt.multiplayer</li>
+                <li>andromeda.usefulmarks</li>
+            </loadWithMods>
+            <timeOut>300000</timeOut>
+        </li>
+    </jobs>
+</TestPlan>
