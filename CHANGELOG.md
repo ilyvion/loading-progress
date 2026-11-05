@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.21.1] - 2026-11-05
+
 ### Fixed
 
 - With startup impact tracking on, a mod calling Multiplayer's parameterless 'MP.RegisterAll()' directly in its mod constructor ended up with none of its sync methods registered, without any error, which could cause desyncs in multiplayer.
@@ -438,7 +440,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First implementation of the mod.
 
-[Unreleased]: https://github.com/ilyvion/loading-progress/compare/v0.21.0...HEAD
+[Unreleased]: https://github.com/ilyvion/loading-progress/compare/v0.21.1...HEAD
+[0.21.1]: https://github.com/ilyvion/loading-progress/compare/v0.21.0..v0.21.1
 [0.21.0]: https://github.com/ilyvion/loading-progress/compare/v0.20.1..v0.21.0
 [0.20.1]: https://github.com/ilyvion/loading-progress/compare/v0.20.0..v0.20.1
 [0.20.0]: https://github.com/ilyvion/loading-progress/compare/v0.19.1..v0.20.0
